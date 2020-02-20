@@ -11,7 +11,7 @@
         limit 1
     </select>
 
-    <select id="getUnitVehicleList" parameterType="integer" resultType="com.zs.gms.entity.vehiclemanager.Vehicle">
+    <select id="getUnitVehicleList" parameterType="integer" resultType="com.zs.gms.entity.vehiclemanager.Barney">
         select *
         from t_task_rule tdt
                  left join t_vehicle tv on tdt.VEHICLEID = tv.VEHICLEID
@@ -28,7 +28,7 @@
         limit 1
     </select>
 
-    <select id="getVehiclesByUserId" parameterType="integer" resultType="com.zs.gms.entity.vehiclemanager.Vehicle">
+    <select id="getVehiclesByUserId" parameterType="integer" resultType="com.zs.gms.entity.vehiclemanager.Barney">
         select * from t_vehicle where VEHICLEID not in(
 select tv.VEHICLEID
         from t_vehicle tv

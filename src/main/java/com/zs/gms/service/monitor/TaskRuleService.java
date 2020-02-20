@@ -1,6 +1,6 @@
 package com.zs.gms.service.monitor;
 
-import com.zs.gms.entity.vehiclemanager.Vehicle;
+import com.zs.gms.entity.vehiclemanager.Barney;
 import com.zs.gms.entity.monitor.TaskRule;
 
 import java.util.List;
@@ -29,12 +29,12 @@ public interface TaskRuleService {
     /**
      * 获取指定调度单元车辆集合
      * */
-    public List<Vehicle> getUnitVehicleList(Integer unitId);
+    public List<Barney> getUnitVehicleList(Integer unitId);
 
     /**
      * 获取指定用户已分配车辆
      * */
-    public List<Vehicle> getVehiclesByUserId(Integer userId);
+    public List<Barney> getVehiclesByUserId(Integer userId);
 
     /**
      * 获取装卸调度单元最新规则

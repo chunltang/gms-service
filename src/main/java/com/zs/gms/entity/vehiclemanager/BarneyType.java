@@ -16,7 +16,7 @@ import java.io.Serializable;
 @Data
 @TableName(value = "t_vehicle_type")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class VehicleType implements Serializable {
+public class BarneyType implements Serializable {
     private static final long serialVersionUID = 8661218069023856454L;
 
     @TableId(value = "VEHICLETYPEID",type=IdType.AUTO)

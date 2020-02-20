@@ -4,7 +4,7 @@ import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.entity.RedisKey;
 import com.zs.gms.common.message.MessageEntry;
-import com.zs.gms.service.vehiclemanager.VehicleService;
+import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.common.configure.EventPublisher;
 import com.zs.gms.common.entity.MessageEvent;
 import com.zs.gms.common.interfaces.RedisListener;
@@ -36,7 +36,7 @@ public class LiveVapHandle implements RedisListener {
 
     private static ListOperations<String, Object> listOperations;
 
-    private static VehicleService vehicleService;
+    private static BarneyService barneyService;
 
     private static LiveInfoService liveInfoService;
 
@@ -44,7 +44,7 @@ public class LiveVapHandle implements RedisListener {
 
     static {
         stateProperties = SpringContextUtil.getBean(StateProperties.class);
-        vehicleService = SpringContextUtil.getBean(VehicleService.class);
+        barneyService = SpringContextUtil.getBean(BarneyService.class);
         liveInfoService = SpringContextUtil.getBean(LiveInfoService.class);
         listOperations = RedisService.listOperations(RedisService.getTemplate(GmsConstant.MONITOR_DB));
     }
@@ -60,7 +60,7 @@ public class LiveVapHandle implements RedisListener {
     public static void handleVehMessage(String key) {
         String prefix = key.substring(0, key.lastIndexOf("_") + 1);
         String vehicleNo = subVehicleNo(key);
-        Integer userId = vehicleService.getUserIdByVehicleNo(Integer.valueOf(vehicleNo));
+        Integer userId = barneyService.getUserIdByVehicleNo(Integer.valueOf(vehicleNo));
         if (userId == null) {
             log.error("不存在的车辆编号或者车辆没有分配");
             return;

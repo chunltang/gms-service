@@ -2,32 +2,32 @@ package com.zs.gms.service.vehiclemanager.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.zs.gms.entity.vehiclemanager.VehicleVehicleType;
-import com.zs.gms.mapper.vehiclemanager.VehicleVehicleTypeMapper;
-import com.zs.gms.service.vehiclemanager.VehicleVehicleTypeService;
+import com.zs.gms.entity.vehiclemanager.BarneyVehicleType;
+import com.zs.gms.mapper.vehiclemanager.BarneyVehicleTypeMapper;
+import com.zs.gms.service.vehiclemanager.BarneyVehicleTypeService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS,readOnly = true,rollbackFor = Exception.class)
-public class VehicleVehicleTypeServiceImpl extends ServiceImpl<VehicleVehicleTypeMapper, VehicleVehicleType> implements VehicleVehicleTypeService {
+public class BarneyVehicleTypeServiceImpl extends ServiceImpl<BarneyVehicleTypeMapper, BarneyVehicleType> implements BarneyVehicleTypeService {
 
     @Override
     @Transactional
-    public void addVehicleVehicleType(VehicleVehicleType vehicleVehicleType) {
-        this.save(vehicleVehicleType);
+    public void addVehicleVehicleType(BarneyVehicleType barneyVehicleType) {
+        this.save(barneyVehicleType);
     }
 
     @Override
     @Transactional
     public void deteleByVehicleId(long vehicleId) {
-        this.remove(new LambdaQueryWrapper<VehicleVehicleType>().eq(VehicleVehicleType::getVehicleId,vehicleId));
+        this.remove(new LambdaQueryWrapper<BarneyVehicleType>().eq(BarneyVehicleType::getVehicleId,vehicleId));
     }
 
     @Override
     @Transactional
     public void deteleByVehicleIdS(String[] vehicleIds) {
-        this.remove(new LambdaQueryWrapper<VehicleVehicleType>().eq(VehicleVehicleType::getVehicleId,vehicleIds));
+        this.remove(new LambdaQueryWrapper<BarneyVehicleType>().eq(BarneyVehicleType::getVehicleId,vehicleIds));
     }
 }

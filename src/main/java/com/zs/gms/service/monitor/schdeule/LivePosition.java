@@ -57,7 +57,7 @@ public class LivePosition {
             position.setVehicleId(vehicleId);
             position.setLastLiveInfo(liveInfo);
             position.setMapId(mapId);
-            position.setLastDate(System.currentTimeMillis()/1000);
+            position.setLastDate(System.currentTimeMillis());
             MapDataUtil.getCoordinateArea(position);
             lastPositionMap.put(vehicleId,position);
         }

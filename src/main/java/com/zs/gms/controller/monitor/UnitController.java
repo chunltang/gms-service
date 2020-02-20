@@ -1,8 +1,8 @@
 package com.zs.gms.controller.monitor;
 
 import com.zs.gms.common.utils.GmsUtil;
-import com.zs.gms.entity.vehiclemanager.Vehicle;
-import com.zs.gms.service.vehiclemanager.VehicleService;
+import com.zs.gms.entity.vehiclemanager.Barney;
+import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.common.annotation.Log;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsResponse;
@@ -41,7 +41,7 @@ public class UnitController extends BaseController {
 
     @Autowired
     @Lazy
-    private VehicleService vehicleService;
+    private BarneyService barneyService;
 
 
     @Log("获取调度单元列表")
@@ -71,8 +71,8 @@ public class UnitController extends BaseController {
             throw  new GmsException("参数异常");
         }
         try {
-            List<Vehicle> vehicles = taskRuleService.getUnitVehicleList(unitId);
-            return new GmsResponse().data(vehicles).message("获取指定调度单元车辆成功").success();
+            List<Barney> barneys = taskRuleService.getUnitVehicleList(unitId);
+            return new GmsResponse().data(barneys).message("获取指定调度单元车辆成功").success();
         }catch (Exception e){
             String message="获取指定调度单元车辆失败";
             log.error(message,e);
@@ -88,8 +88,8 @@ public class UnitController extends BaseController {
             throw  new GmsException("参数异常");
         }
         try {
-            List<Vehicle> vehicles = vehicleService.getVehicleListByUserId(userId);
-            return new GmsResponse().data(vehicles).message("获取指定调度员所有车辆成功").success();
+            List<Barney> barneys = barneyService.getVehicleListByUserId(userId);
+            return new GmsResponse().data(barneys).message("获取指定调度员所有车辆成功").success();
         }catch (Exception e){
             String message="获取指定调度员所有车辆失败";
             log.error(message,e);
@@ -105,8 +105,8 @@ public class UnitController extends BaseController {
             throw  new GmsException("参数异常");
         }
         try {
-            List<Vehicle> vehicles = taskRuleService.getVehiclesByUserId(userId);
-            return new GmsResponse().data(vehicles).message("获取指定调度员所有空闲车辆成功").success();
+            List<Barney> barneys = taskRuleService.getVehiclesByUserId(userId);
+            return new GmsResponse().data(barneys).message("获取指定调度员所有空闲车辆成功").success();
         }catch (Exception e){
             String message="获取指定调度员所有空闲车辆失败";
             log.error(message,e);

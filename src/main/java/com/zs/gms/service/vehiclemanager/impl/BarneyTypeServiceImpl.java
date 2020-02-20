@@ -3,9 +3,9 @@ package com.zs.gms.service.vehiclemanager.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.zs.gms.entity.vehiclemanager.VehicleType;
+import com.zs.gms.entity.vehiclemanager.BarneyType;
 import com.zs.gms.mapper.vehiclemanager.VehicleTypeMapper;
-import com.zs.gms.service.vehiclemanager.VehicleTypeService;
+import com.zs.gms.service.vehiclemanager.BarneyTypeService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -17,15 +17,15 @@ import java.util.List;
 @Service
 @Transactional(propagation = Propagation.SUPPORTS,readOnly = true,rollbackFor = Exception.class)
 @Lazy
-public class VehicleTypeServiceImpl extends ServiceImpl<VehicleTypeMapper, VehicleType> implements VehicleTypeService {
+public class BarneyTypeServiceImpl extends ServiceImpl<VehicleTypeMapper, BarneyType> implements BarneyTypeService {
 
     /**
      * 添加车辆类型
      * */
     @Override
     @Transactional
-    public void addVehicleType(VehicleType vehicleType) {
-        this.save(vehicleType);
+    public void addVehicleType(BarneyType barneyType) {
+        this.save(barneyType);
     }
 
     /**
@@ -33,8 +33,8 @@ public class VehicleTypeServiceImpl extends ServiceImpl<VehicleTypeMapper, Vehic
      * */
     @Override
     @Transactional
-    public List<VehicleType> getVehicleTypeList() {
-        return this.list(new LambdaQueryWrapper<VehicleType>().orderByDesc(VehicleType::getVehicleTypeId));
+    public List<BarneyType> getVehicleTypeList() {
+        return this.list(new LambdaQueryWrapper<BarneyType>().orderByDesc(BarneyType::getVehicleTypeId));
     }
 
     /**
@@ -42,8 +42,8 @@ public class VehicleTypeServiceImpl extends ServiceImpl<VehicleTypeMapper, Vehic
      * */
     @Override
     @Transactional
-    public void updateVehicleType(VehicleType vehicleType) {
-        this.updateById(vehicleType);
+    public void updateVehicleType(BarneyType barneyType) {
+        this.updateById(barneyType);
     }
 
     /**

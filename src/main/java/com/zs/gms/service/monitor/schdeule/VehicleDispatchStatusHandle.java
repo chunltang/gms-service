@@ -3,8 +3,8 @@ package com.zs.gms.service.monitor.schdeule;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.enums.monitor.Desc;
 import com.zs.gms.enums.monitor.DispatchStateEnum;
-import com.zs.gms.service.vehiclemanager.VehicleService;
-import com.zs.gms.service.vehiclemanager.impl.VehicleServiceImpl;
+import com.zs.gms.service.vehiclemanager.BarneyService;
+import com.zs.gms.service.vehiclemanager.impl.BarneyServiceImpl;
 import com.zs.gms.common.utils.LimitQueue;
 import com.zs.gms.common.utils.SpringContextUtil;
 import com.zs.gms.entity.monitor.DispatchStatus;
@@ -24,13 +24,13 @@ public class VehicleDispatchStatusHandle extends AbstractVehicleStatusHandle {
     private final static Integer LIMIT_QUEUE_SIZE = 10;
     private Map<Integer, LimitQueue<DispatchStatus>> historyStatusMap;
     private DispatchStatusService dispatchStatusService;
-    private VehicleService vehicleService;
+    private BarneyService barneyService;
 
     public VehicleDispatchStatusHandle() {
         super();
         historyStatusMap = new ConcurrentHashMap<>();
         dispatchStatusService = SpringContextUtil.getBean(DispatchStatusServiceImpl.class);
-        vehicleService = SpringContextUtil.getBean(VehicleServiceImpl.class);
+        barneyService = SpringContextUtil.getBean(BarneyServiceImpl.class);
     }
 
     @Override
@@ -56,7 +56,7 @@ public class VehicleDispatchStatusHandle extends AbstractVehicleStatusHandle {
     private DispatchStatus getBean(VehicleStatus vehicleStatus){
         DispatchStatus dispatchStatus = new DispatchStatus();
         Integer vehicleId = vehicleStatus.getVehicleId();
-        Integer userId = vehicleService.getUserIdByVehicleNo(vehicleId);
+        Integer userId = barneyService.getUserIdByVehicleNo(vehicleId);
         dispatchStatus.setCreateTime(vehicleStatus.getCreateTime());
         dispatchStatus.setStatus((DispatchStateEnum)(vehicleStatus.getStatus()));
         dispatchStatus.setVehicleId(vehicleId);

@@ -4,6 +4,7 @@ import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.service.websocket.impl.HandleCenter;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 
 import java.util.Random;
 

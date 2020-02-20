@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zs.gms.common.utils.GmsUtil;
-import com.zs.gms.entity.vehiclemanager.Vehicle;
+import com.zs.gms.entity.vehiclemanager.Barney;
 import com.zs.gms.entity.monitor.TaskRule;
 import com.zs.gms.mapper.monitor.TaskRuleMapper;
 import com.zs.gms.service.monitor.TaskRuleService;
@@ -79,13 +79,13 @@ public class TaskRuleServiceImpl extends ServiceImpl<TaskRuleMapper, TaskRule> i
      * */
     @Override
     @Transactional
-    public List<Vehicle> getUnitVehicleList(Integer unitId) {
+    public List<Barney> getUnitVehicleList(Integer unitId) {
         return this.baseMapper.getUnitVehicleList(unitId);
     }
 
     @Override
     @Transactional
-    public List<Vehicle> getVehiclesByUserId(Integer userId) {
+    public List<Barney> getVehiclesByUserId(Integer userId) {
         return this.baseMapper.getVehiclesByUserId(userId);
     }
 
