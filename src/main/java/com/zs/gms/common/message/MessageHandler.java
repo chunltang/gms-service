@@ -137,10 +137,22 @@ public class MessageHandler {
         }
     }
 
-
     private void handleResult(String message, MessageEntry entry) {//处理非前端请求结果
         JSONObject jsonObject = JSONObject.parseObject(message);
-        handleMapData(jsonObject,entry);
+        if (!jsonObject.isEmpty() && jsonObject.containsKey(RESPONSE_MESSAGE_FIELD)) {//有返回数据
+            String returnData = jsonObject.getString(RESPONSE_MESSAGE_FIELD);
+            if (!StringUtils.isEmpty(returnData)) {
+                try {
+                    JSONObject json = JSONObject.parseObject(returnData);
+                    if (json.containsKey(RESPONSE_DATA_FIELD)) {
+                        JSONObject jsonObj = json.getJSONObject(RESPONSE_DATA_FIELD);
+                        entry.setReturnData(jsonObj.toJSONString());
+                    }
+                }catch (Exception e) {
+                    log.error("非JSON格式数据");
+                }
+            }
+        }
         if (jsonObject.containsKey(RESPONSE_STATUS_FIELD)) {
             String status = jsonObject.getString(RESPONSE_STATUS_FIELD);
             switch (status) {
