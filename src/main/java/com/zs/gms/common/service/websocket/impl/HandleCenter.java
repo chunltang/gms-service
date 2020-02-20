@@ -36,7 +36,7 @@ public class HandleCenter extends AbstractFunctionHandler {
 
     private ScheduledFuture future;
 
-    private final  static Object lock = new Object();
+    private final static Object lock = new Object();
 
     private HandleCenter() {
         handles = new HashMap<>();
@@ -173,7 +173,7 @@ public class HandleCenter extends AbstractFunctionHandler {
             FunctionEnum anEnum = FunctionEnum.getFunction(params.get(FUNCTION_FIELD).toString());
             if (anEnum != null) {
                 handles.get(anEnum).addFunction(params);
-                log.debug("websocket订阅,{}",anEnum.name());
+                log.debug("websocket订阅,{}", anEnum.name());
             }
         }
     }
@@ -227,12 +227,12 @@ public class HandleCenter extends AbstractFunctionHandler {
     }
 
     /**
-     * 指定车辆
+     * 指定用户和sessionKey推送
      */
-    public void sendMessage(String key, String message, FunctionEnum nEnum, Integer vehicleId) {
+    public void sendMessage(String key, String message, FunctionEnum nEnum, Integer sessionKey) {
         if (userSessionCache.containsKey(key)) {
             FunctionHandler handler = handles.get(nEnum);
-            Set<Session> sessions = handler.getSession(vehicleId);
+            Set<Session> sessions = handler.getSession(sessionKey);
             if (CollectionUtils.isNotEmpty(sessions)) {
                 for (Session session : sessions) {
                     handler.sendMessage(session, getResult(message, nEnum.name()));
@@ -242,17 +242,30 @@ public class HandleCenter extends AbstractFunctionHandler {
     }
 
     /**
+     * 指定sessionKey发送
+     */
+    public void sendMessage(String message, FunctionEnum nEnum, Integer sessionKey) {
+        FunctionHandler handler = handles.get(nEnum);
+        Set<Session> sessions = handler.getSession(sessionKey);
+        if (CollectionUtils.isNotEmpty(sessions)) {
+            for (Session session : sessions) {
+                handler.sendMessage(session, getResult(message, nEnum.name()));
+            }
+        }
+    }
+
+    /**
      * 指定类型发送
-     * */
+     */
     public void sendMessage(String message, FunctionEnum nEnum) {
-            FunctionHandler handler = handles.get(nEnum);
-            handler.sendMessage(null, message);
+        FunctionHandler handler = handles.get(nEnum);
+        handler.sendMessage(null, message);
     }
 
     /**
      * 是否有session可以发送
      */
-    public boolean isNeed(FunctionEnum nEnum,Object ...params) {
+    public boolean isNeed(FunctionEnum nEnum, Object... params) {
         if (nEnum != null && handles.containsKey(nEnum)) {
             return handles.get(nEnum).isNeed(params);
         }

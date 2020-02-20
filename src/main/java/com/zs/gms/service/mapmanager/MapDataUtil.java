@@ -11,17 +11,22 @@ import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.message.MessageInterface;
 import com.zs.gms.common.message.MessageResult;
 import com.zs.gms.common.service.RedisService;
+import com.zs.gms.common.service.websocket.FunctionEnum;
+import com.zs.gms.common.service.websocket.WsUtil;
 import com.zs.gms.common.service.websocket.impl.HandleCenter;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.mapmanager.Point;
 import com.zs.gms.entity.mapmanager.SemiStatic;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
+import com.zs.gms.service.monitor.schdeule.LivePosition;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class MapDataUtil {
 
     /**
@@ -75,15 +80,12 @@ public class MapDataUtil {
     /**
      * 判断位置在地图的那个区域
      * */
-    public static void getCoordinateArea(Integer mapId,Point point,Integer vehicleId){
-        if(!GmsUtil.allObjNotNull(mapId,point)){
-            return;
-        }
+    public static void getCoordinateArea(LivePosition.Position position){
         Map<String,Object> params=new HashMap<>();
-        params.put("mapId",mapId);
-        params.put("x",point.getX());
-        params.put("y",point.getY());
-        params.put("z",point.getZ());
+        params.put("mapId",position.getMapId());
+        params.put("x",position.getPoint().getX());
+        params.put("y",position.getPoint().getY());
+        params.put("z",0);
         MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
         entry.setAfterHandle(()->{
             if(MessageResult.SUCCESS.equals(entry.getHandleResult())){
@@ -93,7 +95,13 @@ public class MapDataUtil {
                     Map map = GmsUtil.toObj(returnData,HashMap.class);
                     if(null!=map && map.containsKey(key)){
                         Object value = map.get(key);
-                        RedisService.set(GmsConstant.KEEP_DB,RedisKey.VEHICLE_POSITION_PREFIX+vehicleId,value);
+                        RedisService.set(GmsConstant.KEEP_DB,RedisKey.VEHICLE_POSITION_PREFIX+position.getVehicleId(),value);
+                        Integer areaId = GmsUtil.typeTransform(value, Integer.class);
+                        position.setLastArea(areaId);
+                        log.debug("车{}所在地图区域:{}",position.getVehicleId(),value);
+                        if(WsUtil.isNeed(FunctionEnum.excavator,value)){
+                            WsUtil.sendMessage(GmsUtil.toJson(position),FunctionEnum.excavator,areaId);
+                        }
                     }
                 }
             }

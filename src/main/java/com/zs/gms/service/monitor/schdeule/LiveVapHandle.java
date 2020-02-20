@@ -70,6 +70,7 @@ public class LiveVapHandle implements RedisListener {
                 //车辆基本信息
                 LiveInfo liveInfo = GmsUtil.getMessage(key,LiveInfo.class);
                 StatusMonitor.getInstance().delegateStatus(liveInfo);
+                LivePosition.setPosition(liveInfo);
                 WsUtil.sendMessage(userId.toString(), GmsUtil.toJsonIEnum(liveInfo), FunctionEnum.console, Integer.valueOf(vehicleNo));
                 WsUtil.sendMessage(userId.toString(), GmsUtil.toJsonIEnum(liveInfo), FunctionEnum.vehicle);
                 break;

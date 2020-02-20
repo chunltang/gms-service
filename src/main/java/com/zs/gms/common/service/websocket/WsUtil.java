@@ -8,8 +8,12 @@ public class WsUtil {
         HandleCenter.getInstance().sendMessage(key,message,nEnum);
     }
 
-    public static void sendMessage(String key, String message, FunctionEnum nEnum, Integer vehicleId){
-        HandleCenter.getInstance().sendMessage(key,message,nEnum,vehicleId);
+    public static void sendMessage(String key, String message, FunctionEnum nEnum, Integer sessionKey){
+        HandleCenter.getInstance().sendMessage(key,message,nEnum,sessionKey);
+    }
+
+    public static void sendMessage(String message, FunctionEnum nEnum, Integer sessionKey){
+        HandleCenter.getInstance().sendMessage(message,nEnum,sessionKey);
     }
 
     public static void sendMessage(String message, FunctionEnum nEnum){

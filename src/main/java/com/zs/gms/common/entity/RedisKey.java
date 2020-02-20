@@ -21,7 +21,7 @@ public class RedisKey {
 
     public final static String DISPATCH_SERVER_INIT = "dispatch_server_init";//监听调度初始化键
 
-
+    public final static String GPS_PREFIX = "gps_";//监听调度初始化键
 
     /**==================map====================*/
     public final static String ACTIVITY_MAP = "activity_map_id";//活动地图

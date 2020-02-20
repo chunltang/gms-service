@@ -12,12 +12,10 @@ import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.mapmanager.SemiStatic;
 import com.zs.gms.entity.mineralmanager.Mineral;
 import com.zs.gms.entity.monitor.DispatchTask;
-import com.zs.gms.entity.monitor.TaskAreaState;
 import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
 import com.zs.gms.enums.messagebox.ApproveType;
-import com.zs.gms.enums.monitor.TaskTypeEnum;
 import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.messagebox.ApproveService;
 import com.zs.gms.service.mineralmanager.MineralService;
@@ -250,5 +248,4 @@ public class ExcavatorController extends BaseController {
         }
         return null;
     }
-
 }
