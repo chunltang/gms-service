@@ -24,23 +24,7 @@
             <pattern>${log.pattern}</pattern>
         </encoder>
         <filter class="ch.qos.logback.classic.filter.LevelFilter"><!--表示只接受info级别的日志-->
-            <level>INFO</level>
-            <onMatch>ACCEPT</onMatch>
-            <onMismatch>DENY</onMismatch>
-        </filter>
-    </appender>
-
-    <appender name="file_debug" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${log.path}/debug/debug.%d{yyyy-MM-dd}.log</fileNamePattern>
-            <MaxHistory>${log.maxHistory}</MaxHistory>
-        </rollingPolicy>
-        <encoder>
-            <charset>UTF-8</charset>
-            <pattern>${log.pattern}</pattern>
-        </encoder>
-        <filter class="ch.qos.logback.classic.filter.LevelFilter"><!--表示只接受info级别的日志-->
-            <level>DEBUG</level>
+            <level>INFO,DEBUG</level>
             <onMatch>ACCEPT</onMatch>
             <onMismatch>DENY</onMismatch>
         </filter>
@@ -66,7 +50,6 @@
 
     <root level="info">
         <appender-ref ref="file_info" />
-        <appender-ref ref="file_debug" />
         <appender-ref ref="file_error" />
     </root>
 </configuration>

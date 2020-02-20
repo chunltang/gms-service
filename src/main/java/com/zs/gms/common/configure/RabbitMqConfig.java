@@ -123,7 +123,7 @@ public class RabbitMqConfig {
                 String s = new String(message.getBody());
                 log.error("回退消息:{}",s);
             }else if(ack){
-                log.info("----------mq消息发送成功------------");
+                log.debug("----------mq消息发送成功------------");
             }else if(!ack){
                 log.error("----------mq消息发送失败------------");
             }

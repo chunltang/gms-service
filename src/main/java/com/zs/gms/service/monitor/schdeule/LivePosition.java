@@ -5,6 +5,8 @@ import com.sun.org.apache.bcel.internal.generic.RETURN;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.RedisKey;
 import com.zs.gms.common.service.RedisService;
+import com.zs.gms.common.service.websocket.FunctionEnum;
+import com.zs.gms.common.service.websocket.WsUtil;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.mapmanager.Point;
 import com.zs.gms.entity.monitor.LiveInfo;
@@ -26,7 +28,7 @@ public class LivePosition {
     /**
      * 过期时间
      * */
-    private static final long expire=5;
+    private static final long expire=1000;
 
     private static LivePosition instance = new LivePosition();
 
@@ -57,9 +59,11 @@ public class LivePosition {
             position.setVehicleId(vehicleId);
             position.setLastLiveInfo(liveInfo);
             position.setMapId(mapId);
-            position.setLastDate(System.currentTimeMillis()/1000);
-            MapDataUtil.getCoordinateArea(position);
+            position.setLastDate(System.currentTimeMillis());
             lastPositionMap.put(vehicleId,position);
+            if(WsUtil.isNeed(FunctionEnum.excavator)){
+                MapDataUtil.getCoordinateArea(position);
+            }
         }
     }
 
@@ -91,17 +95,32 @@ public class LivePosition {
     @Data
     public static class Position{
 
+        /**
+         * 地图id
+         * */
         private Integer mapId;
 
+        /**
+         * 车辆编号
+         * */
         private Integer vehicleId;
 
+        /**
+         * 当前位置区域
+         * */
         private Integer lastArea;
 
         @JsonIgnore
         private LiveInfo lastLiveInfo;
 
+        /**
+         * 车辆位置
+         * */
         private Point point;
 
+        /**
+         * 获取时间
+         * */
         private long lastDate;
     }
 }

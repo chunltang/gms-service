@@ -87,6 +87,7 @@ public class MapDataUtil {
         params.put("y",position.getPoint().getY());
         params.put("z",0);
         MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
+        entry.setHttp(false);
         entry.setAfterHandle(()->{
             if(MessageResult.SUCCESS.equals(entry.getHandleResult())){
                 String returnData = entry.getReturnData();
@@ -95,7 +96,6 @@ public class MapDataUtil {
                     Map map = GmsUtil.toObj(returnData,HashMap.class);
                     if(null!=map && map.containsKey(key)){
                         Object value = map.get(key);
-                        RedisService.set(GmsConstant.KEEP_DB,RedisKey.VEHICLE_POSITION_PREFIX+position.getVehicleId(),value);
                         Integer areaId = GmsUtil.typeTransform(value, Integer.class);
                         position.setLastArea(areaId);
                         log.debug("车{}所在地图区域:{}",position.getVehicleId(),value);
