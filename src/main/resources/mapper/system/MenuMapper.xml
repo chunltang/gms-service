@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zs.gms.mapper.system.MenuMapper">
+    <resultMap id="menuMap" type="com.zs.gms.entity.system.Menu">
+        <result column="ROLEID" jdbcType="DECIMAL" property="menuId"/>
+        <result column="POWERLABEL" jdbcType="VARCHAR" property="powerLabel"/>
+        <result column="ORDERNUM" jdbcType="DECIMAL" property="orderNum"/>
+        <result column="PARENTID" jdbcType="DECIMAL" property="parentId"/>
+        <result column="POWERTYPE" jdbcType="CHAR" property="powerType"/>
+        <result column="ICON" jdbcType="VARCHAR" property="icon"/>
+        <result column="URL" jdbcType="VARCHAR" property="url"/>
+        <result column="POWERNAME" jdbcType="VARCHAR" property="powerName"/>
+    </resultMap>
+
+    <select id="findUserPermissions" parameterType="string" resultMap="menuMap">
+        SELECT se.*
+        from sys_menu se
+                 left join sys_role_menu srm on (se.MENUID = srm.MENUID)
+                 left join sys_role sr on (sr.ROLEID = srm.ROLEID)
+                 left join sys_user_role sur on (sur.ROLEID = sr.ROLEID)
+                 left join sys_user su on (su.USERID = sur.USERID)
+        where su.USERNAME = #{userName}
+    </select>
+</mapper>

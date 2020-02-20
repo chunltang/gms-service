@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>欢迎登陆</title>
+    <script src="http://how2j.cn/study/jquery.min.js"></script>
+</head>
+<body>
+登陆成功！
+<button onclick="send()">发送</button>
+</body>
+<script>
+    function send() {
+        $.ajax({
+            type:"post",
+            url:"http://169.254.143.139:8081/index",
+            dataType:"json",
+            async:true,
+            success:function (data) {
+                console.log(data)
+            }
+        })
+    }
+</script>
+</html>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zs.gms.mapper.system.UserMapper">
+    <sql id="findUserListSql">
+        select su.USERID,
+        su.userName,
+        '***' password,
+        su.theme,
+        su.avatar,
+        sr.roleId,
+        sr.roleName
+        from sys_user su
+        left join sys_user_role sur on (su.USERID = sur.USERID)
+        left join sys_role sr on (sr.ROLEID = sur.ROLEID)
+        where 1=1
+        <if test="user.userName!=null and user.userName!=''">
+            and su.USERNAME=#{user.userName}
+        </if>
+        <if test="user.userId!=null and user.userId!=''">
+            and su.USERID=#{user.userId}
+        </if>
+    </sql>
+
+    <select id="findUserByName" parameterType="string" resultType="com.zs.gms.entity.system.User">
+        select su.USERID,
+               su.userName,
+               su.password,
+               su.theme,
+               sr.roleId,
+               sr.roleName,
+               sr.roleSign
+        from sys_user su
+                 left join sys_user_role sur on (su.USERID = sur.USERID)
+                 left join sys_role sr on (sr.ROLEID = sur.ROLEID)
+        where su.USERNAME = #{userName}
+    </select>
+
+    <select id="findUserListPage" parameterType="com.zs.gms.entity.system.User"
+            resultType="com.zs.gms.entity.system.User">
+        <include refid="findUserListSql"/>
+    </select>
+
+    <select id="getUsersByRoleId" parameterType="integer" resultType="com.zs.gms.entity.system.User">
+        select su.USERID,
+               su.userName,
+               su.password,
+               su.theme,
+               sr.roleId,
+               sr.roleName
+               from sys_user su
+        left join sys_user_role sur on su.USERID=sur.USERID
+        left join sys_role sr on sr.ROLEID=sur.ROLEID
+        where sr.ROLEID=#{roleId}
+    </select>
+
+    <select id="getUserById" parameterType="integer" resultType="com.zs.gms.entity.system.User">
+        select su.USERID,
+               su.userName,
+               su.password,
+               su.theme,
+               sr.roleSign,
+               sr.roleId,
+               sr.roleName
+               from sys_user su
+        left join sys_user_role sur on su.USERID=sur.USERID
+        left join sys_role sr on sr.ROLEID=sur.ROLEID
+        where su.USERID=#{userId}
+
+    </select>
+
+    <select id="getUsersByRoleSign" parameterType="string" resultType="com.zs.gms.entity.system.User">
+        select su.USERID,
+               su.userName,
+               sr.roleSign,
+			   sr.ROLEID
+               from sys_user su
+        INNER join sys_user_role sur on su.USERID=sur.USERID
+        INNER join sys_role sr on sr.ROLEID=sur.ROLEID
+        where sr.roleSign=#{roleSign}
+    </select>
+</mapper>

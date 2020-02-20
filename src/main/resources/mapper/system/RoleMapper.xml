@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zs.gms.mapper.system.RoleMapper">
+    <resultMap id="roleMap" type="com.zs.gms.entity.system.Role">
+        <result column="ROLEID" jdbcType="DECIMAL" property="roleId"/>
+        <result column="ROLENAME" jdbcType="VARCHAR" property="roleName"/>
+        <result column="ROLEDESC" jdbcType="VARCHAR" property="roleDesc"/>
+    </resultMap>
+
+    <select id="findRolesByUserName" parameterType="string" resultMap="roleMap">
+        SELECT ro.*
+        from sys_role ro
+                 left join sys_user_role ur on (ro.ROLEID = ur.ROLEID)
+                 left join sys_user us on (us.USERID = ur.USERID)
+        where us.USERNAME = #{userName}
+    </select>
+
+    <select id="findRoles" resultType="com.zs.gms.entity.system.Role">
+        SELECT ro.ROLEID,
+               ro.ROLENAME,
+               ro.ROLEDESC,
+               GROUP_CONCAT(ur.MENUID)  menuIds,
+               GROUP_CONCAT(sm.MENUNAME) menuNames
+        from sys_role ro
+                 left join sys_role_menu ur on (ro.ROLEID = ur.ROLEID)
+                 left join sys_menu sm on (ur.MENUID = sm.MENUID)
+        group by ro.ROLEID,
+                 ro.ROLENAME,
+                 ro.ROLEDESC
+    </select>
+
+    <select id="getMenusByRoleId" parameterType="integer" resultType="com.zs.gms.entity.system.Menu">
+        SELECT sm.*
+        from sys_role ro
+                 inner join sys_role_menu ur on (ro.ROLEID = ur.ROLEID)
+                 inner join sys_menu sm on (ur.MENUID = sm.MENUID)
+        where ro.ROLEID=#{roleId}
+    </select>
+</mapper>
