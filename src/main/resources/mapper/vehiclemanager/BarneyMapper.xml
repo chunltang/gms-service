@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.zs.gms.mapper.vehiclemanager.VehicleMapper">
+<mapper namespace="com.zs.gms.mapper.vehiclemanager.BarneyMapper">
 
     <sql id="findVehicleList">
         select tv.*, tvt.VEHICLETYPE, tvt.VEHICLESPECIFICATION, tvt.VEHICLETON,tvtvt.VEHICLETYPEID, tvt.VEHICLEICON,
@@ -11,20 +11,20 @@
         left join t_user_vehicle tuv on (tv.VEHICLEID = tuv.VEHICLEID)
         left join sys_user su on (tuv.USERID = su.USERID)
         where 1=1
-        <if test="vehicle.userId!=null and vehicle.userId!=''">
-            and su.USERID=#{vehicle.userId}
+        <if test="barney.userId!=null and barney.userId!=''">
+            and su.USERID=#{barney.userId}
         </if>
-        <if test="vehicle.vehicleTypeId!=null and vehicle.vehicleTypeId!=''">
-            and tvt.VEHICLETYPEID=#{vehicle.vehicleTypeId}
+        <if test="barney.vehicleTypeId!=null and barney.vehicleTypeId!=''">
+            and tvt.VEHICLETYPEID=#{barney.vehicleTypeId}
         </if>
     </sql>
-    <select id="findVehicleListPage" parameterType="com.zs.gms.entity.vehiclemanager.Vehicle"
-            resultType="com.zs.gms.entity.vehiclemanager.Vehicle">
+    <select id="findVehicleListPage" parameterType="com.zs.gms.entity.vehiclemanager.Barney"
+            resultType="com.zs.gms.entity.vehiclemanager.Barney">
         <include refid="findVehicleList"></include>
     </select>
 
-    <select id="findVehicleList" parameterType="com.zs.gms.entity.vehiclemanager.Vehicle"
-            resultType="com.zs.gms.entity.vehiclemanager.Vehicle">
+    <select id="findVehicleList" parameterType="com.zs.gms.entity.vehiclemanager.Barney"
+            resultType="com.zs.gms.entity.vehiclemanager.Barney">
         <include refid="findVehicleList"></include>
     </select>
 

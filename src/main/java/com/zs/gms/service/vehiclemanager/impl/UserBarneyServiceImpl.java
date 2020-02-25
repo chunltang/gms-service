@@ -5,8 +5,8 @@ import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.entity.vehiclemanager.UserVehicle;
-import com.zs.gms.mapper.vehiclemanager.UserVehicleMapper;
-import com.zs.gms.service.vehiclemanager.UserVehicleService;
+import com.zs.gms.mapper.vehiclemanager.UserBarneyMapper;
+import com.zs.gms.service.vehiclemanager.UserBarneyService;
 import com.zs.gms.common.service.RedisService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.cache.annotation.CacheEvict;
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED,readOnly = true,rollbackFor = Exception.class)
-public class UserVehicleServiceImpl extends ServiceImpl<UserVehicleMapper, UserVehicle> implements UserVehicleService {
+public class UserBarneyServiceImpl extends ServiceImpl<UserBarneyMapper, UserVehicle> implements UserBarneyService {
 
 
     @Override

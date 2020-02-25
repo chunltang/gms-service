@@ -21,7 +21,7 @@ import java.util.Date;
 @Data
 @TableName(value = "t_vehicle")
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Vehicle  implements Serializable {
+public class Barney implements Serializable {
 
     private static final long serialVersionUID = 1500977883215031608L;
 
@@ -33,7 +33,7 @@ public class Vehicle  implements Serializable {
      * 车辆编号，唯一，如车牌
      * */
     @TableField(value = "VEHICLENO")
-    @Max(value = 5l,message = "车辆编号在10000~19999之间")
+    @NotNull(message = "车辆编号不能为空")
     private Integer vehicleNo;
 
     /**

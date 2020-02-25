@@ -1,7 +1,7 @@
 package com.zs.gms.controller.vehiclemanager;
 
-import com.zs.gms.entity.vehiclemanager.VehicleType;
-import com.zs.gms.service.vehiclemanager.VehicleTypeService;
+import com.zs.gms.entity.vehiclemanager.BarneyType;
+import com.zs.gms.service.vehiclemanager.BarneyTypeService;
 import com.zs.gms.common.annotation.Log;
 import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.entity.GmsResponse;
@@ -22,19 +22,19 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/vehicleTypes")
 @Validated
-@Api(tags = {"车辆管理"},description = "Vehicle Controller")
-public class VehicleTypeController {
+@Api(tags = {"车辆管理"},description = "Barney Controller")
+public class BarneyTypeController {
 
     @Autowired
     @Lazy
-    private VehicleTypeService vehicleTypeService;
+    private BarneyTypeService barneyTypeService;
 
     @Log("新增车辆类型")
     @PostMapping
     @ApiOperation(value = "新增车辆类型",httpMethod = "POST")
-    public GmsResponse addVehicleType(@Valid @MultiRequestBody VehicleType vehicleType) throws GmsException {
+    public GmsResponse addVehicleType(@Valid @MultiRequestBody BarneyType barneyType) throws GmsException {
         try {
-            this.vehicleTypeService.addVehicleType(vehicleType);
+            this.barneyTypeService.addVehicleType(barneyType);
             return new GmsResponse().message("新增车辆类型成功").success();
         }catch (Exception e){
             String message="新增车辆类型失败";
@@ -48,7 +48,7 @@ public class VehicleTypeController {
     @ApiOperation(value = "获取车辆类型列表",httpMethod = "GET")
     public GmsResponse getVehicleTypeList() throws GmsException {
         try {
-            List<VehicleType> list = this.vehicleTypeService.getVehicleTypeList();
+            List<BarneyType> list = this.barneyTypeService.getVehicleTypeList();
             return new GmsResponse().data(list).success();
         }catch (Exception e){
             String message="获取车辆类型列表失败";
@@ -60,12 +60,12 @@ public class VehicleTypeController {
     @Log("修改车辆类型参数")
     @PutMapping
     @ApiOperation(value = "修改车辆类型参数",httpMethod = "PUT")
-    public GmsResponse updateVehicleType(@MultiRequestBody VehicleType vehicleType) throws GmsException {
-        if(null==vehicleType.getVehicleTypeId()){
+    public GmsResponse updateVehicleType(@MultiRequestBody BarneyType barneyType) throws GmsException {
+        if(null== barneyType.getVehicleTypeId()){
             throw new GmsException("车辆类型ID为空");
         }
         try {
-            this.vehicleTypeService.updateVehicleType(vehicleType);
+            this.barneyTypeService.updateVehicleType(barneyType);
             return new GmsResponse().message("修改车辆类型参数成功").success();
         }catch (Exception e){
             String message="修改车辆类型参数失败";
@@ -82,7 +82,7 @@ public class VehicleTypeController {
             throw new GmsException("车辆类型ID为空");
         }
         try {
-            this.vehicleTypeService.deleteVehicleType(VehicleTypeIds);
+            this.barneyTypeService.deleteVehicleType(VehicleTypeIds);
             return new GmsResponse().message("删除车辆类型成功").success();
         }catch (Exception e){
             String message="删除车辆类型失败";

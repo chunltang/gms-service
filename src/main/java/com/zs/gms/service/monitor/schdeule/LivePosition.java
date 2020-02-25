@@ -60,6 +60,10 @@ public class LivePosition {
             position.setLastLiveInfo(liveInfo);
             position.setMapId(mapId);
             position.setLastDate(System.currentTimeMillis());
+<<<<<<< HEAD
+=======
+            MapDataUtil.getCoordinateArea(position);
+>>>>>>> origin/master
             lastPositionMap.put(vehicleId,position);
             if(WsUtil.isNeed(FunctionEnum.excavator)){
                 MapDataUtil.getCoordinateArea(position);

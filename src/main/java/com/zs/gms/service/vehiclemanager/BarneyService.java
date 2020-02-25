@@ -2,17 +2,17 @@ package com.zs.gms.service.vehiclemanager;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.zs.gms.entity.vehiclemanager.Vehicle;
+import com.zs.gms.entity.vehiclemanager.Barney;
 import com.zs.gms.common.entity.QueryRequest;
 
 import java.util.List;
 
 
-public interface VehicleService extends IService<Vehicle> {
+public interface BarneyService extends IService<Barney> {
 
-    public void addVehicle(Vehicle vehicle);
+    public void addVehicle(Barney barney);
 
-    public void updateVehicle(Vehicle vehicle);
+    public void updateVehicle(Barney barney);
 
     public void deleteVehicle(String vehicleIds);
 
@@ -29,12 +29,12 @@ public interface VehicleService extends IService<Vehicle> {
     /**
      * 分页查询
      * */
-    public IPage<Vehicle> getVehicleList(Vehicle vehicle, QueryRequest queryRquest);
+    public IPage<Barney> getVehicleList(Barney barney, QueryRequest queryRquest);
 
     /**
      * 根据用户id获取车辆集合
      * */
-    public List<Vehicle> getVehicleListByUserId(Integer userId);
+    public List<Barney> getVehicleListByUserId(Integer userId);
 
     /**
      * 根据车辆编号查用户id

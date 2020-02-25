@@ -3,7 +3,7 @@ package com.zs.gms.service.vehiclemanager;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zs.gms.entity.vehiclemanager.UserVehicle;
 
-public interface UserVehicleService extends IService<UserVehicle> {
+public interface UserBarneyService extends IService<UserVehicle> {
 
     public Integer getUserIdByVehicleId(Integer vehicleId);
 

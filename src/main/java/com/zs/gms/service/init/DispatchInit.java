@@ -2,7 +2,7 @@ package com.zs.gms.service.init;
 
 import com.alibaba.fastjson.JSONObject;
 import com.zs.gms.common.entity.RedisKey;
-import com.zs.gms.service.vehiclemanager.VehicleService;
+import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.common.annotation.RedisLock;
 import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.common.interfaces.RedisListener;
@@ -51,7 +51,7 @@ public class DispatchInit implements RedisListener {
     private boolean executeInitFlag;
 
     @Autowired
-    private VehicleService vehicleService;
+    private BarneyService barneyService;
 
     /**
      * 初始化所有调度员的空闲单元信息
@@ -185,7 +185,7 @@ public class DispatchInit implements RedisListener {
      * 初始化所有车辆
      */
     private void initVehicles() {
-        List<Integer> allVehicleNos = vehicleService.getAllVehicleNos();
+        List<Integer> allVehicleNos = barneyService.getAllVehicleNos();
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("vehicles", allVehicleNos);
         MessageFactory.getDispatchMessage().sendMessageNoResNoID("InitVeh", JSONObject.toJSONString(paramMap));
