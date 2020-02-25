@@ -37,11 +37,11 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
         registry.addConverterFactory(enumConvertHandler);
     }
 
-    /*@Override
+    @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
         argumentResolvers.add(new MultiRequestBodyArgumentResolver());
     }
-*/
+
     @Bean
     public HttpMessageConverter<String> responseBodyConverter() {
         return new StringHttpMessageConverter(Charset.forName("UTF-8"));

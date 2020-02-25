@@ -3,6 +3,8 @@ package com.zs.gms.common.service;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.*;
 
 @Data
@@ -87,5 +89,22 @@ public class ScheduleService {
             future.cancel(interruptRun);
             curCount--;
         }
+    }
+
+    /**
+     * 执行延迟任务且只执行一次
+     * */
+    public static void addSingleTask(Runnable task,long delayed){
+        if(null==task || delayed<=0){
+            return;
+        }
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            public void run() {
+                log.debug("执行一次性延时任务");
+                task.run();
+                this.cancel();
+            }
+            }, delayed);
     }
 }

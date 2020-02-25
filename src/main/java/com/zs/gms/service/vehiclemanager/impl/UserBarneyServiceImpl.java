@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zs.gms.common.entity.GmsConstant;
+import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.entity.vehiclemanager.UserVehicle;
 import com.zs.gms.mapper.vehiclemanager.UserBarneyMapper;
 import com.zs.gms.service.vehiclemanager.UserBarneyService;
@@ -35,8 +36,8 @@ public class UserBarneyServiceImpl extends ServiceImpl<UserBarneyMapper, UserVeh
     @Transactional
     public void deteleByVehicleIds(String[] vehicleIds) {
         this.remove(new LambdaQueryWrapper<UserVehicle>().eq(UserVehicle::getVehicleId,vehicleIds));
-        RedisService.deleteLikeKey(GmsConstant.KEEP_DB,this.getClass().getName());
-        RedisService.deleteLikeKey(GmsConstant.KEEP_DB,"getUserIdByVehicleNo");
+        RedisService.deleteLikeKey(StaticConfig.KEEP_DB,this.getClass().getName());
+        RedisService.deleteLikeKey(StaticConfig.KEEP_DB,"getUserIdByVehicleNo");
     }
 
     @Override
@@ -50,7 +51,7 @@ public class UserBarneyServiceImpl extends ServiceImpl<UserBarneyMapper, UserVeh
     @CacheEvict(cacheNames = "vehicles",key = "targetClass+#p0")
     public void deteleByVehicleId(Integer vehicleId) {
         this.remove(new LambdaQueryWrapper<UserVehicle>().eq(UserVehicle::getVehicleId,vehicleId));
-        RedisService.deleteLikeKey(GmsConstant.KEEP_DB,"getUserIdByVehicleNo");
+        RedisService.deleteLikeKey(StaticConfig.KEEP_DB,"getUserIdByVehicleNo");
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.zs.gms.common.message;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zs.gms.common.entity.Message;
+import com.zs.gms.common.entity.MessageEvent;
 import com.zs.gms.common.interfaces.ResponseCallBack;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -80,17 +81,64 @@ public class MessageEntry {
 
     private void writeResult(MessageEntry entry) {
         ObjectMapper mapper = new ObjectMapper();
-        HttpServletResponse response = entry.getMessage().getHttpResponse();
-        String valueAsString = null;
-        try(PrintWriter writer = response.getWriter()) {
-            valueAsString = mapper.writeValueAsString(entry.getMessage().getGmsResponse());
-            writer.print(valueAsString);
-        } catch (IOException e) {
-            log.error("发送数据失败", e);
-        } finally {
-            synchronized (response) {
-                response.notifyAll();
+        Message message = entry.getMessage();
+        if(null!=message){
+            HttpServletResponse response =message.getHttpResponse();
+            String valueAsString = null;
+            try(PrintWriter writer = response.getWriter()) {
+                valueAsString = mapper.writeValueAsString(entry.getMessage().getGmsResponse());
+                writer.print(valueAsString);
+            } catch (IOException e) {
+                log.error("发送数据失败", e);
+            } finally {
+                synchronized (response) {
+                    response.notifyAll();
+                }
             }
+        }
+    }
+
+    public static Build build(String prefix){
+        return new Build(MessageFactory.createMessageEntry(prefix));
+    }
+
+    @Data
+    public static class Build{
+
+        private MessageEntry entry;
+
+        private Build(MessageEntry entry){
+            this.entry=entry;
+        }
+
+        public Build setHttp(boolean isHttp){
+            entry.setHttp(isHttp);
+            return this;
+        }
+
+        public Build setMessage(Message message){
+            entry.setMessage(message);
+            return this;
+        }
+
+        public Build setMessageId(String messageId){
+            entry.setMessageId(messageId);
+            return this;
+        }
+
+        public Build setHandles(ResponseCallBack callBack){
+            entry.setAfterHandle(callBack);
+            return this;
+        }
+
+        public Build setRouteKey(String routeKey){
+            entry.setRouteKey(routeKey);
+            return this;
+        }
+
+        public Build setCollect(int collect){
+            entry.setCollect(collect);
+            return this;
         }
     }
 }

@@ -1,12 +1,9 @@
 package com.zs.gms.service.monitor.schdeule;
 
-import com.zs.gms.common.entity.GmsConstant;
-import com.zs.gms.common.entity.GmsResponse;
-import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.*;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.common.configure.EventPublisher;
-import com.zs.gms.common.entity.MessageEvent;
 import com.zs.gms.common.interfaces.RedisListener;
 import com.zs.gms.common.message.EventType;
 import com.zs.gms.common.message.MessageFactory;
@@ -46,7 +43,7 @@ public class LiveVapHandle implements RedisListener {
         stateProperties = SpringContextUtil.getBean(StateProperties.class);
         barneyService = SpringContextUtil.getBean(BarneyService.class);
         liveInfoService = SpringContextUtil.getBean(LiveInfoService.class);
-        listOperations = RedisService.listOperations(RedisService.getTemplate(GmsConstant.MONITOR_DB));
+        listOperations = RedisService.listOperations(RedisService.getTemplate(StaticConfig.MONITOR_DB));
     }
 
     public static LiveVapHandle getInstance() {
@@ -114,7 +111,7 @@ public class LiveVapHandle implements RedisListener {
     public static Map<String, Object> getGlobalPath(String key) {
         Map<String, Object> resultMap = new HashMap<>();
         try {
-            String[] strs = RedisService.get(GmsConstant.MONITOR_DB, key).toString().split(",");
+            String[] strs = RedisService.get(StaticConfig.MONITOR_DB, key).toString().split(",");
             if (strs.length < 4) {
                 return resultMap;
             }

@@ -17,20 +17,12 @@ public class DynamicEnumUtil{
 
     private static void setFailsafeFieldValue(Field field, Object target, Object value) throws NoSuchFieldException,
             IllegalAccessException {
-        // let's make the field accessible
         field.setAccessible(true);
-
-        // next we change the modifier in the Field instance to
-        // not be final anymore, thus tricking reflection into
-        // letting us modify the static final field
         Field modifiersField = Field.class.getDeclaredField("modifiers");
         modifiersField.setAccessible(true);
         int modifiers = modifiersField.getInt(field);
-
-        // blank out the final bit in the modifiers int
         modifiers &= ~Modifier.FINAL;
         modifiersField.setInt(field, modifiers);
-
         FieldAccessor fa = reflectionFactory.newFieldAccessor(field, false);
         fa.set(target, value);
     }
@@ -47,8 +39,8 @@ public class DynamicEnumUtil{
     }
 
     private static void cleanEnumCache(Class<?> enumClass) throws NoSuchFieldException, IllegalAccessException {
-        blankField(enumClass, "enumConstantDirectory"); // Sun (Oracle?!?) JDK 1.5/6
-        blankField(enumClass, "enumConstants"); // IBM JDK
+        blankField(enumClass, "enumConstantDirectory");
+        blankField(enumClass, "enumConstants");
     }
 
     private static ConstructorAccessor getConstructorAccessor(Class<?> enumClass, Class<?>[] additionalParameterTypes)
@@ -78,13 +70,9 @@ public class DynamicEnumUtil{
      */
     @SuppressWarnings("unchecked")
     public static <T extends Enum<?>> void addEnum(Class<T> enumType, String enumName, Class<?>[] additionalTypes, Object[] additionalValues) {
-
-        // 0. Sanity checks
         if (!Enum.class.isAssignableFrom(enumType)) {
             throw new RuntimeException("class " + enumType + " is not an instance of Enum");
         }
-
-        // 1. Lookup "$VALUES" holder in enum class and get previous enum instances
         Field valuesField = null;
         Field[] fields = enumType.getDeclaredFields();
         for (Field field : fields) {
@@ -96,20 +84,11 @@ public class DynamicEnumUtil{
         AccessibleObject.setAccessible(new Field[] { valuesField }, true);
 
         try {
-            // 2. Copy it
             T[] previousValues = (T[]) valuesField.get(enumType);
             List<T> values = new ArrayList<T>(Arrays.asList(previousValues));
-
-            // 3. build new enum
             T newValue = (T) makeEnum(enumType, enumName, values.size(), additionalTypes, additionalValues);
-
-            // 4. add new value
             values.add(newValue);
-
-            // 5. Set new values field
             setFailsafeFieldValue(valuesField, null, values.toArray((T[]) Array.newInstance(enumType, 0)));
-
-            // 6. Clean enum cache
             cleanEnumCache(enumType);
 
         } catch (Exception e) {

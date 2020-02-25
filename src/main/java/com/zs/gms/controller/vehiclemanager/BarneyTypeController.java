@@ -22,7 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/vehicleTypes")
 @Validated
-@Api(tags = {"车辆管理"},description = "Barney Controller")
+@Api(tags = {"车辆管理"},description = "vehicle Controller")
 public class BarneyTypeController {
 
     @Autowired

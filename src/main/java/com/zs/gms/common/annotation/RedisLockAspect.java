@@ -1,6 +1,7 @@
 package com.zs.gms.common.annotation;
 
 import com.zs.gms.common.entity.GmsConstant;
+import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.service.RedisService;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -21,7 +22,7 @@ public class RedisLockAspect {
 
     @Around(value = "point() && @annotation(redisLock)")
     public Object around(ProceedingJoinPoint joinPoint,RedisLock redisLock) throws Throwable {
-        boolean flag = RedisService.lockService(redisLock.key(), GmsConstant.SERVICE_NAME, redisLock.seconds());
+        boolean flag = RedisService.lockService(redisLock.key(), StaticConfig.SERVICE_NAME, redisLock.seconds());
         if(flag){
             return joinPoint.proceed();
         }

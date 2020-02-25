@@ -5,7 +5,7 @@ import com.zs.gms.enums.monitor.Desc;
 import com.zs.gms.enums.monitor.DispatchStateEnum;
 import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.service.vehiclemanager.impl.BarneyServiceImpl;
-import com.zs.gms.common.utils.LimitQueue;
+import com.zs.gms.common.entity.LimitQueue;
 import com.zs.gms.common.utils.SpringContextUtil;
 import com.zs.gms.entity.monitor.DispatchStatus;
 import com.zs.gms.entity.monitor.VehicleStatus;

@@ -1,9 +1,9 @@
 package com.zs.gms.service.init;
 
 import com.alibaba.fastjson.JSONObject;
-import com.zs.gms.common.entity.RedisKey;
-import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.common.annotation.RedisLock;
+import com.zs.gms.common.entity.GmsConstant;
+import com.zs.gms.common.entity.RedisKey;
 import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.common.interfaces.RedisListener;
 import com.zs.gms.common.message.MessageEntry;
@@ -12,13 +12,14 @@ import com.zs.gms.common.message.MessageResult;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.monitor.DispatchTask;
 import com.zs.gms.entity.monitor.TaskRule;
+import com.zs.gms.entity.system.Role;
+import com.zs.gms.entity.system.User;
 import com.zs.gms.enums.monitor.UnitTypeEnum;
 import com.zs.gms.service.monitor.DispatchTaskService;
 import com.zs.gms.service.monitor.TaskRuleService;
-import com.zs.gms.entity.system.Role;
-import com.zs.gms.entity.system.User;
 import com.zs.gms.service.system.RoleService;
 import com.zs.gms.service.system.UserService;
+import com.zs.gms.service.vehiclemanager.BarneyService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -93,10 +94,10 @@ public class DispatchInit implements RedisListener {
                 UnitTypeEnum type = UnitTypeEnum.getEnumTypeByValue(dispatchTask.getDispatchTaskType().getValue());
                 switch (type) {
                     case SPECIAL_DISPATCHTASK:
-                        initSpecialDispatchtask(GmsUtil.typeTransform(dispatchTask.getUnitId(), Integer.class), dispatchTask.getTaskType().getValue(), dispatchTask.getTaskAreaId());
+                        initSpecialDispatchTask(GmsUtil.typeTransform(dispatchTask.getUnitId(), Integer.class), dispatchTask.getTaskType().getValue(), dispatchTask.getTaskAreaId());
                         break;
                     case LOAD_DISPATCHTASK:
-                        initLoadDispatchtask(GmsUtil.typeTransform(dispatchTask.getUnitId(), Integer.class), dispatchTask.getLoadAreaId(), dispatchTask.getUnLoadAreaId());
+                        initLoadDispatchTask(GmsUtil.typeTransform(dispatchTask.getUnitId(), Integer.class), dispatchTask.getLoadAreaId(), dispatchTask.getUnLoadAreaId());
                         break;
                     default:
                         break;
@@ -108,13 +109,14 @@ public class DispatchInit implements RedisListener {
     /**
      * 初始化装卸调度单元及车辆
      */
-    private void initLoadDispatchtask(Integer unitId, Integer loadAreaId, Integer unLoadAreaId) throws GmsException {
+    private void initLoadDispatchTask(Integer unitId, Integer loadAreaId, Integer unLoadAreaId) throws GmsException {
         try {
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put("unitId", unitId);
             paramMap.put("loaderAreaId", loadAreaId);
             paramMap.put("unLoaderAreaId", unLoadAreaId);
             MessageEntry entry = MessageFactory.createMessageEntry("dispatch");
+            entry.setHttp(false);
             entry.setAfterHandle(() -> {
                 if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {
                     List<TaskRule> rules = taskRuleService.getTaskRulesByUnitId(unitId);
@@ -129,7 +131,9 @@ public class DispatchInit implements RedisListener {
                             endTime=endTime.replaceAll("[-|\\s+]","");
                         }
                         paramMap1.put("endTime", endTime);
-                        MessageFactory.getDispatchMessage().sendMessageNoResNoID("AddLoadAIVeh", JSONObject.toJSONString(paramMap1));
+                        MessageEntry messageEntry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
+                        messageEntry.setHttp(false);
+                        MessageFactory.getDispatchMessage().sendMessageNoResWithID(messageEntry.getMessageId(),"AddLoadAIVeh", JSONObject.toJSONString(paramMap1));
                     }
                 }
             });
@@ -144,13 +148,14 @@ public class DispatchInit implements RedisListener {
     /**
      * 初始化特殊调度单元及车辆
      */
-    private void initSpecialDispatchtask(Integer unitId, String taskType, Integer taskAreaId) throws GmsException {
+    private void initSpecialDispatchTask(Integer unitId, String taskType, Integer taskAreaId) throws GmsException {
         try {
+            MessageEntry entry = MessageFactory.createMessageEntry("dispatch");
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put("unitId", GmsUtil.typeTransform(unitId, Integer.class));
             paramMap.put("taskType", taskType);
             paramMap.put("taskAreaId", taskAreaId);
-            MessageEntry entry = MessageFactory.createMessageEntry("dispatch");
+            entry.setHttp(false);
             entry.setAfterHandle(() -> {
                 if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {
                     List<TaskRule> rules = taskRuleService.getTaskRulesByUnitId(unitId);
@@ -159,7 +164,9 @@ public class DispatchInit implements RedisListener {
                         paramMap1 = new HashMap<>();
                         paramMap1.put("unitId", unitId);
                         paramMap1.put("vehicleId", taskRule.getVehicleId());
-                        MessageFactory.getDispatchMessage().sendMessageNoResNoID("AddSpecialAIVeh", JSONObject.toJSONString(paramMap1));
+                        MessageEntry messageEntry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
+                        messageEntry.setHttp(false);
+                        MessageFactory.getDispatchMessage().sendMessageNoResWithID(messageEntry.getMessageId(),"AddSpecialAIVeh", JSONObject.toJSONString(paramMap1));
                     }
                 }
             });
@@ -188,7 +195,9 @@ public class DispatchInit implements RedisListener {
         List<Integer> allVehicleNos = barneyService.getAllVehicleNos();
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("vehicles", allVehicleNos);
-        MessageFactory.getDispatchMessage().sendMessageNoResNoID("InitVeh", JSONObject.toJSONString(paramMap));
+        MessageEntry messageEntry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
+        messageEntry.setHttp(false);
+        MessageFactory.getDispatchMessage().sendMessageNoResWithID(messageEntry.getMessageId(),"InitVeh", JSONObject.toJSONString(paramMap));
     }
 
 

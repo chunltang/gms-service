@@ -2,6 +2,7 @@ package com.zs.gms.common.service;
 
 import com.zs.gms.common.configure.RedisConfig;
 import com.zs.gms.common.entity.GmsConstant;
+import com.zs.gms.common.entity.StaticConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -35,8 +36,16 @@ public class RedisService {
         return template;
     }
 
+    /**
+     * 添加监听配置
+     * */
+    public static void addConfig(){
+        String str="return redis.call('config','set','notify-keyspace-events','$E')";
+        RedisService.getTemplate(StaticConfig.KEEP_DB).execute(new DefaultRedisScript<String>(str), null);
+    }
+
     public static boolean lockService(String key, String value, long seconds) {
-        RedisTemplate<String, Object> template = getTemplate(GmsConstant.KEEP_DB);
+        RedisTemplate<String, Object> template = getTemplate(StaticConfig.KEEP_DB);
         String scriptStr = "if 1 == redis.call('setnx',KEYS[1],ARGV[1]) then" +
                 " redis.call('expire',KEYS[1],ARGV[2])"+
                 " return 1;" +
@@ -59,7 +68,7 @@ public class RedisService {
     }
 
     public static Boolean execScript(String scriptStr, String key, String... values) {
-        RedisTemplate<String, Object> template = getTemplate(GmsConstant.KEEP_DB);
+        RedisTemplate<String, Object> template = getTemplate(StaticConfig.KEEP_DB);
         List<String> keys = new ArrayList<>();
         keys.add(key);
         return template.execute(new DefaultRedisScript<Boolean>(scriptStr, Boolean.class), keys, values);

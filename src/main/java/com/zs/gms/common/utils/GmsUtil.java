@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.handler.IEnumDeserializer;
 import com.zs.gms.common.handler.IEnumSerializer;
 import com.zs.gms.common.service.RedisService;
@@ -13,6 +14,7 @@ import com.zs.gms.entity.system.User;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.shiro.SecurityUtils;
 import org.springframework.util.ObjectUtils;
 
@@ -36,7 +38,7 @@ public class GmsUtil {
      * 获取监听库中的消息，带有枚举转换
      */
     public static <T> T getMessage(String key,Class<T> clazz) {
-        Object json = RedisService.get(GmsConstant.MONITOR_DB, key);
+        Object json = RedisService.get(StaticConfig.MONITOR_DB, key);
         if (ObjectUtils.isEmpty(json))
             return null;
         return GmsUtil.toObjIEnum(json,clazz);
@@ -93,6 +95,18 @@ public class GmsUtil {
             return "";
         }
         return String.valueOf(obj);
+    }
+
+    /**
+     * put并返回value
+     * */
+    public static <K,T> T mapPutAndGet(Map<K, T> map, K key, T value){
+        if(map.containsKey(key)){
+            return map.get(key);
+        }else{
+            map.put(key,value);
+            return value;
+        }
     }
 
     /**
@@ -183,7 +197,7 @@ public class GmsUtil {
      * 获取活动地图
      * */
     public static Integer getActiveMap() {
-        Object obj = RedisService.getTemplate(GmsConstant.KEEP_DB).opsForValue().get(RedisKey.ACTIVITY_MAP);
+        Object obj = RedisService.getTemplate(StaticConfig.KEEP_DB).opsForValue().get(RedisKey.ACTIVITY_MAP);
         if (obj != null) {
             String value = String.valueOf(obj);
             if (StringUtils.isNotEmpty(value)) {

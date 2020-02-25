@@ -3,6 +3,7 @@ package com.zs.gms.redistest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zs.gms.common.entity.GmsConstant;
+import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.service.monitor.schdeule.LiveVapHandle;
 import com.zs.gms.entity.system.User;
@@ -51,14 +52,14 @@ public class RedisTest {
         user.setRoleName("admin");
         user.setUserId(1111);
 
-        RedisService.set(GmsConstant.KEEP_DB,"ee",user,20000L, TimeUnit.MILLISECONDS);
-        User aa = RedisService.get(GmsConstant.KEEP_DB,"ee",User.class);
+        RedisService.set(StaticConfig.KEEP_DB,"ee",user,20000L, TimeUnit.MILLISECONDS);
+        User aa = RedisService.get(StaticConfig.KEEP_DB,"ee",User.class);
         System.out.println(aa);
     }
 
     @Test
     public void redisLeftPop() throws IOException {
-        ListOperations<String, Object> listOperations = RedisService.listOperations(RedisService.getTemplate(GmsConstant.KEEP_DB));
+        ListOperations<String, Object> listOperations = RedisService.listOperations(RedisService.getTemplate(StaticConfig.KEEP_DB));
         listOperations.leftPushAll("vehicleNo1",1,2,3,4,5,6);
         for (int i = 0; i < 6; i++) {
             Object pop = listOperations.rightPop("vehicleNo1");
@@ -88,6 +89,6 @@ public class RedisTest {
         map.put("arr", new ArrayList(Arrays.asList(new Integer[]{1, 2, 3, 4})));
         ObjectMapper mapper=new ObjectMapper();
 
-        RedisService.listOperations(RedisService.getTemplate(GmsConstant.KEEP_DB)).leftPush("Vap_Trail_VehNo1", mapper.writeValueAsString(map));
+        RedisService.listOperations(RedisService.getTemplate(StaticConfig.KEEP_DB)).leftPush("Vap_Trail_VehNo1", mapper.writeValueAsString(map));
     }
 }

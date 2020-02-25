@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.sun.nio.sctp.HandlerResult;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.message.MessageInterface;
@@ -31,13 +32,13 @@ public class MapDataUtil {
 
     /**
      * 获取半静态层数据
-     * */
-    public static List<SemiStatic> getSemiStaticData(Integer mapId){
-        Object obj = RedisService.get(GmsConstant.KEEP_DB, RedisKey.SEMI_STATIC_DATA + mapId);
+     */
+    public static List<SemiStatic> getSemiStaticData(Integer mapId) {
+        Object obj = RedisService.get(StaticConfig.KEEP_DB, RedisKey.SEMI_STATIC_DATA + mapId);
         List<SemiStatic> semiStatics = new ArrayList<>();
-        if(null!=obj){
+        if (null != obj) {
             JSONArray jsonObject = JSON.parseArray(obj.toString());
-            if(null!=jsonObject){
+            if (null != jsonObject) {
                 for (Object o : jsonObject) {
                     SemiStatic semiStatic = GmsUtil.toObjIEnum(o, SemiStatic.class);
                     semiStatics.add(semiStatic);
@@ -49,15 +50,15 @@ public class MapDataUtil {
 
     /**
      * 根据区域类型筛选数据
-     * */
-    public static List<SemiStatic> getAreaInfos(Integer mapId, AreaTypeEnum areaType){
+     */
+    public static List<SemiStatic> getAreaInfos(Integer mapId, AreaTypeEnum areaType) {
         List<SemiStatic> semiStatics = getSemiStaticData(mapId);
-        if(null==areaType){
+        if (null == areaType) {
             return semiStatics;
         }
-        List<SemiStatic> result=new ArrayList<>();
+        List<SemiStatic> result = new ArrayList<>();
         for (SemiStatic semiStatic : semiStatics) {
-            if(null!=areaType && areaType.equals(semiStatic.getAreaType())){
+            if (null != areaType && areaType.equals(semiStatic.getAreaType())) {
                 result.add(semiStatic);
             }
         }
@@ -65,12 +66,28 @@ public class MapDataUtil {
     }
 
     /**
+     * 根据区域id获取区域信息
+     */
+    public static SemiStatic getAreaInfo(Integer mapId, Integer areaId) {
+        List<SemiStatic> semiStatics = getSemiStaticData(mapId);
+        if (null == areaId) {
+            return null;
+        }
+        for (SemiStatic semiStatic : semiStatics) {
+            if (semiStatic.getId().equals(areaId)) {
+                return semiStatic;
+            }
+        }
+        return null;
+    }
+
+    /**
      * 判断区域类型是否存在
-     * */
-    public static boolean isAreaExist(Integer mapId,Integer id,AreaTypeEnum areaType){
+     */
+    public static boolean isAreaExist(Integer mapId, Integer id, AreaTypeEnum areaType) {
         List<SemiStatic> areaInfos = getAreaInfos(mapId, areaType);
         for (SemiStatic areaInfo : areaInfos) {
-            if(areaInfo.getId().equals(id)){
+            if (areaInfo.getId().equals(id)) {
                 return true;
             }
         }
@@ -79,33 +96,46 @@ public class MapDataUtil {
 
     /**
      * 判断位置在地图的那个区域
-     * */
-    public static void getCoordinateArea(LivePosition.Position position){
-        Map<String,Object> params=new HashMap<>();
-        params.put("mapId",position.getMapId());
-        params.put("x",position.getPoint().getX());
-        params.put("y",position.getPoint().getY());
-        params.put("z",0);
+     */
+    public static void getCoordinateArea(LivePosition.Position position) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("mapId", position.getMapId());
+        params.put("x", position.getPoint().getX());
+        params.put("y", position.getPoint().getY());
+        params.put("z", 0);
         MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
         entry.setHttp(false);
-        entry.setAfterHandle(()->{
-            if(MessageResult.SUCCESS.equals(entry.getHandleResult())){
+        entry.setAfterHandle(() -> {
+            if (MessageResult.SUCCESS.equals(entry.getHandleResult())) {
                 String returnData = entry.getReturnData();
-                String key="areaId";
-                if(GmsUtil.StringNotNull(returnData)){
-                    Map map = GmsUtil.toObj(returnData,HashMap.class);
-                    if(null!=map && map.containsKey(key)){
+                String key = "areaId";
+                if (GmsUtil.StringNotNull(returnData)) {
+                    Map map = GmsUtil.toObj(returnData, HashMap.class);
+                    if (null != map && map.containsKey(key)) {
                         Object value = map.get(key);
                         Integer areaId = GmsUtil.typeTransform(value, Integer.class);
+                        Integer lastArea = position.getLastArea();
                         position.setLastArea(areaId);
-                        log.debug("车{}所在地图区域:{}",position.getVehicleId(),value);
-                        if(WsUtil.isNeed(FunctionEnum.excavator,value)){
-                            WsUtil.sendMessage(GmsUtil.toJson(position),FunctionEnum.excavator,areaId);
+                        SemiStatic areaInfo = LivePosition.getAreaInfo(position);
+                        if (position.isLoadArea() && null!=areaInfo &&!AreaTypeEnum.LOAD_AREA.equals(areaInfo.getAreaType())) {
+                            //表示出了装载区,推送最后一条数据
+                            position.setLoadArea(false);
+                            WsUtil.sendMessage(GmsUtil.toJsonIEnum(position), FunctionEnum.excavator, lastArea);//拿之前的id
+                            return;
+                        }
+                        if (LivePosition.isAreaType(position, AreaTypeEnum.LOAD_AREA)) {
+                            position.setLoadArea(true);
+                            if (WsUtil.isNeed(FunctionEnum.excavator, value)) {
+                                WsUtil.sendMessage(GmsUtil.toJsonIEnum(position), FunctionEnum.excavator, areaId);
+                            }
+                        }
+                        if(null!=areaInfo && areaInfo.getAreaType()!=null){
+                            log.debug("车{}所在地图区域:{} {}", position.getVehicleId(), value,areaInfo.getAreaType().getDesc());
                         }
                     }
                 }
             }
         });
-        MessageFactory.getMapMessage().sendMessageNoResWithID(entry.getMessageId(),"getCoordinateArea",GmsUtil.toJson(params));
+        MessageFactory.getMapMessage().sendMessageNoResWithID(entry.getMessageId(), "getCoordinateArea", GmsUtil.toJson(params));
     }
 }

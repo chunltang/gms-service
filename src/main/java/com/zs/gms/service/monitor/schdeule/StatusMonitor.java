@@ -30,10 +30,11 @@ public class StatusMonitor extends AbstractVehicleStatusHandle {
     private static Object lock=new Object();
 
     private StatusMonitor() {
-        queue = new ArrayBlockingQueue<>(10, true);
+        int processors = Runtime.getRuntime().availableProcessors();
+        queue = new ArrayBlockingQueue<>(processors*10, true);
         executorService = new ThreadPoolExecutor(2,
-                10,
-                100,
+                processors*5,
+                60,
                 TimeUnit.SECONDS,
                 queue,
                 new ThreadFactory() {

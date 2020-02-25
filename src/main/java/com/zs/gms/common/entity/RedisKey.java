@@ -2,6 +2,8 @@ package com.zs.gms.common.entity;
 
 public class RedisKey {
 
+    public final static String REDIS_MONITOR = "redis_monitor";//redis监听
+
     /**==================dispatch====================*/
     public final static String VAP_BASE_PREFIX = "vap_base_";//车辆基础信息，包括障碍物信息、异常信息
 
@@ -20,6 +22,8 @@ public class RedisKey {
     public final static String DISPATCH_INIT = "dispatchInit";//调度初始化锁键
 
     public final static String DISPATCH_SERVER_INIT = "dispatch_server_init";//监听调度初始化键
+
+    public final static String DISPATCH_SERVER_HEARTBEAT = "dispatch_server_heartbeat";//监听调度初始化键
 
     public final static String GPS_PREFIX = "gps_";//监听调度初始化键
 

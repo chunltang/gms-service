@@ -6,11 +6,8 @@ import com.zs.gms.common.authentication.ShiroHelper;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.exception.GmsException;
-import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.MD5Util;
-import com.zs.gms.entity.mapmanager.Point;
 import com.zs.gms.entity.system.User;
-import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.system.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -56,7 +53,6 @@ public class LoginController extends BaseController {
             throw new GmsException(e.getMessage());
         }
     }
-
 
     @Log("用户是否已登录")
     @GetMapping(value = "/isLogin")

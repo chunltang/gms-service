@@ -12,13 +12,20 @@ import com.zs.gms.common.utils.SpringContextUtil;
 import com.zs.gms.service.init.DispatchInit;
 import com.zs.gms.service.monitor.schdeule.LiveStateHandle;
 import com.zs.gms.service.monitor.schdeule.LiveVapHandle;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 
 import java.io.IOException;
+import java.util.Date;
 
 @Slf4j
 public class MessageUtil {
+
+    /**
+     * 重置监听时间
+     * */
+    public static long lastTime=System.currentTimeMillis();
 
     /*********************************************MQ*************************************************/
 
@@ -45,7 +52,7 @@ public class MessageUtil {
     /********************************************redis**************************************************/
 
     public static void handeListenerResult(Message message) {
-        //log.debug("redis监听数据,key={}", message.toString());
+        lastTime=System.currentTimeMillis();
         RedisListener listener=null;
         String key = message.toString();
         if(key.startsWith(RedisKey.VAP_PREFIX))

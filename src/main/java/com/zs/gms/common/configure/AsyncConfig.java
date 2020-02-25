@@ -23,11 +23,11 @@ public class AsyncConfig  {
         ThreadPoolTaskExecutor pool=new ThreadPoolTaskExecutor();
         int processors = Runtime.getRuntime().availableProcessors();
         //核心线程池数量，方法: 返回可用处理器的Java虚拟机的数量。
-        pool.setCorePoolSize(processors);
+        pool.setCorePoolSize(2);
         //最大线程数量
-        pool.setMaxPoolSize(processors*10);
+        pool.setMaxPoolSize(processors*5);
         //线程池的队列容量
-        pool.setQueueCapacity(processors*20);
+        pool.setQueueCapacity(processors*10);
         pool.setKeepAliveSeconds(30);
         pool.setWaitForTasksToCompleteOnShutdown(true);
         pool.setAwaitTerminationSeconds(60);

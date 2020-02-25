@@ -182,7 +182,7 @@ public class PropertyUtil {
     }
 
     /**
-     * 排除飞自定义类型
+     * 排除非自定义类型
      * */
     private static boolean excludeType( Class<?> type){
         if(null==type.getClassLoader()){//核心加载器为空则为自定义类型

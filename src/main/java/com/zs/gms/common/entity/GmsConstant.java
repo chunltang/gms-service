@@ -1,12 +1,5 @@
 package com.zs.gms.common.entity;
 
-import com.zs.gms.common.controller.BaseController;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import java.util.zip.ZipEntry;
-
-@Component
 public class GmsConstant {
 
     public static final String SORT_DESC="desc";
@@ -20,10 +13,6 @@ public class GmsConstant {
     public static final String VAP="vap";
     public static final String APPROVE="approve";
 
-    /**
-     * {@link BaseController}
-     * getDataTable 中 HashMap 默认的初始化容量
-     * */
     public static final int DATA_MAP_INITIAL_CAPACITY=2;
 
     /**
@@ -37,31 +26,7 @@ public class GmsConstant {
     public final static Long waitTime = 120000L;
 
     /**
-     * 车辆标识
+     * 临时文件存放目录
      * */
-    public final static String VEHICLE_SIGN="vehicleId";
-
-    public  static String SERVICE_NAME;
-
-    /**
-     * redis监听库号
-     * */
-    public static int MONITOR_DB;
-    public static int KEEP_DB;
-
-    @Value("${gms.server.name}")
-    public void setService(String service){
-        SERVICE_NAME=service;
-    }
-
-    @Value("${gms.listener.redisMonitorDB}")
-    public void setMonitorDB(int monitorDB){
-        MONITOR_DB=monitorDB;
-    }
-
-    @Value("${gms.keep.redisDB}")
-    public void setKeepDB(int keepDB){
-        KEEP_DB=keepDB;
-    }
-
+    public final static String tempDir="/tempDir";
 }

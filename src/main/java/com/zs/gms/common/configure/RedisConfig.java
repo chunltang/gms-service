@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zs.gms.common.entity.GmsConstant;
+import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.service.MessageUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
@@ -169,7 +170,7 @@ public class RedisConfig extends CachingConfigurerSupport {
         listenerContainer.setConnectionFactory(factory);
         List<Topic> topics = new ArrayList<>();
         //topics.add(new PatternTopic("__keyspace@0__:test*"));
-        topics.add(new PatternTopic("__keyevent@" + GmsConstant.MONITOR_DB + "__:set"));
+        topics.add(new PatternTopic("__keyevent@" + StaticConfig.MONITOR_DB + "__:set"));
         listenerContainer.addMessageListener((message, pattern) -> {
             //处理业务逻辑
             MessageUtil.handeListenerResult(message);

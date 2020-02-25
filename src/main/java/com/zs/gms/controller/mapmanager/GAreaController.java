@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.zs.gms.common.annotation.Log;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
@@ -713,7 +714,7 @@ public class GAreaController {
                         semiStatics.add(semiStatic);
                     }
                     if(GmsUtil.CollectionNotNull(semiStatics)){
-                        RedisService.set(GmsConstant.KEEP_DB, RedisKey.SEMI_STATIC_DATA+mapId,GmsUtil.toJson(semiStatics));
+                        RedisService.set(StaticConfig.KEEP_DB, RedisKey.SEMI_STATIC_DATA+mapId,GmsUtil.toJson(semiStatics));
                     }
                 }
             }

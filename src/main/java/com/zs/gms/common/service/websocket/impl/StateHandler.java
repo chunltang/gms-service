@@ -2,6 +2,7 @@ package com.zs.gms.common.service.websocket.impl;
 
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.websocket.WsFunction;
@@ -27,7 +28,7 @@ public class StateHandler extends SetHandler {
     }
 
     public void afterAdd(Session session){
-        Collection<String> likeKeys = RedisService.getLikeKey(GmsConstant.MONITOR_DB, RedisKey.TASK_AREA_PREFIX);
+        Collection<String> likeKeys = RedisService.getLikeKey(StaticConfig.MONITOR_DB, RedisKey.TASK_AREA_PREFIX);
         for (String key : likeKeys) {
             TaskAreaState taskAreaState = GmsUtil.getMessage(key, TaskAreaState.class);
             send(session, GmsUtil.toJsonIEnum(taskAreaState));

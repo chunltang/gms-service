@@ -44,8 +44,13 @@ public class ExcavatorServiceImpl extends ServiceImpl<ExcavatorMapper, Excavator
     }
 
     @Override
-    @Transactional
-    public boolean isExist(Integer excavatorNo) {
+    public boolean isExistNo(Integer excavatorNo) {
         return null!=getExcavatorByNo(excavatorNo);
+    }
+
+    @Override
+    public boolean isExistId(Integer excavatorId) {
+        Excavator excavator = this.baseMapper.selectById(excavatorId);
+        return excavator!=null;
     }
 }

@@ -223,6 +223,22 @@ CREATE TABLE `t_vehicle_vehicleType`
   COLLATE = utf8_general_ci COMMENT = '车辆类型车辆关联表'
   ROW_FORMAT = Dynamic;
 
+
+DROP TABLE IF EXISTS `t_bind_excavator`;
+CREATE TABLE `t_bind_excavator`
+(
+    `ID`            int(5) NOT NULL AUTO_INCREMENT COMMENT 'ID',
+    `USERID` int(5) NOT NULL COMMENT '用户ID',
+    `LOADAREA`     int(5) NOT NULL COMMENT '装载区ID',
+    `EXCAVATORID`     int(5) NOT NULL COMMENT '挖掘机ID',
+    `CREATETIME`     DATETIME(0) NOT NULL COMMENT '创建时间',
+    PRIMARY KEY (`ID`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 0
+  CHARACTER SET = utf8
+  COLLATE = utf8_general_ci COMMENT = '挖掘机，用户，装载区关联表'
+  ROW_FORMAT = Dynamic;
+
 -- -----------------------------------------------------------------------------------------------------------------------
 ####矿物管理
 DROP TABLE IF EXISTS `t_mineral`;

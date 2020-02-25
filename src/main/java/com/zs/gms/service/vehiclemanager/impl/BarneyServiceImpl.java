@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.entity.vehiclemanager.Barney;
 import com.zs.gms.entity.vehiclemanager.UserVehicle;
 import com.zs.gms.entity.vehiclemanager.BarneyVehicleType;
@@ -113,7 +114,7 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
             userVehicle.setVehicleId(Integer.valueOf(id));
             userBarneyService.addUserVehicle(userVehicle);
         }
-        RedisService.deleteLikeKey(GmsConstant.KEEP_DB,"getUserIdByVehicleNo");//删除缓存数据
+        RedisService.deleteLikeKey(StaticConfig.KEEP_DB,"getUserIdByVehicleNo");//删除缓存数据
     }
 
     @Override
@@ -142,7 +143,7 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
         this.baseMapper.deleteBatchIds(Arrays.asList(ids));
         userBarneyService.deteleByVehicleIds(ids);
         barneyVehicleTypeService.deteleByVehicleIdS(ids);
-        RedisService.deleteLikeKey(GmsConstant.KEEP_DB,"getUserIdByVehicleNo");//删除缓存数据
+        RedisService.deleteLikeKey(StaticConfig.KEEP_DB,"getUserIdByVehicleNo");//删除缓存数据
     }
 
     /**

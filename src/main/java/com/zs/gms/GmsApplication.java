@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 public class GmsApplication {
     public static void main(String[] args) {
-       ConfigurableApplicationContext context = SpringApplication.run(GmsApplication.class, args);
+        System.setProperty("SERVER_HOST","192.168.42.10");
+        System.setProperty("SERVER_PWD","123456");
+        SpringApplication.run(GmsApplication.class, args);
     }
 }

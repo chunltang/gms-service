@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.message.MessageResult;
@@ -192,7 +193,7 @@ public class MapInfoServiceImpl extends ServiceImpl<MapInfoMapper, MapInfo> impl
                     case APPROVEPASS:
                         mapInfo.setStatus(MapInfo.Status.USING);
                         //设置活动地图地图id
-                        boolean flag = RedisService.set(GmsConstant.MONITOR_DB, RedisKey.ACTIVITY_MAP, String.valueOf(mapInfo.getMapId()));
+                        boolean flag = RedisService.set(StaticConfig.MONITOR_DB, RedisKey.ACTIVITY_MAP, String.valueOf(mapInfo.getMapId()));
                         if (!flag) {
                             log.error("设置活动地图失败");
                             ApproveUtil.addError(approve.getApproveId(),"设置活动地图失败");
@@ -251,7 +252,7 @@ public class MapInfoServiceImpl extends ServiceImpl<MapInfoMapper, MapInfo> impl
                     case APPROVEPASS:
                         mapInfo.setStatus(MapInfo.Status.UNUSED);
                         //取消活动地图地图id
-                        boolean flag = RedisService.set(GmsConstant.MONITOR_DB, RedisKey.ACTIVITY_MAP, "");
+                        boolean flag = RedisService.set(StaticConfig.MONITOR_DB, RedisKey.ACTIVITY_MAP, "");
                         if (!flag) {
                             log.error("redis取消活动地图失败");
                             ApproveUtil.addError(approve.getApproveId(),"redis取消活动地图失败");

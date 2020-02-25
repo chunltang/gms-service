@@ -12,5 +12,7 @@ public interface ExcavatorService {
 
     Excavator getExcavatorByNo(Integer excavatorNo);
 
-    boolean isExist(Integer excavatorNo);
+    boolean isExistNo(Integer excavatorNo);
+
+    boolean isExistId(Integer excavatorId);
 }

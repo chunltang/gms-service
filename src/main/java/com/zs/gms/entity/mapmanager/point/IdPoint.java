@@ -21,8 +21,6 @@ public class IdPoint extends AnglePoint implements Serializable {
         super(x,y,x,yawAngle);
         this.id=id;
     }
-    /**
-     * 横摆角
-     * */
+
     public int id;
 }
