@@ -66,4 +66,11 @@ public class GmsStartedUpRunner implements ApplicationRunner {
     public void dispatchInit(){
         RedisService.set(StaticConfig.MONITOR_DB,RedisKey.DISPATCH_SERVER_INIT, DateUtil.formatLongTime(System.currentTimeMillis()));
     }
+
+    /**
+     * 启动完成，执行代码压缩
+     * */
+    public void codeCompress(){
+        String property = System.getProperty("user.dir");
+    }
 }
