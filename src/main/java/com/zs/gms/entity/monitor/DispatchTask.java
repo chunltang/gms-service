@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.core.enums.IEnum;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.zs.gms.enums.monitor.Desc;
 import com.zs.gms.enums.monitor.TaskTypeEnum;
 import com.zs.gms.enums.monitor.UnitTypeEnum;
 import lombok.Data;
@@ -92,12 +93,13 @@ public class DispatchTask implements Serializable {
     @TableField(value = "UNLOADAREAID")
     private Integer unLoadAreaId;
 
-    public enum Status implements IEnum {
+    public enum Status implements IEnum, Desc {
 
-        DELETE("0","移除"),
-        RUNING("1","使用中"),
-        UNUSED("2","未使用"),
-        STOP("3","停止");
+        DELETE("0","调度单元已删除"),
+        RUNING("1","调度单元正在运行..."),
+        UNUSED("2","已创建"),
+        STOP("3","调度单元已停止运行"),
+        STOPING("4","正在停止调度单元...");
 
         private String value;
 

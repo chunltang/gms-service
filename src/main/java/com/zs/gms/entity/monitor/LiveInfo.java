@@ -40,7 +40,7 @@ public class LiveInfo implements Serializable {
      * 任务状态
      * */
     @TableField(value = "TASKSTATE")
-    //@JsonDeserialize(using = IEnumSerializer.class)
+    //@JsonDeserialize(using = IEnumDescSerializer.class)
     private TaskStateEnum taskState;
 
     /**

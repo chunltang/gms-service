@@ -17,10 +17,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -47,14 +44,12 @@ public class UnitController extends BaseController {
     @Log("获取调度单元列表")
     @GetMapping
     @ApiOperation(value = "获取调度单元列表",httpMethod = "GET")
-    public GmsResponse getDispatchTaskList() throws GmsException {
+    @ResponseBody
+    public String getDispatchTaskList() throws GmsException {
         User currentUser = this.getCurrentUser();
-        if(null==currentUser){
-            throw  new GmsException("当前用户未登录");
-        }
         try {
             List<DispatchTask> list = dispatchTaskService.getDispatchTaskList(currentUser.getUserId(), GmsUtil.getActiveMap());
-            return new GmsResponse().data(list).message("获取调度单元列表成功").success();
+            return GmsUtil.toJsonIEnumDesc(new GmsResponse().data(list).message("获取调度单元列表成功").success());
         }catch ( Exception e){
             String message="获取调度单元列表失败";
             log.error(message,e);

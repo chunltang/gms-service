@@ -55,8 +55,8 @@ public class LiveVapHandle implements RedisListener {
      * 处理所有车辆监听数据
      */
     public static void handleVehMessage(String key) {
-        String prefix = key.substring(0, key.lastIndexOf("_") + 1);
-        String vehicleNo = subVehicleNo(key);
+        String prefix =GmsUtil.subIndexStr(key,"_");
+        String vehicleNo = GmsUtil.subLastStr(key,"_");
         Integer userId = barneyService.getUserIdByVehicleNo(Integer.valueOf(vehicleNo));
         if (userId == null) {
             log.error("不存在的车辆编号或者车辆没有分配");
@@ -68,8 +68,8 @@ public class LiveVapHandle implements RedisListener {
                 LiveInfo liveInfo = GmsUtil.getMessage(key,LiveInfo.class);
                 StatusMonitor.getInstance().delegateStatus(liveInfo);
                 LivePosition.setPosition(liveInfo);
-                WsUtil.sendMessage(userId.toString(), GmsUtil.toJsonIEnum(liveInfo), FunctionEnum.console, Integer.valueOf(vehicleNo));
-                WsUtil.sendMessage(userId.toString(), GmsUtil.toJsonIEnum(liveInfo), FunctionEnum.vehicle);
+                WsUtil.sendMessage(userId.toString(), GmsUtil.toJsonIEnumDesc(liveInfo), FunctionEnum.console, Integer.valueOf(vehicleNo));
+                WsUtil.sendMessage(userId.toString(), GmsUtil.toJsonIEnumDesc(liveInfo), FunctionEnum.vehicle);
                 break;
             case RedisKey.VAP_PATH_PREFIX:
                 //交互式路径请求
@@ -164,16 +164,6 @@ public class LiveVapHandle implements RedisListener {
         }
     }
 
-
-    /**
-     * 截取车辆编号
-     */
-    private static String subVehicleNo(String key) {
-        if (key.contains("_")) {
-            return key.substring(key.lastIndexOf("_") + 1);
-        }
-        return "";
-    }
 
     /**
      * 地图采集

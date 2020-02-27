@@ -6,7 +6,7 @@
         select *
         from t_task_rule
         where VEHICLEID = #{vehicleId}
-          and STATUS in ('0', '2', '4')
+          and STATUS !='3'
         order by ADDTIME desc
         limit 1
     </select>
@@ -14,14 +14,15 @@
     <select id="getUnitVehicleList" parameterType="integer" resultType="com.zs.gms.entity.vehiclemanager.Barney">
         select *
         from t_task_rule tdt
-                 left join t_vehicle tv on tdt.VEHICLEID = tv.VEHICLEID
+                 inner join t_vehicle tv on tdt.VEHICLEID = tv.VEHICLENO
         where tdt.UNITID = #{unitId}
+          and tdt.STATUS != '3'
     </select>
 
     <select id="getLastLoadTaskRule" parameterType="integer" resultType="com.zs.gms.entity.monitor.TaskRule">
         select *
         from t_dispatch_task tdt
-                 left join t_task_rule ttr on tdt.UNITID = ttr.UNITID
+                 inner join t_task_rule ttr on tdt.UNITID = ttr.UNITID
         where tdt.dispatchTaskType = '2'
           and tdt.UNITID = #{unitId}
         order by ttr.addTime desc
@@ -29,12 +30,14 @@
     </select>
 
     <select id="getVehiclesByUserId" parameterType="integer" resultType="com.zs.gms.entity.vehiclemanager.Barney">
-        select * from t_vehicle where VEHICLEID not in(
-select tv.VEHICLEID
-        from t_vehicle tv
-                 inner join t_task_rule tdt on tdt.VEHICLEID = tv.VEHICLEID
-        where tdt.USERID=#{userId}
-        and tdt.status!='3')
+        select *
+        from t_vehicle
+        where VEHICLEID not in (
+            select tv.VEHICLEID
+            from t_vehicle tv
+                     inner join t_task_rule tdt on tdt.VEHICLEID = tv.VEHICLENO
+            where tdt.USERID = #{userId}
+              and tdt.status != '3')
     </select>
 
 </mapper>

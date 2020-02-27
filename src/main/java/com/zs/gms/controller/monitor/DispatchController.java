@@ -270,7 +270,7 @@ public class DispatchController extends BaseController {
             MessageEntry entry = MessageFactory.createMessageEntry("dispatch");
             entry.setAfterHandle(() -> {
                 if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {//操作成功
-                    dispatchTaskService.updateUnitStatusByUnitId(unitId, DispatchTask.Status.STOP);
+                    dispatchTaskService.updateUnitStatusByUnitId(unitId, DispatchTask.Status.STOPING);
                 }
             });
             MessageFactory.getDispatchMessage().sendMessageWithID(entry.getMessageId(), "StopAIUnit", JSONObject.toJSONString(paramMap), "停止调度单元成功");
@@ -368,7 +368,6 @@ public class DispatchController extends BaseController {
         if (!ObjectUtils.allNotNull(unitId, vehicleId)) {
             throw new GmsException("参数异常");
         }
-
         User currentUser = getCurrentUser();
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("unitId", unitId);
@@ -420,5 +419,45 @@ public class DispatchController extends BaseController {
         }
     }
 
+    @Log("启动车辆")
+    @PutMapping(value = "/vehicles/start")
+    @ApiOperation(value = "启动车辆", httpMethod = "PUT")
+    public void startVehicle(@MultiRequestBody("vehicleId") Integer vehicleId) throws GmsException {
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("vehicleId", vehicleId);
+        try {
+            MessageEntry entry = MessageFactory.createMessageEntry("dispatch");
+            entry.setAfterHandle(() -> {
+                if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {//操作成功
+                    taskRuleService.updateVehicleStatus(vehicleId,TaskRule.Status.RUNING);
+                }
+            });
+            MessageFactory.getDispatchMessage().sendMessageWithID(entry.getMessageId(), "StartVehTask", JSONObject.toJSONString(paramMap), "启动车辆成功");
+        } catch (Exception e) {
+            String message = "启动车辆失败";
+            log.error(message, e);
+            throw new GmsException(message);
+        }
+    }
 
+    @Log("停止车辆")
+    @PutMapping(value = "/vehicles/stop")
+    @ApiOperation(value = "停止车辆", httpMethod = "PUT")
+    public void stopVehicle(@MultiRequestBody("vehicleId") Integer vehicleId) throws GmsException {
+        Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("vehicleId", vehicleId);
+        try {
+            MessageEntry entry = MessageFactory.createMessageEntry("dispatch");
+            entry.setAfterHandle(() -> {
+                if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {//操作成功
+                    taskRuleService.updateVehicleStatus(vehicleId,TaskRule.Status.STOP);
+                }
+            });
+            MessageFactory.getDispatchMessage().sendMessageWithID(entry.getMessageId(), "StopVehTask", JSONObject.toJSONString(paramMap), "停止车辆成功");
+        } catch (Exception e) {
+            String message = "停止车辆失败";
+            log.error(message, e);
+            throw new GmsException(message);
+        }
+    }
 }

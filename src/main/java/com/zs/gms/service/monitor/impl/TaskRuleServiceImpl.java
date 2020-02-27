@@ -56,6 +56,16 @@ public class TaskRuleServiceImpl extends ServiceImpl<TaskRuleMapper, TaskRule> i
         this.update(updateWrapper);
     }
 
+    @Override
+    @Transactional
+    public void updateVehicleStatus(Integer vehicleId, TaskRule.Status status) {
+        LambdaUpdateWrapper<TaskRule> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(TaskRule::getVehicleId,vehicleId);
+        updateWrapper.ne(TaskRule::getStatus,TaskRule.Status.DELETE);
+        updateWrapper.set(TaskRule::getStatus,status);
+        this.update(updateWrapper);
+    }
+
     /**
      * 查询车辆是否已分配任务,false为未分配
      * */
@@ -71,6 +81,7 @@ public class TaskRuleServiceImpl extends ServiceImpl<TaskRuleMapper, TaskRule> i
     public List<TaskRule> getTaskRulesByUnitId(Integer unitId) {
         LambdaQueryWrapper<TaskRule> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(TaskRule::getUnitId,unitId);
+        queryWrapper.ne(TaskRule::getStatus,TaskRule.Status.DELETE);
         return this.list(queryWrapper);
     }
 

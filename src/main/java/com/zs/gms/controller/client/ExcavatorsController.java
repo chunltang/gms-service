@@ -41,7 +41,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/clients/excavator")
 @Slf4j
-@Api(tags = {"客户端管理"},description = "Excavator Controller")
+@Api(tags = {"客户端管理"},description = "client Controller")
 public class ExcavatorsController extends BaseController {
 
     @Autowired

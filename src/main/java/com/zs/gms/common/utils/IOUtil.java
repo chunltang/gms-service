@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -44,6 +45,60 @@ public class IOUtil {
             log.error("文件压缩异常", e);
         }
         writeToResponse(response, target);
+    }
+
+    /**
+     * @param file 为要压缩的文件或目录
+     * @param zos  为压缩后的zip文件
+     * @param dirPath  为文件压缩前去掉前置目录字符串
+     * */
+    public static void fileCompress(File file,ZipOutputStream zos,String dirPath)throws Exception{
+        File[] files = file.listFiles();
+        ZipEntry zipEntry;
+        FileInputStream fileInputStream;
+        for (File f : files) {
+            if(f.isDirectory()){
+                fileCompress(f,zos,dirPath);
+                continue;
+            }
+            zipEntry = new ZipEntry(f.getPath().replace(dirPath+File.separator,""));
+            zos.putNextEntry(zipEntry);
+            fileInputStream = new FileInputStream(f);
+            IOUtil.ioCopy(fileInputStream,zos);
+            fileInputStream.close();
+        }
+    }
+
+    /**
+     * @param files 指定文件对象压缩
+     * */
+    public static void fileCompress(List<File> files,ZipOutputStream zos,String dirPath)throws Exception{
+        ZipEntry zipEntry;
+        FileInputStream fileInputStream;
+        for (File f : files) {
+            zipEntry = new ZipEntry(f.getPath().replace(dirPath+File.separator,""));
+            zos.putNextEntry(zipEntry);
+            fileInputStream = new FileInputStream(f);
+            IOUtil.ioCopy(fileInputStream,zos);
+            fileInputStream.close();
+        }
+    }
+
+    /**
+     * 查找所有文件对象
+     * */
+    public static void listFiles(File file,List<File> files,String...excludeDir){
+        if(file.isDirectory()){
+            if(Arrays.asList(excludeDir).contains(file.getName())){
+                return;
+            }
+            File[] fs = file.listFiles();
+            for (File f : fs) {
+                listFiles(f,files,excludeDir);
+            }
+            return;
+        }
+        files.add(file);
     }
 
     /**

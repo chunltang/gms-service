@@ -37,7 +37,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(value = "/clients/park")
 @Slf4j
-@Api(tags = {"客户端管理"},description = "Park Controller")
+@Api(tags = {"客户端管理"},description = "client Controller")
 public class ParkController extends BaseController {
 
 }

@@ -5,7 +5,6 @@ import com.zs.gms.common.annotation.RedisLock;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.RedisKey;
 import com.zs.gms.common.exception.GmsException;
-import com.zs.gms.common.interfaces.RedisListener;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.message.MessageResult;
@@ -34,7 +33,7 @@ import java.util.Map;
 
 @Component
 @Slf4j
-public class DispatchInit implements RedisListener {
+public class DispatchInit {
 
     @Autowired
     private DispatchTaskService dispatchTaskService;
@@ -201,9 +200,8 @@ public class DispatchInit implements RedisListener {
     }
 
 
-    @Override
     @RedisLock(key = RedisKey.DISPATCH_INIT)
-    public void listener(String key) {
+    public void init(String key) {
         log.info("初始化调度依赖");
         try {
             initVehicles();

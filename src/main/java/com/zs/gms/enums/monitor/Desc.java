@@ -2,5 +2,9 @@ package com.zs.gms.enums.monitor;
 
 public interface Desc {
 
-    public String getDesc();
+    String getDesc();
+
+    default boolean isPrint(){
+        return true;
+    };
 }

@@ -4,28 +4,20 @@ import com.rabbitmq.client.Channel;
 import com.zs.gms.common.configure.EventPublisher;
 import com.zs.gms.common.entity.MessageEvent;
 import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.StaticPool;
 import com.zs.gms.common.interfaces.RedisListener;
 import com.zs.gms.common.message.EventType;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
-import com.zs.gms.common.utils.SpringContextUtil;
-import com.zs.gms.service.init.DispatchInit;
-import com.zs.gms.service.monitor.schdeule.LiveStateHandle;
+import com.zs.gms.service.monitor.schdeule.DispatchHandle;
 import com.zs.gms.service.monitor.schdeule.LiveVapHandle;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.connection.Message;
 
 import java.io.IOException;
-import java.util.Date;
 
 @Slf4j
 public class MessageUtil {
-
-    /**
-     * 重置监听时间
-     * */
-    public static long lastTime=System.currentTimeMillis();
 
     /*********************************************MQ*************************************************/
 
@@ -52,20 +44,16 @@ public class MessageUtil {
     /********************************************redis**************************************************/
 
     public static void handeListenerResult(Message message) {
-        lastTime=System.currentTimeMillis();
+        StaticPool.monitor_last_time=System.currentTimeMillis();
         RedisListener listener=null;
         String key = message.toString();
         if(key.startsWith(RedisKey.VAP_PREFIX))
         {   //车辆数据
             listener= LiveVapHandle.getInstance();
         }
-        else if(key.startsWith(RedisKey.TASK_PREFIX))
-        {
-            listener=LiveStateHandle.getInstance();
-        }
-        else if(key.equals(RedisKey.DISPATCH_SERVER_INIT))
-        {   //调度初始化
-            listener= SpringContextUtil.getBean(DispatchInit.class);
+        else if(key.startsWith(RedisKey.DISPATCH_PREFIX))
+        {   //调度服务
+            listener= DispatchHandle.getInstance();
         }
 
         if(listener!=null)

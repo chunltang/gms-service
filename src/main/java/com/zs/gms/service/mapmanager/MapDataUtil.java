@@ -2,21 +2,16 @@ package com.zs.gms.service.mapmanager;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.sun.nio.sctp.HandlerResult;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.RedisKey;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
-import com.zs.gms.common.message.MessageInterface;
 import com.zs.gms.common.message.MessageResult;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.websocket.WsUtil;
-import com.zs.gms.common.service.websocket.impl.HandleCenter;
 import com.zs.gms.common.utils.GmsUtil;
-import com.zs.gms.entity.mapmanager.Point;
 import com.zs.gms.entity.mapmanager.SemiStatic;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
 import com.zs.gms.service.monitor.schdeule.LivePosition;
@@ -120,13 +115,13 @@ public class MapDataUtil {
                         if (position.isLoadArea() && null!=areaInfo &&!AreaTypeEnum.LOAD_AREA.equals(areaInfo.getAreaType())) {
                             //表示出了装载区,推送最后一条数据
                             position.setLoadArea(false);
-                            WsUtil.sendMessage(GmsUtil.toJsonIEnum(position), FunctionEnum.excavator, lastArea);//拿之前的id
+                            WsUtil.sendMessage(GmsUtil.toJsonIEnumDesc(position), FunctionEnum.excavator, lastArea);//拿之前的id
                             return;
                         }
                         if (LivePosition.isAreaType(position, AreaTypeEnum.LOAD_AREA)) {
                             position.setLoadArea(true);
                             if (WsUtil.isNeed(FunctionEnum.excavator, value)) {
-                                WsUtil.sendMessage(GmsUtil.toJsonIEnum(position), FunctionEnum.excavator, areaId);
+                                WsUtil.sendMessage(GmsUtil.toJsonIEnumDesc(position), FunctionEnum.excavator, areaId);
                             }
                         }
                         if(null!=areaInfo && areaInfo.getAreaType()!=null){

@@ -1,9 +1,6 @@
 package com.zs.gms.service.init;
 
-import com.zs.gms.common.entity.GmsConstant;
-import com.zs.gms.common.entity.Message;
-import com.zs.gms.common.entity.RedisKey;
-import com.zs.gms.common.entity.StaticConfig;
+import com.zs.gms.common.entity.*;
 import com.zs.gms.common.service.MessageUtil;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.utils.GmsUtil;
@@ -31,14 +28,16 @@ public class ScheduleTask {
         /**========================调度检测========================*/
         Object value = RedisService.get(StaticConfig.KEEP_DB, RedisKey.DISPATCH_SERVER_HEARTBEAT);
         if (null == value || value.toString().equals(preTime)) {
-            log.error("调度服务断开连接");
+            log.debug("调度服务断开连接");
+            StaticPool.dispatch_service_status=false;
         }else{
             preTime = value.toString();
+            StaticPool.dispatch_service_status=true;
         }
 
         /**========================redis监听检测========================*/
         long timeMillis = System.currentTimeMillis();
-        if(timeMillis-MessageUtil.lastTime>45*1000){//重启redis监听服务，毫秒
+        if(timeMillis- StaticPool.monitor_last_time>45*1000){//重启redis监听服务，毫秒
             log.info("重启redis监听服务");
             RedisService.addConfig();
             RedisMessageListenerContainer bean = SpringContextUtil.getBean(RedisMessageListenerContainer.class);

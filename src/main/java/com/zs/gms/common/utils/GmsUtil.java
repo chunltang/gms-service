@@ -4,21 +4,22 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.zs.gms.common.entity.GmsConstant;
+import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.entity.RedisKey;
 import com.zs.gms.common.entity.StaticConfig;
+import com.zs.gms.common.handler.IEnumDescSerializer;
 import com.zs.gms.common.handler.IEnumDeserializer;
-import com.zs.gms.common.handler.IEnumSerializer;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.entity.system.User;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.apache.shiro.SecurityUtils;
 import org.springframework.util.ObjectUtils;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -32,6 +33,39 @@ public class GmsUtil {
      */
     public static User getCurrentUser() {
         return (User) SecurityUtils.getSubject().getPrincipal();
+    }
+
+    /**
+     * 返回前端数据
+     * */
+    public static void callResponse(GmsResponse gmsResponse, HttpServletResponse response){
+        response.setHeader("Content-Type", "application/json;charset=UTF-8");
+        PrintWriter writer = null;
+        try {
+            writer = response.getWriter();
+            writer.print(GmsUtil.toJson(gmsResponse));
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 截取匹配最后字符串
+     */
+    public static String subLastStr(String key,String match) {
+        if (key.contains(match)) {
+            return key.substring(key.lastIndexOf(match) + 1);
+        }
+        return "";
+    }
+
+    public static String subIndexStr(String key,String match) {
+        if (key.contains(match)) {
+            return key.substring(0, key.lastIndexOf(match) + 1);
+        }
+        return "";
     }
 
     /**
@@ -178,13 +212,13 @@ public class GmsUtil {
     }
 
     /**
-     * 转实现IEnum接口的枚举
+     * 转实现IEnum,Desc接口的枚举
      * */
-    public static  String toJsonIEnum(Object obj) {
+    public static  String toJsonIEnumDesc(Object obj) {
         ObjectMapper mapper = new ObjectMapper();
         try {
             SimpleModule simpleModule = new SimpleModule();
-            simpleModule.addSerializer(Enum.class, new IEnumSerializer());
+            simpleModule.addSerializer(Enum.class, new IEnumDescSerializer());
             mapper.registerModule(simpleModule);
             return mapper.writeValueAsString(obj);
         } catch (IOException e) {

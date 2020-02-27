@@ -447,7 +447,7 @@ CREATE TABLE `t_approve`
   COLLATE = utf8_general_ci COMMENT '审批表'
   ROW_FORMAT = DYNAMIC;
 
-##client
+##excavator
 DROP TABLE IF EXISTS `t_excavator`;
 CREATE TABLE `t_excavator`
 (
@@ -464,6 +464,22 @@ CREATE TABLE `t_excavator`
   AUTO_INCREMENT = 100
   CHARACTER SET = UTF8
   COLLATE = utf8_general_ci COMMENT '挖掘机参数表'
+  ROW_FORMAT = DYNAMIC;
+
+##gps
+DROP TABLE IF EXISTS `t_gps`;
+CREATE TABLE `t_gps`
+(
+    `GPSID`  int(4)                                                 NOT NULL AUTO_INCREMENT COMMENT 'id',
+    `GPSNO`  int(6)                                                 NOT NULL COMMENT 'gps编号' unique,
+    `USERID`  int(5)                                                 NOT NULL COMMENT '用户id',
+    `IP`           varchar(15) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT 'GPS的ip',
+    `CREATETIME`   datetime(0) COMMENT '创建时间',
+    PRIMARY KEY (`GPSID`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 0
+  CHARACTER SET = UTF8
+  COLLATE = utf8_general_ci COMMENT 'gps参数表'
   ROW_FORMAT = DYNAMIC;
 
 

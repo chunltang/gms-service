@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = "/clients/bulldozer")
 @Slf4j
-@Api(tags = {"客户端管理"},description = "Bulldozer Controller")
+@Api(tags = {"客户端管理"},description = "client Controller")
 public class BulldozerController extends BaseController {
     
 }
