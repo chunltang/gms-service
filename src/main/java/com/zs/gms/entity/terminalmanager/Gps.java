@@ -1,4 +1,4 @@
-package com.zs.gms.entity.gpsmanager;
+package com.zs.gms.entity.terminalmanager;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;

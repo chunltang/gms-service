@@ -33,7 +33,7 @@ public class ZipTest {
 
     /*public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
         try {
-            FileInputStream zipInputStream = new FileInputStream(new File("D:\\idea\\gms-service\\tempDir\\test.zip"));
+            FileInputStream zipInputStream = new FileInputStream(new File("D:\\idea\\gms-service\\TEMP_DIR\\test.zip"));
             IOUtil.unZip(zipInputStream,"D:\\test");
         } catch (FileNotFoundException e) {
             e.printStackTrace();

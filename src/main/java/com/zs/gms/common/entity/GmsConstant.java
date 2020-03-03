@@ -23,10 +23,12 @@ public class GmsConstant {
     /**
      * MQ等待响应时间
      */
-    public final static Long waitTime = 120000L;
+    public final static Long WAIT_TIME = 120000L;
 
     /**
      * 临时文件存放目录
      * */
-    public final static String tempDir="/tempDir";
+    public final static String TEMP_DIR ="/temp";
+
+    public final static String ICON_LIB="/icon";
 }

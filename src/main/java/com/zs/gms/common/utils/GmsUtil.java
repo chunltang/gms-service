@@ -52,7 +52,7 @@ public class GmsUtil {
     }
 
     /**
-     * 截取匹配最后字符串
+     * 截取匹配最后字符串的后一段
      */
     public static String subLastStr(String key,String match) {
         if (key.contains(match)) {
@@ -61,11 +61,21 @@ public class GmsUtil {
         return "";
     }
 
+    /**
+     * 截取匹配最后字符串的前一段
+     */
     public static String subIndexStr(String key,String match) {
         if (key.contains(match)) {
             return key.substring(0, key.lastIndexOf(match) + 1);
         }
         return "";
+    }
+
+    /**
+     * 字符串替换
+     * */
+    public static String replaceAll(String origin,String oldStr,String newStr){
+        return origin.replaceAll(oldStr,newStr);
     }
 
     /**

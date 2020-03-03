@@ -113,7 +113,7 @@ public class MessageFactory {
         List<MessageEntry> entries = new ArrayList<>(messageEntryMap.values());
         for (MessageEntry entry : entries) {
             long bTime = entry.getBTime();
-            if(System.currentTimeMillis()-bTime> GmsConstant.waitTime*2){
+            if(System.currentTimeMillis()-bTime> GmsConstant.WAIT_TIME *2){
                 entry.exec();
                 delMessageEntry(entry.getMessageId());
             }

@@ -38,7 +38,7 @@ public class DispatchHandle implements RedisListener {
                 break;
             case RedisKey.DISPATCH_SERVER_INIT:
                 DispatchInit dispatchInit = SpringContextUtil.getBean(DispatchInit.class);
-                dispatchInit.init(key);
+                dispatchInit.init();
                 break;
             case RedisKey.DISPATCH_UNIT:
                 DispatchTaskService dispatchTaskService = SpringContextUtil.getBean(DispatchTaskService.class);

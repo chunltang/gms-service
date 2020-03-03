@@ -26,7 +26,7 @@ public class JobServiceImpl extends ServiceImpl<JobMapper, Job> implements JobSe
     /**
      * 项目启动时，初始化定时器
      */
-    @PostConstruct
+    //@PostConstruct
     @Transactional
     public void init() {
         List<Job> scheduleJobList = this.list();

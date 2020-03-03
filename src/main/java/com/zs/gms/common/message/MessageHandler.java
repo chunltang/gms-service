@@ -1,5 +1,6 @@
 package com.zs.gms.common.message;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zs.gms.common.entity.GmsConstant;
@@ -97,8 +98,8 @@ public class MessageHandler {
                         }
                         break;
                     default:
-                        if(!errorHandler(entry.getMessageId(),gmsResponse,status)){
-                            String resultInfo = (String) gmsResponse.get("message");
+                        if (!errorHandler(entry.getMessageId(), gmsResponse, status)) {
+                            String resultInfo = (String) gmsResponse.get(RESPONSE_MESSAGE_FIELD);
                             gmsResponse.message(resultInfo.replaceAll(SUCCESS_DESC, FAIL_DESC));
                         }
                         gmsResponse.fail();
@@ -113,15 +114,15 @@ public class MessageHandler {
                 entry.setHandleResult(MessageResult.NO_STATUS);
                 log.debug("没有处理结果标志位status,messageId={}", entry.getMessageId());
             }
-            handleMapData(jsonObject,entry);
+            handleMapData(jsonObject, entry);
         }
     }
 
-    private void handleMapData(JSONObject jsonObject,MessageEntry entry){
+    private void handleMapData(JSONObject jsonObject, MessageEntry entry) {
         if (!jsonObject.isEmpty() && jsonObject.containsKey(RESPONSE_MESSAGE_FIELD)) {//有返回数据
             String returnData = jsonObject.getString(RESPONSE_MESSAGE_FIELD);
             GmsResponse gmsResponse = entry.getMessage().getGmsResponse();
-            if (!StringUtils.isEmpty(returnData)) {
+            if (!StringUtils.isEmpty(returnData) && JSON.isValidObject(returnData)) {
                 try {
                     JSONObject json = JSONObject.parseObject(returnData);
                     if (json.containsKey(RESPONSE_DATA_FIELD)) {
@@ -133,6 +134,8 @@ public class MessageHandler {
                     log.error("非JSON格式数据");
                     gmsResponse.message(returnData);
                 }
+            }else{
+                gmsResponse.message(returnData);
             }
         }
     }
@@ -148,7 +151,7 @@ public class MessageHandler {
                         JSONObject jsonObj = json.getJSONObject(RESPONSE_DATA_FIELD);
                         entry.setReturnData(jsonObj.toJSONString());
                     }
-                }catch (Exception e) {
+                } catch (Exception e) {
                     log.error("非JSON格式数据");
                 }
             }
@@ -172,22 +175,26 @@ public class MessageHandler {
 
     /**
      * 处理异常返回
-     * */
-    private boolean errorHandler(String messageId,GmsResponse response,String status){
-        if(GmsUtil.StringNotNull(messageId)){
+     * @param status 错误码
+     */
+    private boolean errorHandler(String messageId, GmsResponse response, String status) {
+        if (GmsUtil.StringNotNull(messageId)) {
             int i = messageId.indexOf("_");
-            String prefix="";
-            if(i>0){
-                prefix=messageId.substring(0,i);
+            String prefix = "";
+            if (i > 0) {
+                prefix = messageId.substring(0, i);
             }
 
-            switch (prefix){
-                case  GmsConstant.DISPATCH:
+            switch (prefix) {
+                case GmsConstant.DISPATCH:
                     Map<String, String> dispatch = errorCode.getDispatch();
-                    if(dispatch.containsKey(status.substring(1))){
+                    if (dispatch.containsKey(status.substring(1))) {
                         response.message(dispatch.get(status));
                         return true;
                     }
+                    break;
+                case GmsConstant.MAP:
+                    break;
             }
         }
         return false;

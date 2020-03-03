@@ -1,6 +1,6 @@
-package com.zs.gms.service.gpsmanager;
+package com.zs.gms.service.terminalmanager;
 
-import com.zs.gms.entity.gpsmanager.Gps;
+import com.zs.gms.entity.terminalmanager.Gps;
 
 public interface GpsService {
 

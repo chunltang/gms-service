@@ -13,7 +13,7 @@ public class SftpUploadTest {
     private static String user = "root";
 
     //主机ip
-    private static String host = "192.168.2.100";
+    private static String host = "192.168.2.100";//100
     //private static String host = "192.168.2.114";
 
     //密码
@@ -31,10 +31,10 @@ public class SftpUploadTest {
         System.out.println("-----------gms-0.0.1-SNAPSHOT.jar上传成功-------------");
        List<String> cmds=new ArrayList<>();
         cmds.add("cd /usr/dockersoft");
-        //cmds.add("sh docker.sh ycc  gms-1.0.2 gms-1.0.2 8081 server4");
-        //cmds.add("sh docker.sh dac `docker ps | grep gms-1.0.2 |awk '{print $1}'`  `docker images | grep gms-1.0.2 |awk '{print $3}'` gms-1.0.2 gms-1.0.2 8081 server4");
-        //cmds.add("sh docker.sh dac `docker ps | grep gms-1.0.1 |awk '{print $1}'`  `docker images | grep gms-1.0.1 |awk '{print $3}'` gms-1.0.1 gms-1.0.1 9999 server3");
-        cmds.add("sh docker.sh dac `docker ps | grep gms-1.0.0 |awk '{print $1}'`  `docker images | grep gms-1.0.0 |awk '{print $3}'` gms-1.0.0 gms-1.0.0 8080 server2");
+        //cmds.add("sh docker.sh ycc  gms-1.0.2 gms-1.0.2 8080 server4");
+        //cmds.add("sh docker.sh dac `docker ps | grep gms-1.0.2 |awk '{print $1}'`  `docker images | grep gms-1.0.2 |awk '{print $3}'` gms-1.0.2 gms-1.0.2 8080 server4");
+        cmds.add("sh docker.sh dac `docker ps | grep gms-1.0.1 |awk '{print $1}'`  `docker images | grep gms-1.0.1 |awk '{print $3}'` gms-1.0.1 gms-1.0.1 9999 server3");
+        //cmds.add("sh docker.sh dac `docker ps | grep gms-1.0.0 |awk '{print $1}'`  `docker images | grep gms-1.0.0 |awk '{print $3}'` gms-1.0.0 gms-1.0.0 8080 server2");
 
         cmds.add("docker ps");
         execCmds(cmds);

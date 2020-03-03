@@ -210,6 +210,26 @@ CREATE TABLE `t_user_vehicle`
 
 -- -----------------------------------------------------------------------------------------------------------------------
 
+DROP TABLE IF EXISTS `t_iconlib`;
+CREATE TABLE `t_iconlib`
+(
+    `LIBID`        int(3) NOT NULL AUTO_INCREMENT COMMENT '库id',
+    `USERID`       int(5) NOT NULL  COMMENT '创建用户id',
+    `USERNAME`    VARCHAR(20) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT '创建用户名称',
+    `NAME`    VARCHAR(20) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT '库名称',
+    `REMARK`    VARCHAR(100) CHARACTER SET UTF8 COLLATE utf8_general_ci  COMMENT '备注',
+    `PATH`    VARCHAR(50) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT '相对路径',
+    `STATUS`    CHAR(1) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT '删除状态',
+    `CREATETIME` datetime(0) NOT NULL COMMENT '上传时间',
+    PRIMARY KEY (`LIBID`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 0
+  CHARACTER SET = utf8
+  COLLATE = utf8_general_ci COMMENT = '图标库信息表'
+  ROW_FORMAT = Dynamic;
+
+-- -----------------------------------------------------------------------------------------------------------------------
+
 DROP TABLE IF EXISTS `t_vehicle_vehicleType`;
 CREATE TABLE `t_vehicle_vehicleType`
 (

@@ -97,7 +97,7 @@ public abstract class MessageAbstract implements MessageInterface{
     private  void waitMqResponse(HttpServletResponse response, String messageId) {
         try {
             synchronized (response) {
-                response.wait(GmsConstant.waitTime);
+                response.wait(GmsConstant.WAIT_TIME);
             }
             MessageEntry entry = MessageFactory.getMessageEntry(messageId);
             MessageResult handleResult=null;

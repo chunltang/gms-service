@@ -1,12 +1,12 @@
-package com.zs.gms.controller.gpsmanager;
+package com.zs.gms.controller.terminalmanager;
 
 import com.zs.gms.common.annotation.Log;
 import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.exception.GmsException;
-import com.zs.gms.entity.gpsmanager.Gps;
-import com.zs.gms.service.gpsmanager.GpsService;
+import com.zs.gms.entity.terminalmanager.Gps;
+import com.zs.gms.service.terminalmanager.GpsService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -17,9 +17,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
 @RestController
-@RequestMapping(value = "/gpses")
 @Slf4j
-@Api(tags = {"GPS管理"},description = "gps Controller")
+@Api(tags = {"终端管理"},description = "Terminal Controller")
+@RequestMapping(value = "/terminals/gps")
 @Validated
 public class GpsController extends BaseController {
 

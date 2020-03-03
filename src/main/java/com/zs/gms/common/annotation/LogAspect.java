@@ -79,7 +79,7 @@ public class LogAspect {
                     sysLog.setResultDesc(String.valueOf(response.getOrDefault("message","")));
                 }
                 sysLog.setOperateDesc(value);
-                if(time> GmsConstant.waitTime){
+                if(time> GmsConstant.WAIT_TIME){
                     sysLog.setResultDesc("远程接口调用超时");
                 }
                 sysLogService.addSysLog(sysLog);

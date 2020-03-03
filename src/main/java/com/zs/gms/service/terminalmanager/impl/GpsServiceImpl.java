@@ -1,10 +1,10 @@
-package com.zs.gms.service.gpsmanager.impl;
+package com.zs.gms.service.terminalmanager.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.zs.gms.entity.gpsmanager.Gps;
-import com.zs.gms.mapper.gpsmanager.GpsMapper;
-import com.zs.gms.service.gpsmanager.GpsService;
+import com.zs.gms.entity.terminalmanager.Gps;
+import com.zs.gms.mapper.terminalmanager.GpsMapper;
+import com.zs.gms.service.terminalmanager.GpsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;

@@ -201,7 +201,7 @@ public class DispatchInit {
 
 
     @RedisLock(key = RedisKey.DISPATCH_INIT)
-    public void init(String key) {
+    public void init() {
         log.info("初始化调度依赖");
         try {
             initVehicles();
