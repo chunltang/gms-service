@@ -92,7 +92,7 @@ public class ScheduleService {
     }
 
     /**
-     * 执行延迟任务且只执行一次
+     * 执行延迟任务且只执行一次,delayed毫秒
      * */
     public static void addSingleTask(Runnable task,long delayed){
         if(null==task || delayed<=0){

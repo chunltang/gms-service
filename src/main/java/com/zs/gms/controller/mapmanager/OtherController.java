@@ -4,10 +4,10 @@ import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.zs.gms.common.annotation.Log;
 import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.controller.BaseController;
-import com.zs.gms.common.entity.Export;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.common.exception.GmsException;
+import com.zs.gms.common.service.ScheduleService;
 import com.zs.gms.common.utils.DateUtil;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.mapmanager.MapFile;
@@ -17,9 +17,7 @@ import com.zs.gms.enums.mapmanager.AreaTypeEnum;
 import com.zs.gms.enums.mapmanager.MapFileTypeEnum;
 import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.mapmanager.MapInfoService;
-import com.zs.gms.enums.monitor.TaskTypeEnum;
 import com.zs.gms.service.mineralmanager.AreaMineralService;
-import com.zs.gms.service.mineralmanager.MineralService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -30,9 +28,14 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,10 +57,14 @@ public class OtherController extends BaseController {
     @Log("获取地图列表")
     @GetMapping
     @ApiOperation(value = "获取地图列表", httpMethod = "GET")
-    public GmsResponse getMapVersionList(@MultiRequestBody QueryRequest request) throws GmsException {
+    public void getMapVersionList(HttpServletResponse httpServletResponse,QueryRequest request) throws GmsException {
         try {
-            Map<String, Object> dataTable = getDataTable(mapInfoService.getMapInfoListPage(request));
-            return new GmsResponse().data(dataTable).message("获取地图列表成功").success();
+            MapDataUtil.syncMap();
+            ScheduleService.addSingleTask(()->{
+                Map<String, Object> dataTable = getDataTable(mapInfoService.getMapInfoListPage(request));
+                GmsResponse gmsResponse = new GmsResponse().data(dataTable).message("获取地图列表成功").success();
+                GmsUtil.callResponse(gmsResponse,httpServletResponse);
+            },300);
         } catch (Exception e) {
             String message = "获取地图列表失败";
             log.error(message, e);

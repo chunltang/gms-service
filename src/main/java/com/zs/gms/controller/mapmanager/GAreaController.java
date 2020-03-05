@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.zs.gms.common.annotation.Log;
-import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.RedisKey;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.exception.GmsException;
@@ -13,10 +12,9 @@ import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.HttpContextUtil;
+import com.zs.gms.entity.mapmanager.Point;
 import com.zs.gms.entity.mapmanager.SemiStatic;
 import com.zs.gms.entity.mapmanager.point.AnglePoint;
-import com.zs.gms.entity.mapmanager.Point;
-import com.zs.gms.entity.monitor.TaskAreaState;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController

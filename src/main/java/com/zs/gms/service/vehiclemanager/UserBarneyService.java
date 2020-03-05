@@ -5,16 +5,13 @@ import com.zs.gms.entity.vehiclemanager.UserVehicle;
 
 public interface UserBarneyService extends IService<UserVehicle> {
 
-    public Integer getUserIdByVehicleId(Integer vehicleId);
 
-    public void deteleByVehicleIds(String[] vehicleIds);
+    void addUserVehicle(UserVehicle userVehicle);
 
-    public void addUserVehicle(UserVehicle userVehicle);
-
-    public void deteleByVehicleId(Integer vehicleId);
+    void deleteByVehicleId(Integer vehicleId);
 
     /**
      * 查询车辆是否已分配
-     * */
-    public boolean isVehiclesAllot(String vehicleIds);
+     */
+    boolean isVehiclesAllot(String vehicleIds);
 }

@@ -1,6 +1,7 @@
 package com.zs.gms.controller.vehiclemanager;
 
 import com.zs.gms.common.annotation.Log;
+import com.zs.gms.common.annotation.Mark;
 import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsResponse;
@@ -14,6 +15,7 @@ import com.zs.gms.entity.vehiclemanager.Barney;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
 import com.zs.gms.service.client.ExcavatorService;
 import com.zs.gms.service.client.UserExcavatorLoadAreaService;
+import com.zs.gms.service.init.SyncRedisData;
 import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.system.UserService;
 import com.zs.gms.service.vehiclemanager.BarneyService;
@@ -45,6 +47,7 @@ public class ExcavatorController extends BaseController {
 
 
     @Log("新增挖掘机")
+    @Mark(value = "新增挖掘机",markImpl = SyncRedisData.class)
     @PostMapping(value = "/excavators")
     @ApiOperation(value = "新增挖掘机", httpMethod = "POST")
     public GmsResponse addExcavator(@MultiRequestBody("excavator") @Valid Excavator excavator) throws GmsException {
@@ -63,6 +66,7 @@ public class ExcavatorController extends BaseController {
     }
 
     @Log("删除挖掘机")
+    @Mark(value = "删除挖掘机",markImpl = SyncRedisData.class)
     @DeleteMapping(value = "/excavators/{excavatorId}")
     @ApiOperation(value = "删除挖掘机", httpMethod = "DELETE")
     public GmsResponse delExcavator(@PathVariable(value = "excavatorId") Integer excavatorId) throws GmsException {
@@ -77,6 +81,7 @@ public class ExcavatorController extends BaseController {
     }
 
     @Log("修改挖掘机参数")
+    @Mark(value = "修改挖掘机参数",markImpl = SyncRedisData.class)
     @PutMapping(value = "/excavators")
     @ApiOperation(value = "修改挖掘机参数", httpMethod = "PUT")
     public GmsResponse updateExcavator(@MultiRequestBody("excavator") @Valid Excavator excavator) throws GmsException {

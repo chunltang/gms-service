@@ -1,9 +1,7 @@
 package com.zs.gms.service.init;
 
 import com.zs.gms.common.entity.*;
-import com.zs.gms.common.service.MessageUtil;
 import com.zs.gms.common.service.RedisService;
-import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SpringContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;

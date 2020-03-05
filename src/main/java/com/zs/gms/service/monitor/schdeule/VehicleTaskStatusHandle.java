@@ -1,7 +1,7 @@
 package com.zs.gms.service.monitor.schdeule;
 
 import com.zs.gms.entity.monitor.VehicleStatus;
-import com.zs.gms.enums.monitor.Desc;
+import com.zs.gms.common.interfaces.Desc;
 import lombok.extern.slf4j.Slf4j;
 
 /**

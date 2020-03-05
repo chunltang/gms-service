@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED,readOnly = true,rollbackFor = Exception.class)
@@ -21,6 +22,12 @@ public class ExcavatorServiceImpl extends ServiceImpl<ExcavatorMapper, Excavator
     public void addExcavator(Excavator excavator) {
         excavator.setCreateTime(new Date());
         this.save(excavator);
+    }
+
+    @Override
+    @Transactional
+    public List<Excavator> getExcavators() {
+        return this.list();
     }
 
     @Override

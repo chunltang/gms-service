@@ -2,7 +2,7 @@ package com.zs.gms.common.configure;
 
 import com.rabbitmq.client.Channel;
 import com.zs.gms.common.properties.GmsProperties;
-import com.zs.gms.common.service.MessageUtil;
+import com.zs.gms.common.utils.MessageUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;

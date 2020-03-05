@@ -22,5 +22,5 @@ public class IdPoint extends AnglePoint implements Serializable {
         this.id=id;
     }
 
-    public int id;
+    public long id;
 }

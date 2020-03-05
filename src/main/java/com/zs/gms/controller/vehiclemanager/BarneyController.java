@@ -1,15 +1,8 @@
 package com.zs.gms.controller.vehiclemanager;
 
-import com.zs.gms.entity.client.Excavator;
-import com.zs.gms.entity.client.UserExcavatorLoadArea;
-import com.zs.gms.entity.system.Role;
-import com.zs.gms.entity.system.User;
+import com.zs.gms.common.annotation.Mark;
 import com.zs.gms.entity.vehiclemanager.Barney;
-import com.zs.gms.enums.mapmanager.AreaTypeEnum;
-import com.zs.gms.service.client.ExcavatorService;
-import com.zs.gms.service.client.UserExcavatorLoadAreaService;
-import com.zs.gms.service.mapmanager.MapDataUtil;
-import com.zs.gms.service.system.UserService;
+import com.zs.gms.service.init.SyncRedisData;
 import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.common.annotation.Log;
 import com.zs.gms.common.annotation.MultiRequestBody;
@@ -20,7 +13,6 @@ import com.zs.gms.common.exception.GmsException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.xmlbeans.impl.xb.ltgfmt.FileDesc;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -40,11 +32,12 @@ public class BarneyController extends BaseController {
     private BarneyService barneyService;
 
     @Log("新增矿车")
+    @Mark(value = "新增矿车",markImpl = SyncRedisData.class)
     @PostMapping("/barneys")
     @ApiOperation(value = "新增矿车", httpMethod = "POST")
     public GmsResponse addVehicle(@Valid @MultiRequestBody Barney barney) throws GmsException {
         try {
-            if (this.barneyService.queryVhicleExist(barney.getVehicleNo())) {
+            if (this.barneyService.queryVehicleExist(barney.getVehicleNo())) {
                 throw new GmsException("该车辆编号已添加");
             }
             this.barneyService.addVehicle(barney);
@@ -71,6 +64,7 @@ public class BarneyController extends BaseController {
     }
 
     @Log("修改矿车信息")
+    @Mark(value = "修改矿车信息",markImpl = SyncRedisData.class)
     @PutMapping("/barneys")
     @ApiOperation(value = "修改矿车信息", httpMethod = "PUT")
     public GmsResponse updateVehicle(@MultiRequestBody Barney barney) throws GmsException {
@@ -85,11 +79,12 @@ public class BarneyController extends BaseController {
     }
 
     @Log("删除矿车")
-    @DeleteMapping(value = "/barneys/{vehicleIds}")
+    @Mark(value = "删除矿车",markImpl = SyncRedisData.class)
+    @DeleteMapping(value = "/barneys/{vehicleId}")
     @ApiOperation(value = "删除矿车", httpMethod = "DELETE")
-    public GmsResponse deleteVehicle(@PathVariable(value = "vehicleIds") String vehicleIds) throws GmsException {
+    public GmsResponse deleteVehicle(@PathVariable(value = "vehicleId") Integer vehicleId) throws GmsException {
         try {
-            this.barneyService.deleteVehicle(vehicleIds);
+            this.barneyService.deleteVehicle(vehicleId);
             return new GmsResponse().message("删除矿车成功").success();
         } catch (Exception e) {
             String message = "删除矿车失败";

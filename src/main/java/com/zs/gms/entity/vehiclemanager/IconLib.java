@@ -41,6 +41,12 @@ public class IconLib implements Serializable {
     @TableField("USERID")
     private Integer userId;
 
+    /**
+     * 第一个图标的地址
+     * */
+    @TableField("FIRSTICONPATH")
+    private String firstIconPath;
+
     @JsonIgnore
     @TableField("STATUS")
     private Status status=Status.ENABLE;

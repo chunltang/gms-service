@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.core.enums.IEnum;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.zs.gms.enums.monitor.Desc;
+import com.zs.gms.common.interfaces.Desc;
 import com.zs.gms.enums.monitor.TaskTypeEnum;
 import com.zs.gms.enums.monitor.UnitTypeEnum;
 import lombok.Data;

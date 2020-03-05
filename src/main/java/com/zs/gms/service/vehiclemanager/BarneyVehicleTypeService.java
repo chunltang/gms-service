@@ -5,9 +5,8 @@ import com.zs.gms.entity.vehiclemanager.BarneyVehicleType;
 
 public interface BarneyVehicleTypeService extends IService<BarneyVehicleType> {
 
-    public void addVehicleVehicleType(BarneyVehicleType barneyVehicleType);
+     void addVehicleVehicleType(BarneyVehicleType barneyVehicleType);
 
-    public void deteleByVehicleId(long vehicleId);
+     void deleteByVehicleId(Integer vehicleId);
 
-    public void deteleByVehicleIdS(String[] vehicleIds);
 }

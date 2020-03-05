@@ -2,9 +2,13 @@ package com.zs.gms.service.client;
 
 import com.zs.gms.entity.client.Excavator;
 
+import java.util.List;
+
 public interface ExcavatorService {
 
     void addExcavator(Excavator excavator);
+
+    List<Excavator> getExcavators();
 
     void delExcavator(Integer excavatorId);
 

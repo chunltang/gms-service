@@ -109,7 +109,7 @@ public class RabbitMqService implements InitializingBean{
         }
         try {
             JSONObject object = JSONObject.parseObject(message);
-            template.convertAndSend(exchange,routeKey+"."+serverName,object,msg -> {
+            template.convertAndSend(exchange,routeKey+"."+serverName,null==object?"":object,msg -> {
                    msg.getMessageProperties().setMessageId(messageId);
                    msg.getMessageProperties().setExpiration("5000");
                    return msg;

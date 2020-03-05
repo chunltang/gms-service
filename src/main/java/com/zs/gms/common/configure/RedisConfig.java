@@ -3,9 +3,8 @@ package com.zs.gms.common.configure;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.StaticConfig;
-import com.zs.gms.common.service.MessageUtil;
+import com.zs.gms.common.utils.MessageUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -158,7 +157,7 @@ public class RedisConfig extends CachingConfigurerSupport {
         template.setValueSerializer(redisSerializer);
 
         template.setHashKeySerializer(redisSerializer);
-        template.setHashValueSerializer(jackson2JsonRedisSerializer());
+        template.setHashValueSerializer(redisSerializer);
         template.afterPropertiesSet();
         return template;
     }

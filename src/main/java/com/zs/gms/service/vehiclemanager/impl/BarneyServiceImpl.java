@@ -6,7 +6,9 @@ import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zs.gms.common.annotation.Mark;
 import com.zs.gms.common.entity.StaticConfig;
+import com.zs.gms.common.interfaces.MarkInterface;
 import com.zs.gms.entity.vehiclemanager.Barney;
 import com.zs.gms.entity.vehiclemanager.UserVehicle;
 import com.zs.gms.entity.vehiclemanager.BarneyVehicleType;
@@ -21,14 +23,12 @@ import com.zs.gms.common.utils.PropertyUtil;
 import com.zs.gms.common.utils.SortUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 @Service
 @CacheConfig(cacheNames = "vehicles")
 @Transactional(propagation = Propagation.SUPPORTS,readOnly = true,rollbackFor = Exception.class)
-public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> implements BarneyService {
+public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> implements BarneyService, MarkInterface {
 
     @Autowired
     @Lazy
@@ -69,20 +69,20 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
      * */
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "vehicles",key = "'getUserIdByVehicleNo'+#p0.vehicleNo")
+    @Mark(value = "修改车辆信息",markImpl = BarneyServiceImpl.class)
     public void updateVehicle(Barney barney) {
         Integer userId = barney.getUserId();
         Integer vehicleId = barney.getVehicleId();
         //修改车辆归属
         if(null!=userId){
-           userBarneyService.deteleByVehicleId(vehicleId);
+           userBarneyService.deleteByVehicleId(vehicleId);
            addUserVehicle(userId,vehicleId);
             barney.setUserId(null);
        }
         //修改车辆类型
         Integer vehicleTypeId = barney.getVehicleTypeId();
         if(null!=vehicleTypeId){
-            barneyVehicleTypeService.deteleByVehicleId(vehicleId);
+            barneyVehicleTypeService.deleteByVehicleId(vehicleId);
             addVehicleVehicleType(vehicleTypeId,vehicleId);
             barney.setVehicleTypeId(null);
         }
@@ -106,6 +106,7 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
     /**
      * 批量分配用户车辆
      * */
+    @Mark(value = "批量分配用户车辆",markImpl = BarneyServiceImpl.class)
     public void addUserVehicles(Integer userId,String vehicleIds){
         String[] ids = StringUtils.split(vehicleIds, StringPool.COMMA);
         for (String id : ids) {
@@ -114,7 +115,6 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
             userVehicle.setVehicleId(Integer.valueOf(id));
             userBarneyService.addUserVehicle(userVehicle);
         }
-        RedisService.deleteLikeKey(StaticConfig.KEEP_DB,"getUserIdByVehicleNo");//删除缓存数据
     }
 
     @Override
@@ -138,24 +138,29 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
      * */
     @Override
     @Transactional
-    public void deleteVehicle(String vehicleIds) {
-        String[] ids = vehicleIds.split(StringPool.COMMA);
-        this.baseMapper.deleteBatchIds(Arrays.asList(ids));
-        userBarneyService.deteleByVehicleIds(ids);
-        barneyVehicleTypeService.deteleByVehicleIdS(ids);
-        RedisService.deleteLikeKey(StaticConfig.KEEP_DB,"getUserIdByVehicleNo");//删除缓存数据
+    public void deleteVehicle(Integer vehicleId) {
+        this.removeById(vehicleId);
+        userBarneyService.deleteByVehicleId(vehicleId);
+        barneyVehicleTypeService.deleteByVehicleId(vehicleId);
     }
 
     /**
      * 分页获取车辆列表
-     * @param queryRquest 分页对象
+     * @param queryRequest 分页对象
      * */
     @Override
     @Transactional
-    public IPage<Barney> getVehicleList(Barney barney, QueryRequest queryRquest) {
+    public IPage<Barney> getVehicleList(Barney barney, QueryRequest queryRequest) {
         Page page=new Page();
-        SortUtil.handlePageSort(queryRquest,page, GmsConstant.SORT_DESC,"VEHICLEID");
+        SortUtil.handlePageSort(queryRequest,page, GmsConstant.SORT_DESC,"VEHICLEID");
         return this.baseMapper.findVehicleListPage(page, barney);
+    }
+
+    @Override
+    public List<Barney> getAllVehicles() {
+        LambdaQueryWrapper<Barney> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Barney::getVehicleStatus,"1");
+        return  this.list(queryWrapper);
     }
 
     /**
@@ -187,18 +192,20 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
      * */
     @Override
     @Transactional
-    public boolean queryVhicleExist(Integer vhicleNo) {
-        Integer count = this.baseMapper.selectCount(new LambdaQueryWrapper<Barney>().eq(Barney::getVehicleNo, vhicleNo));
+    public boolean queryVehicleExist(Integer vehicleNo) {
+        Integer count = this.baseMapper.selectCount(new LambdaQueryWrapper<Barney>().eq(Barney::getVehicleNo, vehicleNo));
         return count > 0? true : false;
     }
 
     @Override
     @Transactional
     public List<Integer> getAllVehicleNos() {
-        LambdaQueryWrapper<Barney> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Barney::getVehicleStatus,"1");
-        queryWrapper.select(Barney::getVehicleNo);
-        List<Barney> barneys = this.baseMapper.selectList(queryWrapper);
+        List<Barney> barneys = getAllVehicles();
         return barneys.stream().map(vehicle ->vehicle.getVehicleNo()).collect(Collectors.toList());
+    }
+
+    @Override
+    public void execute() {
+        RedisService.deleteLikeKey(StaticConfig.KEEP_DB,"getUserIdByVehicleNo");//删除缓存数据
     }
 }

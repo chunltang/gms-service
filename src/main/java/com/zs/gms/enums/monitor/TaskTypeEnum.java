@@ -2,11 +2,12 @@ package com.zs.gms.enums.monitor;
 
 import com.baomidou.mybatisplus.core.enums.IEnum;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.zs.gms.common.interfaces.Desc;
 
 /**
  * 任务类型
  * */
-public enum TaskTypeEnum implements IEnum,Desc {
+public enum TaskTypeEnum implements IEnum, Desc {
 
     LEISURE("0","空闲"),
     PARK("1","泊车"),

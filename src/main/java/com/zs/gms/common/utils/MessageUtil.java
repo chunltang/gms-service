@@ -1,4 +1,4 @@
-package com.zs.gms.common.service;
+package com.zs.gms.common.utils;
 
 import com.rabbitmq.client.Channel;
 import com.zs.gms.common.configure.EventPublisher;
@@ -9,6 +9,7 @@ import com.zs.gms.common.interfaces.RedisListener;
 import com.zs.gms.common.message.EventType;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
+import com.zs.gms.service.init.RedisScript;
 import com.zs.gms.service.monitor.schdeule.DispatchHandle;
 import com.zs.gms.service.monitor.schdeule.LiveVapHandle;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +55,10 @@ public class MessageUtil {
         else if(key.startsWith(RedisKey.DISPATCH_PREFIX))
         {   //调度服务
             listener= DispatchHandle.getInstance();
+        }
+        else if(key.startsWith(RedisKey.REDIS_SCRIPT_PREFIX))
+        {   //脚本
+            listener= RedisScript.getInstance();
         }
 
         if(listener!=null)

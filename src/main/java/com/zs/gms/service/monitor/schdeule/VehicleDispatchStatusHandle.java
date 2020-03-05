@@ -1,7 +1,7 @@
 package com.zs.gms.service.monitor.schdeule;
 
 import com.zs.gms.common.utils.GmsUtil;
-import com.zs.gms.enums.monitor.Desc;
+import com.zs.gms.common.interfaces.Desc;
 import com.zs.gms.enums.monitor.DispatchStateEnum;
 import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.service.vehiclemanager.impl.BarneyServiceImpl;

@@ -13,17 +13,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 @SpringBootConfiguration
-@PropertySource(value = {"classpath:properties/errorCode.properties"},encoding = "gbk",factory = Factory.class)
+@PropertySource(value = {"classpath:properties/errorCode.properties"},encoding = "gbk")
 @ConfigurationProperties(prefix = "errorcode")
 @Data
 public class ErrorCode {
     private Map<String,String> dispatch=new HashMap<>();
 }
 
-class Factory implements PropertySourceFactory {
-
-    @Override
-    public org.springframework.core.env.PropertySource<?> createPropertySource(String name, EncodedResource resource) throws IOException {
-        return (name != null ? new ResourcePropertySource(name, resource) : new ResourcePropertySource(resource));
-    }
-}

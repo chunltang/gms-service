@@ -114,7 +114,7 @@ public class DispatchInit {
             paramMap.put("unitId", unitId);
             paramMap.put("loaderAreaId", loadAreaId);
             paramMap.put("unLoaderAreaId", unLoadAreaId);
-            MessageEntry entry = MessageFactory.createMessageEntry("dispatch");
+            MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
             entry.setHttp(false);
             entry.setAfterHandle(() -> {
                 if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {
@@ -149,7 +149,7 @@ public class DispatchInit {
      */
     private void initSpecialDispatchTask(Integer unitId, String taskType, Integer taskAreaId) throws GmsException {
         try {
-            MessageEntry entry = MessageFactory.createMessageEntry("dispatch");
+            MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
             Map<String, Object> paramMap = new HashMap<>();
             paramMap.put("unitId", GmsUtil.typeTransform(unitId, Integer.class));
             paramMap.put("taskType", taskType);
@@ -200,7 +200,7 @@ public class DispatchInit {
     }
 
 
-    @RedisLock(key = RedisKey.DISPATCH_INIT)
+    @RedisLock(key = RedisKey.DISPATCH_INIT_LOCK)
     public void init() {
         log.info("初始化调度依赖");
         try {

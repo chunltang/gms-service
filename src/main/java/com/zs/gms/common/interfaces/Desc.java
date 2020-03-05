@@ -1,4 +1,4 @@
-package com.zs.gms.enums.monitor;
+package com.zs.gms.common.interfaces;
 
 public interface Desc {
 

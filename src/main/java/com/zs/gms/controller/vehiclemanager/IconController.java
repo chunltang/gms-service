@@ -58,8 +58,12 @@ public class IconController extends BaseController {
             if (!iconFile.exists()) {
                 iconFile.mkdirs();
             }
-            unZip(file,dir+relativePath);
             IconLib iconLib = new IconLib();
+            boolean isContainFile = unZip(file, dir + relativePath,iconLib);
+            if(!isContainFile){
+                return new GmsResponse().message("上传目录为空文件夹,上传图标库失败").badRequest();
+            }
+
             User user = super.getCurrentUser();
             iconLib.setUserId(user.getUserId());
             iconLib.setUserName(user.getUserName());
@@ -171,7 +175,7 @@ public class IconController extends BaseController {
             File dirFile = new File(oldPath);
             IOUtil.delDir(dirFile);
             String relativePath = dir+GmsConstant.ICON_LIB + File.separator + iconLib.getName();
-            unZip(file,relativePath);
+            unZip(file,relativePath,iconLib);
             return new GmsResponse().message("替换图标库成功").success();
         } catch (Exception e) {
             String message = "替换图标库失败";
@@ -187,7 +191,7 @@ public class IconController extends BaseController {
         return files;
     }
 
-    private void unZip(MultipartFile file,String unZipPath) throws IOException {
+    private boolean unZip(MultipartFile file,String unZipPath,IconLib lib) throws IOException {
         //将压缩文件输出到临时目录
         String dir = System.getProperty("user.dir");
         InputStream is = file.getInputStream();
@@ -199,6 +203,16 @@ public class IconController extends BaseController {
         //解压
         FileInputStream fis = new FileInputStream(zipFile);
         IOUtil.unZip(fis, unZipPath + File.separator);
+        List<File> files=new ArrayList<>();
+        IOUtil.listFiles(new File(unZipPath),files);
+        boolean isContainFile=false;
+        if(GmsUtil.CollectionNotNull(files)){
+            isContainFile=true;
+            String path = files.get(0).getPath();
+            path=GmsUtil.replaceAll(path, "\\\\", "\\/");
+            lib.setFirstIconPath(path.substring(path.indexOf(GmsConstant.ICON_LIB)));
+        }
         zipFile.delete();
+        return isContainFile;
     }
 }

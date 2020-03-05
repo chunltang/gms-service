@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
 
 @Transactional(propagation = Propagation.REQUIRED,readOnly = true,rollbackFor = Exception.class)
 @Service
@@ -41,6 +42,11 @@ public class GpsServiceImpl extends ServiceImpl<GpsMapper, Gps> implements GpsSe
         LambdaQueryWrapper<Gps> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Gps::getGpsId,gpsId);
         return null!=this.getOne(queryWrapper);
+    }
+
+    @Override
+    public List<Gps> getAllGps() {
+        return this.list();
     }
 
     @Override

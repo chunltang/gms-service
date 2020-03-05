@@ -243,7 +243,7 @@ public class RedisService {
     public static void deleteKey(int index, Collection<String> keys) {
         RedisTemplate<String, Object> template=getTemplate(index);
         if (CollectionUtils.isEmpty(keys)) {
-            log.info("参数异常");
+            log.info("参数异常,keys为空");
             return;
         }
         try {
@@ -315,7 +315,8 @@ public class RedisService {
     /**
      * 对hash类型的数据操作
      */
-    public static HashOperations<String, String, Object> hashOperations(RedisTemplate<String, Object> template) {
+    public static HashOperations<String, String, Object> hashOperations(int index) {
+        RedisTemplate<String, Object> template=getTemplate(index);
         return template.opsForHash();
     }
 

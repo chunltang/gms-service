@@ -13,6 +13,13 @@ public interface MapInfoService  {
     public void addMapInfo(MapInfo  Info);
 
     /**
+     * 查询地图id是否已存在
+     * */
+    public boolean existMapId(Integer mapId);
+
+    public MapInfo getMapInfo(Integer mapId);
+
+    /**
      * 修改地图信息
      * */
     public void updateMapInfo(MapInfo info);

@@ -17,6 +17,7 @@ import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.websocket.WsUtil;
 import com.zs.gms.common.utils.GmsUtil;
+import com.zs.gms.common.utils.SortUtil;
 import com.zs.gms.entity.mapmanager.MapInfo;
 import com.zs.gms.mapper.mapmanager.MapInfoMapper;
 import com.zs.gms.service.mapmanager.MapInfoService;
@@ -54,6 +55,20 @@ public class MapInfoServiceImpl extends ServiceImpl<MapInfoMapper, MapInfo> impl
     }
 
     @Override
+    public boolean existMapId(Integer mapId) {
+        LambdaQueryWrapper<MapInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MapInfo::getMapId,mapId);
+        return this.list(queryWrapper).size()>0;
+    }
+
+    @Override
+    public MapInfo getMapInfo(Integer mapId) {
+        LambdaQueryWrapper<MapInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(MapInfo::getMapId,mapId);
+        return this.getOne(queryWrapper);
+    }
+
+    @Override
     @Transactional
     public void updateMapInfo(MapInfo info) {
         info.setUpdateTime(new Date());
@@ -79,15 +94,10 @@ public class MapInfoServiceImpl extends ServiceImpl<MapInfoMapper, MapInfo> impl
 
     @Override
     @Transactional
-    public IPage<MapInfo> getMapInfoListPage(QueryRequest request) {//改
+    public IPage<MapInfo> getMapInfoListPage(QueryRequest request) {
         Page page = new Page();
-        page.setSize(1);
-        page.setCurrent(1);
-        page.setDesc("addTime");
-        //SortUtil.handlePageSort(request,page, GmsConstant.SORT_DESC,"addTime");
-        IPage iPage = this.page(page);
-        iPage.setTotal(1);
-        return iPage;
+        SortUtil.handlePageSort(request,page, GmsConstant.SORT_DESC,"addTime");
+        return this.page(page);
     }
 
     @Override

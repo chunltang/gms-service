@@ -2,6 +2,9 @@ package com.zs.gms.service.mapmanager;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zs.gms.common.annotation.RedisLock;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.RedisKey;
 import com.zs.gms.common.entity.StaticConfig;
@@ -12,18 +15,116 @@ import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.websocket.WsUtil;
 import com.zs.gms.common.utils.GmsUtil;
+import com.zs.gms.common.utils.SpringContextUtil;
+import com.zs.gms.entity.mapmanager.MapInfo;
 import com.zs.gms.entity.mapmanager.SemiStatic;
+import com.zs.gms.entity.system.Role;
+import com.zs.gms.entity.system.User;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
 import com.zs.gms.service.monitor.schdeule.LivePosition;
+import com.zs.gms.service.system.UserService;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class MapDataUtil {
+
+    /**
+     * 同步地图信息 up 需要去掉注释
+     */
+    public static void syncMap() {
+        MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
+        entry.setAfterHandle(() -> {
+            if (MessageResult.SUCCESS.equals(entry.getHandleResult())) {
+                String returnData = entry.getReturnData();
+                ObjectMapper mapper = new ObjectMapper();
+                List<MapInfo> mapInfos = null;
+                try {
+                    mapInfos = mapper.readValue(returnData, new TypeReference<List<MapInfo>>() {
+                    });
+                } catch (IOException e) {
+                    log.error("读取地图信息失败");
+                }
+                if (GmsUtil.CollectionNotNull(mapInfos)) {
+                    for (MapInfo mapInfo : mapInfos) {
+                        Integer id = mapInfo.getMapId();
+                        if (null != id) {
+                            MapInfoService bean = SpringContextUtil.getBean(MapInfoService.class);
+                            MapInfo info = bean.getMapInfo(id);
+                            if (null == info) {//新增数据
+                                setDefaultValue(mapInfo);
+                                bean.addMapInfo(mapInfo);
+                            } else {
+                                bean.updateMapInfo(mapInfo);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        //MessageFactory.getMapMessage().sendMessageNoResWithID(entry.getMessageId(), "getMapInfos", "");
+    }
+
+    /**
+     * 设置默认创建信息
+     */
+    private static void setDefaultValue(MapInfo mapInfo) {
+        UserService bean = SpringContextUtil.getBean(UserService.class);
+        List<User> sign = bean.getUsersByRoleSign(Role.RoleSign.ADMIN_ROLE.getValue());
+        User user = sign.get(0);
+        mapInfo.setUserId(user.getUserId());
+        mapInfo.setUserName(user.getUserName());
+    }
+
+    /**
+     * 地图编辑加锁,默认30分钟后释放,false表示不是自己的锁
+     */
+    @RedisLock(key = "mapServerLock")
+    public static boolean editLock(Integer mapId, String userId) {
+        synchronized (RedisKey.MAP_EDIT_LOCK + mapId) {
+            if (!getLockStatus(mapId, userId)) {
+                log.debug("添加地图编辑锁");
+                return RedisService.set(StaticConfig.KEEP_DB, RedisKey.MAP_EDIT_LOCK + mapId, userId, 30l, TimeUnit.MINUTES);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 释放锁
+     */
+    public static void releaseLock(Integer mapId, String userId) {
+        synchronized (RedisKey.MAP_EDIT_LOCK) {
+            if (!getLockStatus(mapId, userId)) {
+                log.debug("释放地图编辑锁");
+                RedisService.deleteKey(StaticConfig.KEEP_DB, RedisKey.MAP_EDIT_LOCK + mapId);
+            }
+        }
+    }
+
+    /**
+     * 获取锁状态,true为其他用户已加锁
+     */
+    private static boolean getLockStatus(Integer mapId, String userId) {
+        Object editUser = getLockUser(mapId);
+        if (null == editUser || editUser.toString().equals(userId)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 获取当前编辑用户
+     */
+    public static Object getLockUser(Integer mapId) {
+        return RedisService.get(StaticConfig.KEEP_DB, RedisKey.MAP_EDIT_LOCK + mapId);
+    }
 
     /**
      * 获取半静态层数据
@@ -112,7 +213,7 @@ public class MapDataUtil {
                         Integer lastArea = position.getLastArea();
                         position.setLastArea(areaId);
                         SemiStatic areaInfo = LivePosition.getAreaInfo(position);
-                        if (position.isLoadArea() && null!=areaInfo &&!AreaTypeEnum.LOAD_AREA.equals(areaInfo.getAreaType())) {
+                        if (position.isLoadArea() && null != areaInfo && !AreaTypeEnum.LOAD_AREA.equals(areaInfo.getAreaType())) {
                             //表示出了装载区,推送最后一条数据
                             position.setLoadArea(false);
                             WsUtil.sendMessage(GmsUtil.toJsonIEnumDesc(position), FunctionEnum.excavator, lastArea);//拿之前的id
@@ -124,8 +225,8 @@ public class MapDataUtil {
                                 WsUtil.sendMessage(GmsUtil.toJsonIEnumDesc(position), FunctionEnum.excavator, areaId);
                             }
                         }
-                        if(null!=areaInfo && areaInfo.getAreaType()!=null){
-                            log.debug("车{}所在地图区域:{} {}", position.getVehicleId(), value,areaInfo.getAreaType().getDesc());
+                        if (null != areaInfo && areaInfo.getAreaType() != null) {
+                            log.debug("车{}所在地图区域:{} {}", position.getVehicleId(), value, areaInfo.getAreaType().getDesc());
                         }
                     }
                 }

@@ -21,13 +21,7 @@ public class BarneyVehicleTypeServiceImpl extends ServiceImpl<BarneyVehicleTypeM
 
     @Override
     @Transactional
-    public void deteleByVehicleId(long vehicleId) {
+    public void deleteByVehicleId(Integer vehicleId) {
         this.remove(new LambdaQueryWrapper<BarneyVehicleType>().eq(BarneyVehicleType::getVehicleId,vehicleId));
-    }
-
-    @Override
-    @Transactional
-    public void deteleByVehicleIdS(String[] vehicleIds) {
-        this.remove(new LambdaQueryWrapper<BarneyVehicleType>().eq(BarneyVehicleType::getVehicleId,vehicleIds));
     }
 }

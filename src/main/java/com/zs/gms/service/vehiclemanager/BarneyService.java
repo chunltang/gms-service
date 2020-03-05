@@ -10,44 +10,48 @@ import java.util.List;
 
 public interface BarneyService extends IService<Barney> {
 
-    public void addVehicle(Barney barney);
+    void addVehicle(Barney barney);
 
-    public void updateVehicle(Barney barney);
+    void updateVehicle(Barney barney);
 
-    public void deleteVehicle(String vehicleIds);
+    void deleteVehicle(Integer vehicleId);
 
     /**
      * 批量添加用户车辆关系
-     * */
-    public void addUserVehicles(Integer userId,String vehicleIds);
+     */
+    void addUserVehicles(Integer userId, String vehicleIds);
 
     /**
      * 查询车辆是否已分配
-     * */
-    public boolean isVehicleAllot(String vehicleIds);
+     */
+    boolean isVehicleAllot(String vehicleIds);
 
     /**
      * 分页查询
-     * */
-    public IPage<Barney> getVehicleList(Barney barney, QueryRequest queryRquest);
+     */
+    IPage<Barney> getVehicleList(Barney barney, QueryRequest queryRequest);
+
+    List<Barney> getAllVehicles();
 
     /**
      * 根据用户id获取车辆集合
-     * */
-    public List<Barney> getVehicleListByUserId(Integer userId);
+     */
+    List<Barney> getVehicleListByUserId(Integer userId);
 
     /**
      * 根据车辆编号查用户id
-     * */
-    public Integer getUserIdByVehicleNo(Integer vehicleNo);
+     */
+    Integer getUserIdByVehicleNo(Integer vehicleNo);
 
     /**
      * 查询车辆是否已添加
-     * */
-    public boolean queryVhicleExist(Integer vehicleNo);
+     */
+    boolean queryVehicleExist(Integer vehicleNo);
 
     /**
      * 查询所有车辆编号
-     * */
-    public List<Integer> getAllVehicleNos();
+     */
+    List<Integer> getAllVehicleNos();
+
+
 }

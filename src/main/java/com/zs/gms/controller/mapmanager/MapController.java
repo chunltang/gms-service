@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.zs.gms.common.annotation.Log;
 import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.controller.BaseController;
+import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.common.message.MessageEntry;
@@ -51,7 +52,7 @@ public class MapController extends BaseController {
     public void createMap(@Valid @MultiRequestBody MapInfo mapInfo) throws GmsException {
         try {
             String jsonStr = JSONObject.toJSON(mapInfo).toString();
-            MessageEntry entry = MessageFactory.createMessageEntry("map");
+            MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
             User user = super.getCurrentUser();
             entry.setAfterHandle(() -> {
                 if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {
@@ -81,7 +82,7 @@ public class MapController extends BaseController {
         try {
             mapInfo.setMapId(mapId);
             String jsonStr = JSONObject.toJSON(mapInfo).toString();
-            MessageEntry entry = MessageFactory.createMessageEntry("map");
+            MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
             entry.setAfterHandle(() -> {
                 if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {
                     mapInfoService.updateMapInfo(mapInfo);
@@ -96,7 +97,7 @@ public class MapController extends BaseController {
     }
 
     @Log("获取地图信息")
-    @GetMapping(value = "/{mapId}/mapinfo")
+    @GetMapping(value = "/{mapId}/mapInfo")
     @ApiOperation(value = "获取地图信息", httpMethod = "GET")
     public void getMapInfo(@PathVariable Long mapId) throws GmsException {
         if (null == mapId) {

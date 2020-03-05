@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.core.enums.IEnum;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.zs.gms.common.handler.PointTypeHandler;
 import lombok.Data;
@@ -34,6 +35,16 @@ public class MapInfo implements Serializable {
      */
     @TableField(value = "MAPID")
     private Integer mapId;
+
+    @JsonProperty("map_id")
+    public void setMapId(Integer mapId){
+        this.mapId=mapId;
+    }
+
+    @JsonProperty("mapId")
+    public Integer getMapId(){
+        return mapId;
+    }
 
     /**
      * 地图名称

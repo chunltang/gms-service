@@ -3,6 +3,7 @@ package com.zs.gms.service.vehiclemanager.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zs.gms.common.annotation.Mark;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.entity.vehiclemanager.UserVehicle;
@@ -20,26 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(propagation = Propagation.REQUIRED,readOnly = true,rollbackFor = Exception.class)
 public class UserBarneyServiceImpl extends ServiceImpl<UserBarneyMapper, UserVehicle> implements UserBarneyService {
 
-
-    @Override
-    @Transactional
-    @Cacheable(cacheNames = "vehicles",key = "targetClass+#p0",unless = "#result==null")
-    public Integer getUserIdByVehicleId(Integer vehicleId) {
-        UserVehicle userVehicle = this.getOne(new LambdaQueryWrapper<UserVehicle>().eq(UserVehicle::getVehicleId, vehicleId));
-        if(null!=userVehicle){
-            return userVehicle.getUserId();
-        }
-        return null;
-    }
-
-    @Override
-    @Transactional
-    public void deteleByVehicleIds(String[] vehicleIds) {
-        this.remove(new LambdaQueryWrapper<UserVehicle>().eq(UserVehicle::getVehicleId,vehicleIds));
-        RedisService.deleteLikeKey(StaticConfig.KEEP_DB,this.getClass().getName());
-        RedisService.deleteLikeKey(StaticConfig.KEEP_DB,"getUserIdByVehicleNo");
-    }
-
     @Override
     @Transactional
     public void addUserVehicle(UserVehicle userVehicle) {
@@ -48,10 +29,9 @@ public class UserBarneyServiceImpl extends ServiceImpl<UserBarneyMapper, UserVeh
 
     @Override
     @Transactional
-    @CacheEvict(cacheNames = "vehicles",key = "targetClass+#p0")
-    public void deteleByVehicleId(Integer vehicleId) {
+    @Mark(value = "删除车辆分配信息",markImpl = BarneyServiceImpl.class)
+    public void deleteByVehicleId(Integer vehicleId) {
         this.remove(new LambdaQueryWrapper<UserVehicle>().eq(UserVehicle::getVehicleId,vehicleId));
-        RedisService.deleteLikeKey(StaticConfig.KEEP_DB,"getUserIdByVehicleNo");
     }
 
     @Override
