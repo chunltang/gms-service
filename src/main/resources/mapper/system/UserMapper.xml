@@ -13,6 +13,7 @@
         left join sys_user_role sur on (su.USERID = sur.USERID)
         left join sys_role sr on (sr.ROLEID = sur.ROLEID)
         where 1=1
+          and su.ISDEL=false
         <if test="user.userName!=null and user.userName!=''">
             and su.USERNAME=#{user.userName}
         </if>
@@ -32,7 +33,7 @@
         from sys_user su
                  left join sys_user_role sur on (su.USERID = sur.USERID)
                  left join sys_role sr on (sr.ROLEID = sur.ROLEID)
-        where su.USERNAME = #{userName}
+        where su.USERNAME = #{userName} and su.ISDEL=false
     </select>
 
     <select id="findUserListPage" parameterType="com.zs.gms.entity.system.User"
@@ -50,7 +51,7 @@
                from sys_user su
         left join sys_user_role sur on su.USERID=sur.USERID
         left join sys_role sr on sr.ROLEID=sur.ROLEID
-        where sr.ROLEID=#{roleId}
+        where sr.ROLEID=#{roleId} and su.ISDEL=false
     </select>
 
     <select id="getUserById" parameterType="integer" resultType="com.zs.gms.entity.system.User">
@@ -64,7 +65,7 @@
                from sys_user su
         left join sys_user_role sur on su.USERID=sur.USERID
         left join sys_role sr on sr.ROLEID=sur.ROLEID
-        where su.USERID=#{userId}
+        where su.USERID=#{userId} and su.ISDEL=false
 
     </select>
 
@@ -76,6 +77,6 @@
                from sys_user su
         INNER join sys_user_role sur on su.USERID=sur.USERID
         INNER join sys_role sr on sr.ROLEID=sur.ROLEID
-        where sr.roleSign=#{roleSign}
+        where sr.roleSign=#{roleSign} and su.ISDEL=false
     </select>
 </mapper>

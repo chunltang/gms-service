@@ -81,7 +81,7 @@ public class ApproveController extends BaseController {
 
     @Log("获取所有未处理审批")
     @GetMapping
-    @ApiOperation(value = "审批结果标记为已读",httpMethod = "GET")
+    @ApiOperation(value = "获取所有未处理审批",httpMethod = "GET")
     public GmsResponse getProcess() throws GmsException {
         try {
             User user = super.getCurrentUser();

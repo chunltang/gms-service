@@ -6,6 +6,7 @@ package com.zs.gms.common.service.websocket;
 public enum FunctionEnum {
     vehicle,//车辆信息
     globalPath,//全局路径
+    checkServer,//检测系统服务
     taskAreaState,//任务点状态
     excavator,//挖掘机用户
     unitStatus,//调度单元状态
@@ -18,6 +19,7 @@ public enum FunctionEnum {
     notification,//通知信息
     videoPush,//视频推送
     console,//控制台
+    linkError,//异常信息
     dispatchProcess,//调度任务过程
     notarize;//确认信息
 

@@ -1,9 +1,7 @@
 package com.zs.gms.entity.system;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
@@ -83,4 +81,9 @@ public class User implements Serializable {
      * */
     @TableField(exist = false)
     private String roleSign;
+
+    @TableLogic
+    @JsonIgnore
+    @TableField(value = "ISDEL",select = false)
+    private Integer isDel;
 }

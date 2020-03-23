@@ -2,10 +2,12 @@ package com.zs.gms.common.service;
 
 
 import com.alibaba.fastjson.JSONObject;
+import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.message.MessageResult;
 import com.zs.gms.common.properties.GmsProperties;
+import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SpringContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -52,10 +55,10 @@ public class RabbitMqService implements InitializingBean{
         Map<String, String> queuesMap = gmsProperties.getQueues();
         if(MapUtils.isNotEmpty(queuesMap)){
             for (String queue : queuesMap.values()) {
-                if(queue.startsWith("Busi")){
-                    admin.declareQueue(new Queue(queue,true));
+                if(queue.toLowerCase().startsWith(GmsConstant.BUSI)){
+                    admin.declareQueue(new Queue(queue,true,false,false));
                 }else{
-                    admin.declareQueue(new Queue(queue+"_"+serverName,true));
+                    admin.declareQueue(new Queue(queue+"_"+serverName,true,false,false));
                 }
             }
         }

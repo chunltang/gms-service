@@ -1,6 +1,8 @@
 package com.zs.gms.common.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -10,7 +12,9 @@ import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.handler.IEnumDescSerializer;
 import com.zs.gms.common.handler.IEnumDeserializer;
 import com.zs.gms.common.service.RedisService;
+import com.zs.gms.entity.mapmanager.MapInfo;
 import com.zs.gms.entity.system.User;
+import com.zs.gms.service.system.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,13 +36,18 @@ public class GmsUtil {
      * 获取当前登录用户
      */
     public static User getCurrentUser() {
-        return (User) SecurityUtils.getSubject().getPrincipal();
+        try {
+            return (User) SecurityUtils.getSubject().getPrincipal();
+        } catch (Exception e) {
+            log.error("获取当前登录用户异常");
+        }
+        return null;
     }
 
     /**
      * 返回前端数据
-     * */
-    public static void callResponse(GmsResponse gmsResponse, HttpServletResponse response){
+     */
+    public static void callResponse(GmsResponse gmsResponse, HttpServletResponse response) {
         response.setHeader("Content-Type", "application/json;charset=UTF-8");
         PrintWriter writer = null;
         try {
@@ -52,9 +61,42 @@ public class GmsUtil {
     }
 
     /**
+     * 前置处理，判断当前用户调用的方法是否被锁定
+     */
+    public static boolean preIntervalHandler(long interval, String methodName, Object... params) {
+        String key_suffix = "none";
+        if (params.length > 0) {
+            key_suffix = String.valueOf(params[0]);
+        } else {
+            User user = GmsUtil.getCurrentUser();
+            if (user != null) {
+                key_suffix = String.valueOf(user.getUserId());
+            }
+        }
+        String key = RedisKey.METHOD_INVOKE_INTERVAL_PREFIX + methodName + "_" + key_suffix;
+        boolean intervalLock = RedisService.intervalLock(key, "interval", interval);
+        log.debug("前置preIntervalHandler检查结果:key={}:{}",key,intervalLock?"pass":"stop");
+        return intervalLock;
+    }
+
+    /**
+     * 后置处理
+     */
+    public static void afterIntervalHandler() {
+        System.out.println("after");
+    }
+
+    /**
+     * 获取当前时间，毫秒
+     */
+    public static long getCurTime() {
+        return System.currentTimeMillis();
+    }
+
+    /**
      * 截取匹配最后字符串的后一段
      */
-    public static String subLastStr(String key,String match) {
+    public static String subLastStr(String key, String match) {
         if (key.contains(match)) {
             return key.substring(key.lastIndexOf(match) + 1);
         }
@@ -64,7 +106,7 @@ public class GmsUtil {
     /**
      * 截取匹配最后字符串的前一段
      */
-    public static String subIndexStr(String key,String match) {
+    public static String subIndexStr(String key, String match) {
         if (key.contains(match)) {
             return key.substring(0, key.lastIndexOf(match) + 1);
         }
@@ -73,19 +115,19 @@ public class GmsUtil {
 
     /**
      * 字符串替换
-     * */
-    public static String replaceAll(String origin,String oldStr,String newStr){
-        return origin.replaceAll(oldStr,newStr);
+     */
+    public static String replaceAll(String origin, String oldStr, String newStr) {
+        return origin.replaceAll(oldStr, newStr);
     }
 
     /**
      * 获取监听库中的消息，带有枚举转换
      */
-    public static <T> T getMessage(String key,Class<T> clazz) {
+    public static <T> T getMessage(String key, Class<T> clazz) {
         Object json = RedisService.get(StaticConfig.MONITOR_DB, key);
         if (ObjectUtils.isEmpty(json))
             return null;
-        return GmsUtil.toObjIEnum(json,clazz);
+        return GmsUtil.toObjIEnum(json, clazz);
     }
 
     /**
@@ -143,12 +185,12 @@ public class GmsUtil {
 
     /**
      * put并返回value
-     * */
-    public static <K,T> T mapPutAndGet(Map<K, T> map, K key, T value){
-        if(map.containsKey(key)){
+     */
+    public static <K, T> T mapPutAndGet(Map<K, T> map, K key, T value) {
+        if (map.containsKey(key)) {
             return map.get(key);
-        }else{
-            map.put(key,value);
+        } else {
+            map.put(key, value);
             return value;
         }
     }
@@ -204,6 +246,19 @@ public class GmsUtil {
         return null;
     }
 
+    //转换list，map
+    public static <T> T toCollectObj(String json, Class collect, Class target) {
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JavaType jt = mapper.getTypeFactory().constructParametricType(collect, target);
+            return mapper.readValue(json, jt);
+        } catch (IOException e) {
+            log.error("jackson读取数据失败", e);
+        }
+        return null;
+    }
+
+
     /**
      * 包含转换IEnum枚举
      */
@@ -223,8 +278,8 @@ public class GmsUtil {
 
     /**
      * 转实现IEnum,Desc接口的枚举
-     * */
-    public static  String toJsonIEnumDesc(Object obj) {
+     */
+    public static String toJsonIEnumDesc(Object obj) {
         ObjectMapper mapper = new ObjectMapper();
         try {
             SimpleModule simpleModule = new SimpleModule();
@@ -239,7 +294,7 @@ public class GmsUtil {
 
     /**
      * 获取活动地图
-     * */
+     */
     public static Integer getActiveMap() {
         Object obj = RedisService.getTemplate(StaticConfig.KEEP_DB).opsForValue().get(RedisKey.ACTIVITY_MAP);
         if (obj != null) {
@@ -251,7 +306,9 @@ public class GmsUtil {
         return null;
     }
 
-    /**=========数据判空=========*/
+    /**
+     * =========数据判空=========
+     */
     public static boolean StringNotNull(String obj) {
         return null != obj && obj.length() > 0;
     }
@@ -277,7 +334,7 @@ public class GmsUtil {
         return true;
     }
 
-    public static boolean arrayNotNull(Object[] array){
-        return null!=array && array.length>0;
+    public static boolean arrayNotNull(Object[] array) {
+        return null != array && array.length > 0;
     }
 }

@@ -24,7 +24,7 @@ public class CastTest {
         System.out.println("aa");
     }*/
 
-    public static void main(String[] args) {
+    /*public static void main(String[] args) {
          String a="wsada";
          Map<String,Object> map=new HashMap<>();
          map.put("k",a);
@@ -32,5 +32,11 @@ public class CastTest {
         System.out.println(JSON.toJSONString(a));
         System.out.println(a);
         System.out.println(JSON.isValidObject(JSON.toJSONString(a)));
+    }*/
+
+    public static void main(String[] args) {
+        long i=11;
+        long b=11;
+        System.out.println(Long.valueOf(i).equals(Long.valueOf(b)));
     }
 }

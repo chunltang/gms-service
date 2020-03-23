@@ -1,9 +1,7 @@
 package com.zs.gms.entity.vehiclemanager;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -80,6 +78,11 @@ public class Barney implements Serializable {
     @TableField(value = "REMARK")
     @Size(max = 200,message = "备注信息长度不能超过200")
     private String remark;
+
+    @TableLogic
+    @JsonIgnore
+    @TableField(value = "ISDEL",select = false)
+    private Integer isDel;
 
     ////////////////////////////////以下为查询参数/////////////////////////////////////
     /**

@@ -1,9 +1,7 @@
 package com.zs.gms.entity.client;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -29,11 +27,18 @@ public class Excavator implements Serializable {
     private Integer excavatorNo;
 
     /**
-     * ip
+     * ip1
      * */
-    @TableField(value = "IP")
+    @TableField(value = "IP1")
     @NotBlank(message = "ip设置不能为空")
-    private String ip;
+    private String ip1;
+
+    /**
+     * ip2
+     * */
+    @TableField(value = "IP2")
+    @NotBlank(message = "ip设置不能为空")
+    private String ip2;
 
     /**
      * 容量
@@ -45,11 +50,17 @@ public class Excavator implements Serializable {
     /**
      * GPS安装位置
      * */
-    @TableField(value = "X")
-    private float x;
+    @TableField(value = "X1")
+    private float x1;
 
-    @TableField(value = "Y")
-    private float y;
+    @TableField(value = "Y1")
+    private float y1;
+
+    @TableField(value = "X2")
+    private float x2;
+
+    @TableField(value = "Y2")
+    private float y2;
 
     /**
      * 臂长
@@ -59,4 +70,22 @@ public class Excavator implements Serializable {
 
     @TableField(value = "CREATETIME")
     private Date createTime;
+
+    @TableLogic
+    @TableField(value = "ISDEL",select = false)
+    @JsonIgnore
+    private Integer isDel;
+
+    /**
+     * 挖掘机用户
+     * */
+    @TableField(exist = false)
+    private Integer userId;
+
+    /**
+     * 装载区id
+     * */
+    @TableField(exist = false)
+    private Integer loadId;
+
 }

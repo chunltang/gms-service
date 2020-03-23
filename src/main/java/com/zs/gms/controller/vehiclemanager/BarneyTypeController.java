@@ -1,5 +1,6 @@
 package com.zs.gms.controller.vehiclemanager;
 
+import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.vehiclemanager.BarneyType;
 import com.zs.gms.service.vehiclemanager.BarneyTypeService;
 import com.zs.gms.common.annotation.Log;
@@ -49,7 +50,7 @@ public class BarneyTypeController {
     public GmsResponse getVehicleTypeList() throws GmsException {
         try {
             List<BarneyType> list = this.barneyTypeService.getVehicleTypeList();
-            return new GmsResponse().data(list).success();
+            return new GmsResponse().data(list).message("获取车辆类型列表成功").success();
         }catch (Exception e){
             String message="获取车辆类型列表失败";
             log.error(message,e);
@@ -75,14 +76,14 @@ public class BarneyTypeController {
     }
 
     @Log("删除车辆类型")
-    @DeleteMapping(value = "/{VehicleTypeIds}")
+    @DeleteMapping(value = "/{vehicleTypeId}")
     @ApiOperation(value = "删除车辆类型",httpMethod = "DELETE")
-    public GmsResponse deleteVehicleType(@PathVariable String VehicleTypeIds) throws GmsException {
-        if(StringUtils.isEmpty(VehicleTypeIds)){
+    public GmsResponse deleteVehicleType(@PathVariable Integer vehicleTypeId) throws GmsException {
+        if(!GmsUtil.objNotNull(vehicleTypeId)){
             throw new GmsException("车辆类型ID为空");
         }
         try {
-            this.barneyTypeService.deleteVehicleType(VehicleTypeIds);
+            this.barneyTypeService.deleteVehicleType(vehicleTypeId);
             return new GmsResponse().message("删除车辆类型成功").success();
         }catch (Exception e){
             String message="删除车辆类型失败";

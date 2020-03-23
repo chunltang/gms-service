@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zs.gms.mapper.monitor.DispatchStatusMapper">
+    <select id="getBaseInfo" parameterType="integer" resultType="com.zs.gms.entity.monitor.DispatchStatus">
+        select tuv.USERID       USERID,
+               tdt.MAPID        MAPID,
+               tdt.LOADAREAID,
+               tdt.UNLOADAREAID UNLOADID,
+               tdt.UNITID       UNITID,
+               tv.VEHICLENO     VEHICLEID,
+               tbe.USERID       EXCAVATORUSERID,
+               tbe.EXCAVATORID  EXCAVATORID,
+               tam.MINERALID    MINERALID
+        from t_vehicle tv
+                 inner join t_user_vehicle tuv on tv.VEHICLEID = tuv.VEHICLEID
+                 inner join t_task_rule ttr on ttr.VEHICLEID = tv.VEHICLENO
+                 inner join t_dispatch_task tdt on tdt.UNITID = ttr.UNITID
+                 inner join t_bind_excavator tbe on tbe.LOADAREAID = tdt.LOADAREAID
+                 inner join t_area_mineral tam on tam.AREAID = tdt.LOADAREAID
+        where 1 = 1
+          and tv.VEHICLENO = 10003
+          and tv.ISDEL = false
+          and ttr.STATUS not in ('3', '5')
+          and tdt.STATUS != '0'
+          and tam.ISDEL = false
+          and tbe.ISDEL = false
+          and tdt.MAPID = tbe.MAPID
+    </select>
+</mapper>

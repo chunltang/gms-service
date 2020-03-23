@@ -162,6 +162,7 @@ public class ShiroConfig {
         sessionManager.setGlobalSessionTimeout(gmsProperties.getShiro().getSessionTimeout() * 1000L);
         sessionManager.setSessionListeners(listeners);
         sessionManager.setSessionDAO(sessionDAO());
+        sessionManager.setCacheManager(cacheManager());
         //取消url 后面的 JSESSIONID
         sessionManager.setSessionIdUrlRewritingEnabled(false);
         return sessionManager;

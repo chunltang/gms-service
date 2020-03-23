@@ -4,5 +4,7 @@ import com.zs.gms.entity.monitor.DispatchStatus;
 
 public interface DispatchStatusService {
 
-    public void addDispatchStatus(DispatchStatus dispatchStatus);
+    void addDispatchStatus(DispatchStatus dispatchStatus);
+
+    DispatchStatus getBaseInfo(Integer vehicleId);
 }

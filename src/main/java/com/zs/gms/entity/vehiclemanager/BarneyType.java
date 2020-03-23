@@ -33,7 +33,7 @@ public class BarneyType implements Serializable {
      * 车辆规格，小型矿车，中型矿车等
      * */
     @TableField(value = "VEHICLESPECIFICATION")
-    @NotBlank(message = "车辆型号不能为空")
+    @NotBlank(message = "车辆规格不能为空")
     private String vehicleSpecification;
 
     /**
@@ -95,4 +95,10 @@ public class BarneyType implements Serializable {
      * */
     @TableField(value = "CENTERLENGHT")
     private String centerLenght;
+
+    /**
+     *计算中心height
+     * */
+    @TableField(value = "CENTERHEIGHT")
+    private String centerHeight;
 }

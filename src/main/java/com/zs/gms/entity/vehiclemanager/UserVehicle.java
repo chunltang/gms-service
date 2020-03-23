@@ -1,9 +1,7 @@
 package com.zs.gms.entity.vehiclemanager;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
@@ -27,4 +25,9 @@ public class UserVehicle implements Serializable {
 
     @TableField(value = "VEHICLEID")
     private Integer vehicleId;
+
+    @TableLogic
+    @JsonIgnore
+    @TableField(value = "ISDEL",select = false)
+    private Integer isDel;
 }

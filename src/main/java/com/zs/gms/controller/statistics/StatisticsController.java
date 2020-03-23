@@ -53,6 +53,49 @@ public class StatisticsController{
             ExportUtil.export(response,export);
         }catch (Exception e){
             String message="导出车辆数据失败";
+            throw new GmsException(message);
+        }
+    }
+
+    @Log("统计调度员工作情况")
+    public GmsResponse statisticsByUser() throws GmsException{
+        try {
+            return new GmsResponse().data("").message("统计数据成功").success();
+        }catch (Exception e){
+            String message="统计数据失败";
+            log.error(message,e);
+            throw new GmsException(message);
+        }
+    }
+
+    @Log("统计矿车工作情况")
+    public GmsResponse statisticsByVehicle() throws GmsException{
+        try {
+            return new GmsResponse().data("").message("统计数据成功").success();
+        }catch (Exception e){
+            String message="统计数据失败";
+            log.error(message,e);
+            throw new GmsException(message);
+        }
+    }
+
+    @Log("统计卸载区工作情况")
+    public GmsResponse statisticsByUnload() throws GmsException{
+        try {
+            return new GmsResponse().data("").message("统计数据成功").success();
+        }catch (Exception e){
+            String message="统计数据失败";
+            log.error(message,e);
+            throw new GmsException(message);
+        }
+    }
+
+    @Log("统计挖掘机工作情况")
+    public GmsResponse statisticsByExcavator() throws GmsException{
+        try {
+            return new GmsResponse().data("").message("统计数据成功").success();
+        }catch (Exception e){
+            String message="统计数据失败";
             log.error(message,e);
             throw new GmsException(message);
         }

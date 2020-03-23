@@ -53,18 +53,14 @@ public class OtherController extends BaseController {
     @Autowired
     private AreaMineralService areaMineralService;
 
-
     @Log("获取地图列表")
     @GetMapping
     @ApiOperation(value = "获取地图列表", httpMethod = "GET")
-    public void getMapVersionList(HttpServletResponse httpServletResponse,QueryRequest request) throws GmsException {
+    public GmsResponse getMapVersionList(HttpServletResponse httpServletResponse,QueryRequest request) throws GmsException {
         try {
             MapDataUtil.syncMap();
-            ScheduleService.addSingleTask(()->{
-                Map<String, Object> dataTable = getDataTable(mapInfoService.getMapInfoListPage(request));
-                GmsResponse gmsResponse = new GmsResponse().data(dataTable).message("获取地图列表成功").success();
-                GmsUtil.callResponse(gmsResponse,httpServletResponse);
-            },300);
+            Map<String, Object> dataTable = getDataTable(mapInfoService.getMapInfoListPage(request));
+           return new GmsResponse().data(dataTable).message("获取地图列表成功").success();
         } catch (Exception e) {
             String message = "获取地图列表失败";
             log.error(message, e);
@@ -114,7 +110,6 @@ public class OtherController extends BaseController {
                 mapFile.setName(fileName);
                 mapFiles.add(mapFile);
             }
-
             return new GmsResponse().data(mapFiles).message("获取地图文件列表成功").success();
         } catch (Exception e) {
             String message = "获取地图文件列表失败";

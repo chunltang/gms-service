@@ -6,7 +6,7 @@
         select *
         from t_task_rule
         where VEHICLEID = #{vehicleId}
-          and STATUS !='3'
+          and STATUS not in('3','5')
         order by ADDTIME desc
         limit 1
     </select>
@@ -16,7 +16,7 @@
         from t_task_rule tdt
                  inner join t_vehicle tv on tdt.VEHICLEID = tv.VEHICLENO
         where tdt.UNITID = #{unitId}
-          and tdt.STATUS != '3'
+          and tdt.STATUS not in('3','5')
     </select>
 
     <select id="getLastLoadTaskRule" parameterType="integer" resultType="com.zs.gms.entity.monitor.TaskRule">
@@ -24,7 +24,7 @@
         from t_dispatch_task tdt
                  inner join t_task_rule ttr on tdt.UNITID = ttr.UNITID
         where tdt.dispatchTaskType = '2'
-          and tdt.UNITID = #{unitId}
+          and tdt.UNITID = #{unitId} and ttr.status not in('3','5')
         order by ttr.addTime desc
         limit 1
     </select>
@@ -37,7 +37,7 @@
             from t_vehicle tv
                      inner join t_task_rule tdt on tdt.VEHICLEID = tv.VEHICLENO
             where tdt.USERID = #{userId}
-              and tdt.status != '3')
+              and tdt.status not in('3','5'))
     </select>
 
 </mapper>

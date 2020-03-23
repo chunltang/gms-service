@@ -18,7 +18,7 @@ public class MessageEntry {
     private  String messageId;    //消息id
     private MessageResult handleResult; //处理结果
     private Message message;     //保存前端HttpServletResponse和数据
-    private List<ResponseCallBack> Handles = new ArrayList<>();
+    private List<ResponseCallBack> handles = new ArrayList<>();
     private String returnData;   //返回数据
     private boolean isHttp = true; //是否是http请求
     private final Set<EventType> eventTypes=new HashSet<>();//外部触发程序的类型
@@ -28,7 +28,7 @@ public class MessageEntry {
     private String routeKey;
 
     public void setAfterHandle(ResponseCallBack callBack) {
-        Handles.add(callBack);
+        handles.add(callBack);
     }
 
     /**
@@ -70,7 +70,7 @@ public class MessageEntry {
         synchronized (messageId){
             if(!isEnd) {
                 isEnd = true;
-                for (ResponseCallBack handle : Handles) {
+                for (ResponseCallBack handle : handles) {
                     handle.afterHandler();
                 }
                 return true;

@@ -1,27 +1,29 @@
 package com.zs.gms.service.monitor.schdeule;
 
-import com.zs.gms.common.entity.*;
-import com.zs.gms.common.message.MessageEntry;
-import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.common.configure.EventPublisher;
+import com.zs.gms.common.entity.*;
 import com.zs.gms.common.interfaces.RedisListener;
 import com.zs.gms.common.message.EventType;
+import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
-import com.zs.gms.common.properties.StateProperties;
-import com.zs.gms.common.service.websocket.FunctionEnum;
+import com.zs.gms.common.properties.ErrorCode;
 import com.zs.gms.common.service.RedisService;
+import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.websocket.WsUtil;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SpringContextUtil;
 import com.zs.gms.entity.monitor.LiveInfo;
 import com.zs.gms.entity.monitor.Vertex;
-import com.zs.gms.service.monitor.LiveInfoService;
+import com.zs.gms.service.vehiclemanager.BarneyService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.http.HttpStatus;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 实时数据处理
@@ -29,20 +31,17 @@ import java.util.*;
 @Slf4j
 public class LiveVapHandle implements RedisListener {
 
-    private static StateProperties stateProperties;
-
     private static ListOperations<String, Object> listOperations;
 
     private static BarneyService barneyService;
 
-    private static LiveInfoService liveInfoService;
+    private static ErrorCode errorCode;
 
     private static LiveVapHandle instance = new LiveVapHandle();
 
     static {
-        stateProperties = SpringContextUtil.getBean(StateProperties.class);
         barneyService = SpringContextUtil.getBean(BarneyService.class);
-        liveInfoService = SpringContextUtil.getBean(LiveInfoService.class);
+        errorCode = SpringContextUtil.getBean(ErrorCode.class);
         listOperations = RedisService.listOperations(RedisService.getTemplate(StaticConfig.MONITOR_DB));
     }
 
@@ -54,9 +53,9 @@ public class LiveVapHandle implements RedisListener {
     /**
      * 处理所有车辆监听数据
      */
-    public static void handleVehMessage(String key) {
-        String prefix =GmsUtil.subIndexStr(key,"_");
-        String vehicleNo = GmsUtil.subLastStr(key,"_");
+    private static void handleVehMessage(String key) {
+        String prefix = GmsUtil.subIndexStr(key, "_");
+        String vehicleNo = GmsUtil.subLastStr(key, "_");
         Integer userId = barneyService.getUserIdByVehicleNo(Integer.valueOf(vehicleNo));
         if (userId == null) {
             log.error("不存在的车辆编号或者车辆没有分配");
@@ -65,7 +64,7 @@ public class LiveVapHandle implements RedisListener {
         switch (prefix) {
             case RedisKey.VAP_BASE_PREFIX:
                 //车辆基本信息
-                LiveInfo liveInfo = GmsUtil.getMessage(key,LiveInfo.class);
+                LiveInfo liveInfo = GmsUtil.getMessage(key, LiveInfo.class);
                 StatusMonitor.getInstance().delegateStatus(liveInfo);
                 LivePosition.setPosition(liveInfo);
                 WsUtil.sendMessage(userId.toString(), GmsUtil.toJsonIEnumDesc(liveInfo), FunctionEnum.console, Integer.valueOf(vehicleNo));
@@ -73,10 +72,11 @@ public class LiveVapHandle implements RedisListener {
                 break;
             case RedisKey.VAP_PATH_PREFIX:
                 //交互式路径请求
-                if (MessageFactory.containMessageEntry(vehicleNo)) {
+                String messageId = GmsConstant.DISPATCH + "_" + vehicleNo;
+                if (MessageFactory.containMessageEntry(messageId)) {
                     log.debug("交互式路径请求数据解析");
                     Map<String, Object> globalPath = getGlobalPath(key);
-                    EventPublisher.publish(new MessageEvent(new Object(), GmsUtil.toJson(globalPath), vehicleNo, EventType.httpRedis));
+                    EventPublisher.publish(new MessageEvent(new Object(), GmsUtil.toJson(globalPath), messageId, EventType.httpRedis));
                 }
                 //全局路径
                 if (WsUtil.isNeed(FunctionEnum.globalPath)) {
@@ -101,7 +101,7 @@ public class LiveVapHandle implements RedisListener {
         }
     }
 
-    public static Map<String, Object> getTrailPath(String key) {
+    private static Map<String, Object> getTrailPath(String key) {
         return getGlobalPath(key);
     }
 
@@ -139,36 +139,50 @@ public class LiveVapHandle implements RedisListener {
             }
             resultMap.put("no", convertToInt(strs[0]));
             resultMap.put("vehicleId", convertToInt(strs[1]));
-            resultMap.put("status", convertToInt(strs[2]));//1超时，0正常，负数为不能规划该路径
+            resultMap.put("status", convertToInt(strs[2]));
             resultMap.put("vertex_num", convertToInt(strs[3]));
             resultMap.put("data", list);
-            handResult(convertToInt(strs[1]),convertToInt(strs[2]));
+            GmsResponse response = getResponse(convertToInt(strs[1]));
+            if(GmsUtil.objNotNull(response)){
+                handEmptyResult(response,list);
+                handResult(response, convertToInt(strs[2]));
+            }else{
+               log.error("全局路径解析未获取到请求实体");
+            }
         } catch (Exception e) {
             log.error("全局路径解析失败", e);
         }
         return resultMap;
     }
 
-    public static void handResult(int vehicleId, int status) {
-        MessageEntry entry = MessageFactory.getMessageEntry(String.valueOf(vehicleId));
-        if (null != entry) {
-            GmsResponse gmsResponse = entry.getMessage().getGmsResponse();//503
-            switch (status) {
-                case 0:
-                    break;
-                case 1:
-                    gmsResponse.message("调度请求超时");
-                default:
-                    gmsResponse.code(HttpStatus.SERVICE_UNAVAILABLE);
-            }
+    private static void handEmptyResult(GmsResponse response, List<Vertex> list) {
+        if (!GmsUtil.CollectionNotNull(list)) {
+            response.message("路径点集数据为空").badRequest();
         }
+    }
+
+    private static void handResult(GmsResponse response, int status) {
+        Map<String, String> code = errorCode.getMap();
+        String value = String.valueOf(status);
+        if (status != 0) {
+            response.code(HttpStatus.BAD_REQUEST);
+            response.message(code.getOrDefault(value, "交互式路径规划异常"));
+        }
+    }
+
+    private static GmsResponse getResponse(int vehicleId) {
+        MessageEntry entry = MessageFactory.getMessageEntry(GmsConstant.DISPATCH + "_" + vehicleId);
+        if (null != entry) {
+            return entry.getMessage().getGmsResponse();
+        }
+        return null;
     }
 
 
     /**
      * 地图采集
      */
-    public static List collectMap(String key) {
+    private static List collectMap(String key) {
         List<Object> Jsons = listOperations.range(key, 0, -1);//获取所有元素
         if (!CollectionUtils.isEmpty(Jsons)) {
             listOperations.trim(key, 1, 0);//清空列表

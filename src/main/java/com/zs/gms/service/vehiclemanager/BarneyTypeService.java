@@ -14,5 +14,5 @@ public interface BarneyTypeService extends IService<BarneyType> {
 
     public void updateVehicleType(BarneyType barneyType);
 
-    public void deleteVehicleType(String VehicleTypeIds);
+    public void deleteVehicleType(Integer VehicleTypeId);
 }

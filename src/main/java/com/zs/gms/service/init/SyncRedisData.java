@@ -3,9 +3,8 @@ package com.zs.gms.service.init;
 import com.zs.gms.common.entity.RedisKey;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.interfaces.MarkInterface;
+import com.zs.gms.common.service.DelayedService;
 import com.zs.gms.common.service.RedisService;
-import com.zs.gms.common.service.ScheduleService;
-import com.zs.gms.common.utils.SpringContextUtil;
 import com.zs.gms.entity.client.Excavator;
 import com.zs.gms.entity.terminalmanager.Gps;
 import com.zs.gms.entity.vehiclemanager.Barney;
@@ -17,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.HashMap;
@@ -28,7 +26,6 @@ import java.util.Map;
  * 数据同步
  * */
 @Slf4j
-@Component
 public class SyncRedisData implements MarkInterface {
 
     @Autowired
@@ -42,6 +39,7 @@ public class SyncRedisData implements MarkInterface {
     @Autowired
     @Lazy
     private GpsService gpsService;
+
     /**
      * 同步车辆数据到redis
      */
@@ -61,7 +59,7 @@ public class SyncRedisData implements MarkInterface {
         List<Excavator> excavators = excavatorService.getExcavators();
         Map<String, Object> valueMap = new HashMap<>();
         for (Excavator excavator : excavators) {
-            valueMap.put(excavator.getExcavatorNo().toString(),excavator.getIp());
+            valueMap.put(excavator.getExcavatorNo().toString(),excavator.getIp1());
         }
         execute(valueMap,RedisKey.VEH_ID_IP);
     }
@@ -87,11 +85,10 @@ public class SyncRedisData implements MarkInterface {
     @PostConstruct
     @Override
     public void execute(){
-        ScheduleService.addSingleTask(()->{
-            log.debug("执行redis数据同步");
+        DelayedService.addTask(()->{
             syncBarneys();
             syncExcavators();
             syncTerminals();
-        },3000);
+        },3000).withDesc("执行redis数据同步");
     }
 }

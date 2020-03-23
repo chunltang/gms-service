@@ -1,13 +1,9 @@
 package com.zs.gms.common.service.websocket.impl;
 
-import com.zs.gms.common.service.websocket.FunctionEnum;
-import com.zs.gms.common.service.websocket.WsFunction;
 import com.zs.gms.common.utils.GmsUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import javax.websocket.Session;
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -31,7 +27,6 @@ public class SetHandler extends AbstractFunctionHandler {
             sessions.remove(session);
         }
     }
-
 
     @Override
     public boolean hasSession(Session session) {

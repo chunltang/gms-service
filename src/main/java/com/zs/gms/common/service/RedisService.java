@@ -45,7 +45,6 @@ public class RedisService {
     }
 
     public static boolean lockService(String key, String value, long seconds) {
-        RedisTemplate<String, Object> template = getTemplate(StaticConfig.KEEP_DB);
         String scriptStr = "if 1 == redis.call('setnx',KEYS[1],ARGV[1]) then" +
                 " redis.call('expire',KEYS[1],ARGV[2])"+
                 " return 1;" +
@@ -53,6 +52,19 @@ public class RedisService {
                 " return 1;" +
                 " else "+
                 " return 0;"+
+                " end;";
+        return  execScript(scriptStr, key, value,String.valueOf(seconds));
+    }
+
+    /**
+     * 判断间隔时间内键是否存在，不存在则添加并设置实效时间，返回true，存在则返回false
+     * */
+    public static boolean intervalLock(String key, String value, long seconds) {
+        String scriptStr = "if 1 == redis.call('setnx',KEYS[1],ARGV[1]) then" +
+                " redis.call('PEXPIRE',KEYS[1],ARGV[2])"+//健不存在
+                " return 1;" +
+                " else "+
+                " return 0;"+ //健存在
                 " end;";
         return  execScript(scriptStr, key, value,String.valueOf(seconds));
     }

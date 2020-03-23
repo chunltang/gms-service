@@ -85,7 +85,8 @@ public class TaskRule implements Serializable {
         FINISH("1","完成"),
         STOP("2","停止"),
         DELETE("3","移除"),
-        UNEXECUTED("4","未执行");
+        UNEXECUTED("4","未执行"),
+        INTERACTION("5","交互式");
 
         private String value;
 

@@ -1,6 +1,7 @@
 package com.zs.gms.common.configure;
 
 import com.rabbitmq.client.Channel;
+import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.properties.GmsProperties;
 import com.zs.gms.common.utils.MessageUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +9,7 @@ import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.Connection;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
@@ -35,11 +37,11 @@ public class RabbitMqConfig {
     private GmsProperties gmsProperties;
 
     @Value("${gms.server.name}")
-    private  String serverName;
+    private String serverName;
 
     @Bean
     @Primary
-    public ConnectionFactory createFactory(RabbitProperties properties){
+    public ConnectionFactory createFactory(RabbitProperties properties) {
         CachingConnectionFactory factory = new CachingConnectionFactory();
         factory.setVirtualHost(properties.getVirtualHost());
         factory.setUsername(properties.getUsername());
@@ -72,8 +74,8 @@ public class RabbitMqConfig {
 
     @Bean(name = "containerFactory")
     @Primary
-    public SimpleRabbitListenerContainerFactory createContainerFacotry(ConnectionFactory factory){
-        SimpleRabbitListenerContainerFactory containerFactory=new SimpleRabbitListenerContainerFactory();
+    public SimpleRabbitListenerContainerFactory createContainerFactory(ConnectionFactory factory) {
+        SimpleRabbitListenerContainerFactory containerFactory = new SimpleRabbitListenerContainerFactory();
         containerFactory.setConnectionFactory(factory);
         containerFactory.setMessageConverter(new Jackson2JsonMessageConverter());
         return containerFactory;
@@ -81,16 +83,16 @@ public class RabbitMqConfig {
 
     /**
      * 消息监听容器,可以设置多个消费者参数
-     * */
+     */
     @Bean
     @Primary
-    public SimpleMessageListenerContainer messageContainer(ConnectionFactory factory){
+    public SimpleMessageListenerContainer messageContainer(ConnectionFactory factory) {
         Map<String, String> monitorQueuesMap = gmsProperties.getMonitorQueues();
         String[] monitorQueues = monitorQueuesMap.values().toArray(new String[monitorQueuesMap.size()]);
-        String[] queues=Arrays.stream(monitorQueues).map(qs -> {
-            return qs + "_" + serverName;
+        String[] queues = Arrays.stream(monitorQueues).map(qs -> {
+            return qs.toLowerCase().startsWith(GmsConstant.BUSI) ? qs : qs + "_" + serverName;
         }).toArray(String[]::new);
-        SimpleMessageListenerContainer messageContainer=new SimpleMessageListenerContainer(factory);
+        SimpleMessageListenerContainer messageContainer = new SimpleMessageListenerContainer(factory);
         messageContainer.setQueueNames(queues);
         messageContainer.setConcurrentConsumers(1);
         messageContainer.setMaxConcurrentConsumers(10);
@@ -99,42 +101,42 @@ public class RabbitMqConfig {
         messageContainer.setConsumerTagStrategy(new ConsumerTagStrategy() {
             @Override
             public String createConsumerTag(String queue) {
-                return queue+ UUID.randomUUID().toString();
+                return queue + UUID.randomUUID().toString();
             }
         });
         messageContainer.setMessageListener(new ChannelAwareMessageListener() {
             @Override
             public void onMessage(Message message, Channel channel) throws Exception {
-                MessageUtil.handleMqMessage(message,channel);
+                MessageUtil.handleMqMessage(message, channel);
             }
         });
         return messageContainer;
     }
 
-    public class ConfirmCallBackListener implements RabbitTemplate.ConfirmCallback{
+    public class ConfirmCallBackListener implements RabbitTemplate.ConfirmCallback {
         /**
          * 消息确认
-         * */
+         */
         @Override
         public void confirm(CorrelationData correlationData, boolean ack, String cause) {
             Message message = correlationData.getReturnedMessage();
-            if(ack&&null!=message){
+            if (ack && null != message) {
                 log.error("----------mq消息失败退回，队列不存在------------");
                 String s = new String(message.getBody());
-                log.error("回退消息:{}",s);
-            }else if(ack){
+                log.error("回退消息:{}", s);
+            } else if (ack) {
                 log.debug("----------mq消息发送成功------------");
-            }else if(!ack){
+            } else if (!ack) {
                 log.error("----------mq消息发送失败------------");
             }
         }
     }
 
-    public class ReturnCallBackListener implements RabbitTemplate.ReturnCallback{
+    public class ReturnCallBackListener implements RabbitTemplate.ReturnCallback {
 
         /**
          * 消息失败退回
-         * */
+         */
         @Override
         public void returnedMessage(Message message, int replyCode, String replyText, String exchange, String routingKey) {
             log.error("-----------mq消息被拒收-----------");

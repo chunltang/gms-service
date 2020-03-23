@@ -38,6 +38,20 @@ public class DispatchTaskServiceImpl extends ServiceImpl<DispatchTaskMapper, Dis
 
     @Override
     @Transactional
+    public List<DispatchTask> getUnitByType(UnitTypeEnum dispatchTaskType) {
+        LambdaQueryWrapper<DispatchTask> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(DispatchTask::getDispatchTaskType, dispatchTaskType);
+        queryWrapper.ne(DispatchTask::getStatus, DELETE);
+        return this.list(queryWrapper);
+    }
+
+    @Override
+    public DispatchTask getUnitByVehicleId(Integer vehicleId) {
+        return this.baseMapper.getUnitByVehicleId(vehicleId);
+    }
+
+    @Override
+    @Transactional
     public Integer getUnitIdByUserIdAndType(Integer userId, UnitTypeEnum unitType,Integer mapId) {
         LambdaQueryWrapper<DispatchTask> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DispatchTask::getUserId, userId);
@@ -116,6 +130,7 @@ public class DispatchTaskServiceImpl extends ServiceImpl<DispatchTaskMapper, Dis
     public DispatchTask getUnitByLoadId(Integer loadAreaId) {
         LambdaQueryWrapper<DispatchTask> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DispatchTask::getLoadAreaId,loadAreaId);
+        queryWrapper.ne(DispatchTask::getStatus, DELETE);
         queryWrapper.orderByDesc(DispatchTask::getAddTime);
         List<DispatchTask> dispatchTasks = this.list(queryWrapper);
         if(GmsUtil.CollectionNotNull(dispatchTasks)){

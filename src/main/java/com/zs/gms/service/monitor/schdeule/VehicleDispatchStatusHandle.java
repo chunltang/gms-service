@@ -1,8 +1,19 @@
 package com.zs.gms.service.monitor.schdeule;
 
+import com.zs.gms.common.annotation.Parser;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.interfaces.Desc;
+import com.zs.gms.entity.client.UserExcavatorLoadArea;
+import com.zs.gms.entity.monitor.DispatchTask;
+import com.zs.gms.entity.monitor.TaskRule;
 import com.zs.gms.enums.monitor.DispatchStateEnum;
+import com.zs.gms.enums.monitor.UnitTypeEnum;
+import com.zs.gms.service.client.UserExcavatorLoadAreaService;
+import com.zs.gms.service.client.impl.UserExcavatorLoadAreaServiceImpl;
+import com.zs.gms.service.monitor.DispatchTaskService;
+import com.zs.gms.service.monitor.TaskRuleService;
+import com.zs.gms.service.monitor.impl.DispatchTaskServiceImpl;
+import com.zs.gms.service.monitor.impl.TaskRuleServiceImpl;
 import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.service.vehiclemanager.impl.BarneyServiceImpl;
 import com.zs.gms.common.entity.LimitQueue;
@@ -24,13 +35,11 @@ public class VehicleDispatchStatusHandle extends AbstractVehicleStatusHandle {
     private final static Integer LIMIT_QUEUE_SIZE = 10;
     private Map<Integer, LimitQueue<DispatchStatus>> historyStatusMap;
     private DispatchStatusService dispatchStatusService;
-    private BarneyService barneyService;
 
     public VehicleDispatchStatusHandle() {
         super();
         historyStatusMap = new ConcurrentHashMap<>();
         dispatchStatusService = SpringContextUtil.getBean(DispatchStatusServiceImpl.class);
-        barneyService = SpringContextUtil.getBean(BarneyServiceImpl.class);
     }
 
     @Override
@@ -54,14 +63,14 @@ public class VehicleDispatchStatusHandle extends AbstractVehicleStatusHandle {
     }
 
     private DispatchStatus getBean(VehicleStatus vehicleStatus){
-        DispatchStatus dispatchStatus = new DispatchStatus();
         Integer vehicleId = vehicleStatus.getVehicleId();
-        Integer userId = barneyService.getUserIdByVehicleNo(vehicleId);
-        dispatchStatus.setCreateTime(vehicleStatus.getCreateTime());
-        dispatchStatus.setStatus((DispatchStateEnum)(vehicleStatus.getStatus()));
-        dispatchStatus.setVehicleId(vehicleId);
-        dispatchStatus.setUserId(userId);
-        return dispatchStatus;
+        DispatchStatus dispatchStatus = dispatchStatusService.getBaseInfo(vehicleId);
+        if(Parser.notNull(dispatchStatus)){
+            dispatchStatus.setCreateTime(vehicleStatus.getCreateTime());
+            dispatchStatus.setStatus((DispatchStateEnum)(vehicleStatus.getStatus()));
+            return dispatchStatus;
+        }
+        return null;
     }
 
     @Override
@@ -74,6 +83,10 @@ public class VehicleDispatchStatusHandle extends AbstractVehicleStatusHandle {
      */
     public boolean addToQueue(DispatchStatus dispatchStatus) {
         boolean result=false;
+        if(null==dispatchStatus){
+            log.error("数据异常，请检查获取BeanInfo代码");
+            return result;
+        }
         Integer vehicleId = dispatchStatus.getVehicleId();
         if (historyStatusMap.containsKey(vehicleId)) {
             historyStatusMap.get(vehicleId).add(dispatchStatus);
@@ -82,9 +95,7 @@ public class VehicleDispatchStatusHandle extends AbstractVehicleStatusHandle {
             LimitQueue<DispatchStatus> limitQueue = new LimitQueue<DispatchStatus>(LIMIT_QUEUE_SIZE);
             limitQueue.add(dispatchStatus);
             historyStatusMap.put(vehicleId, limitQueue);
-
         }
-        push(vehicleId);
         return result;
     }
 

@@ -1,41 +1,34 @@
 package com.zs.gms.controller.monitor;
 
 import com.alibaba.fastjson.JSONObject;
-import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.zs.gms.common.annotation.Log;
 import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsConstant;
-import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.message.MessageResult;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.mapmanager.point.AnglePoint;
-import com.zs.gms.entity.mineralmanager.Mineral;
 import com.zs.gms.entity.monitor.DispatchTask;
 import com.zs.gms.entity.monitor.TaskRule;
-import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
-import com.zs.gms.enums.messagebox.ApproveType;
 import com.zs.gms.enums.monitor.TaskTypeEnum;
 import com.zs.gms.enums.monitor.UnitTypeEnum;
-import com.zs.gms.service.messagebox.ApproveService;
-import com.zs.gms.service.mineralmanager.MineralService;
 import com.zs.gms.service.monitor.DispatchTaskService;
 import com.zs.gms.service.monitor.TaskRuleService;
-import com.zs.gms.service.system.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping(value = "/dispatchTasks")
@@ -65,11 +58,10 @@ public class DispatchController extends BaseController {
         paramMap.put("planType", planType);
         try {
             User currentUser = getCurrentUser();
-            MessageEntry entry = MessageFactory.getMessageEntryById(String.valueOf(vehicleId));
+            MessageEntry entry = MessageFactory.getMessageEntryById(GmsConstant.DISPATCH+"_"+vehicleId);
             entry.setCollect(2);
             if (null != currentUser) {
                 entry.setAfterHandle(() -> {
-
                     if (!entry.getHandleResult().equals(MessageResult.SUCCESS)) {
                         return;
                     }
@@ -78,7 +70,7 @@ public class DispatchController extends BaseController {
                         TaskRule taskRule = new TaskRule();
                         taskRule.setPoints(Arrays.toString(points));
                         taskRule.setVehicleId(vehicleId);
-                        taskRule.setStatus(TaskRule.Status.RUNING);
+                        taskRule.setStatus(TaskRule.Status.INTERACTION);
                         taskRule.setUserId(currentUser.getUserId());
                         taskRule.setUnitId(Integer.valueOf(String.valueOf(unitId.longValue())));
                         taskRuleService.addTaskRule(taskRule);
@@ -96,23 +88,14 @@ public class DispatchController extends BaseController {
     @Log("执行交互式任务")
     @PutMapping(value = "/InteractiveDispatchTasks/statuses/runStatus")
     @ApiOperation(value = "执行交互式任务", httpMethod = "PUT")
-    public void runInteractiveTask(@MultiRequestBody("vehicleId") String vehicleId) throws GmsException {
+    public void runInteractiveTask(@MultiRequestBody("vehicleId") Integer vehicleId) throws GmsException {
         if (!ObjectUtils.allNotNull(vehicleId)) {
             throw new GmsException("参数异常");
         }
-        Integer mapId = GmsUtil.getActiveMap();
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("vehicleId", vehicleId);
         try {
-            User currentUser = getCurrentUser();
             MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
-            if (null != currentUser) {
-                entry.setAfterHandle(() -> {
-                    if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {//操作成功
-                        taskRuleService.updateTaskRuleStatus(currentUser.getUserId(), vehicleId, TaskRule.Status.RUNING);
-                    }
-                });
-            }
             MessageFactory.getDispatchMessage().sendMessageWithID(entry.getMessageId(), "RunPath", JSONObject.toJSONString(paramMap), "执行交互式任务成功");
         } catch (Exception e) {
             String message = "执行交互式任务失败";
@@ -124,23 +107,14 @@ public class DispatchController extends BaseController {
     @Log("交互式任务停止")
     @PutMapping(value = "/InteractiveDispatchTasks/statuses/stopStatus")
     @ApiOperation(value = "交互式任务停止", httpMethod = "PUT")
-    public void stopInteractiveTask(@MultiRequestBody("vehicleId") String vehicleId) throws GmsException {
+    public void stopInteractiveTask(@MultiRequestBody("vehicleId") Integer vehicleId) throws GmsException {
         if (!ObjectUtils.allNotNull(vehicleId)) {
             throw new GmsException("参数异常");
         }
-        Integer mapId = GmsUtil.getActiveMap();
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("vehicleId", vehicleId);
         try {
-            User currentUser = getCurrentUser();
             MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
-            if (null != currentUser) {
-                entry.setAfterHandle(() -> {
-                    if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {//操作成功
-                        taskRuleService.updateTaskRuleStatus(currentUser.getUserId(), vehicleId, TaskRule.Status.DELETE);
-                    }
-                });
-            }
             MessageFactory.getDispatchMessage().sendMessageWithID(entry.getMessageId(), "StopVeh", JSONObject.toJSONString(paramMap), "交互式任务停止成功");
         } catch (Exception e) {
             String message = "交互式任务停止失败";
@@ -269,11 +243,6 @@ public class DispatchController extends BaseController {
         paramMap.put("unitId", unitId);
         try {
             MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
-            entry.setAfterHandle(() -> {
-                if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {//操作成功
-                    dispatchTaskService.updateUnitStatusByUnitId(unitId, DispatchTask.Status.STOPING);
-                }
-            });
             MessageFactory.getDispatchMessage().sendMessageWithID(entry.getMessageId(), "StopAIUnit", JSONObject.toJSONString(paramMap), "停止调度单元成功");
         } catch (Exception e) {
             String message = "停止调度单元失败";
@@ -399,7 +368,7 @@ public class DispatchController extends BaseController {
     @DeleteMapping(value = "/{unitId}/vehicles/{vehicleId}")
     @ApiOperation(value = "调度单元移除车辆", httpMethod = "DELETE")
     public void removeDispatchVehicle(@PathVariable Integer unitId,
-                                      @PathVariable String vehicleId) throws GmsException {
+                                      @PathVariable Integer vehicleId) throws GmsException {
         if (!ObjectUtils.allNotNull(unitId, vehicleId)) {
             throw new GmsException("参数异常");
         }
@@ -411,7 +380,7 @@ public class DispatchController extends BaseController {
             MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
             entry.setAfterHandle(() -> {
                 if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {//操作成功
-                    taskRuleService.updateTaskRuleStatus(currentUser.getUserId(), vehicleId, TaskRule.Status.DELETE);
+                    taskRuleService.updateVehicleStatus(vehicleId, TaskRule.Status.DELETE);
                 }
             });
             MessageFactory.getDispatchMessage().sendMessageWithID(entry.getMessageId(), "RemoveAIVeh", JSONObject.toJSONString(paramMap), "调度单元移除车辆成功");

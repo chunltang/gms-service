@@ -1,11 +1,13 @@
 package com.zs.gms.common.service.websocket.impl;
 
+import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.websocket.FunctionHandler;
 import com.zs.gms.common.utils.GmsUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.websocket.Session;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -72,5 +74,22 @@ public abstract class AbstractFunctionHandler implements FunctionHandler {
 
     public void afterAdd(Session session){
         //do nothing
+    }
+
+    /**
+     * 发送异常信息
+     * */
+    public void sendError(Session session, String message){
+        String result = getResult(message, FunctionEnum.linkError.name());
+        synchronized (session){
+            if(session.isOpen()){
+                try {
+                    log.error("发送ws-linkError信息");
+                    session.getBasicRemote().sendText(result);
+                } catch (IOException e) {
+                    log.error("发送ws-linkError异常信息失败",e);
+                }
+            }
+        }
     }
 }

@@ -10,7 +10,7 @@
         left join t_vehicle_type tvt on (tvtvt.VEHICLETYPEID = tvt.VEHICLETYPEID)
         left join t_user_vehicle tuv on (tv.VEHICLEID = tuv.VEHICLEID)
         left join sys_user su on (tuv.USERID = su.USERID)
-        where 1=1
+        where 1=1 and tv.ISDEL=false
         <if test="barney.userId!=null and barney.userId!=''">
             and su.USERID=#{barney.userId}
         </if>
@@ -31,7 +31,7 @@
     <select id="findUserIdByVehicleNo" parameterType="string" resultType="integer">
         select tuv.USERID from t_vehicle tv
         left join t_user_vehicle tuv on (tv.VEHICLEID = tuv.VEHICLEID)
-        where 1 = 1
+        where 1 = 1 and tv.ISDEL=false
         <if test="vehicleNo!=null and vehicleNo!=''">
             and tv.VEHICLENO=#{vehicleNo}
         </if>

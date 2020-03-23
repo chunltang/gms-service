@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.core.enums.IEnum;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.zs.gms.common.entity.UseStatus;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -49,23 +50,5 @@ public class IconLib implements Serializable {
 
     @JsonIgnore
     @TableField("STATUS")
-    private Status status=Status.ENABLE;
-
-
-    public enum Status implements IEnum {
-
-        ENABLE("1"),
-        DISABLE("0");
-
-        public String value;
-
-        Status(String value) {
-            this.value = value;
-        }
-
-        @Override
-        public Serializable getValue() {
-            return value;
-        }
-    }
+    private UseStatus status=UseStatus.ENABLE;
 }

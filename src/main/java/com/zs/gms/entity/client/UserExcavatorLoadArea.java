@@ -1,9 +1,7 @@
 package com.zs.gms.entity.client;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -28,9 +26,9 @@ public class UserExcavatorLoadArea  implements Serializable {
     @NotNull(message = "用户不能为空")
     private Integer userId;
 
-    @TableField(value = "LOADAREA")
+    @TableField(value = "LOADAREAID")
     @NotNull(message = "装载区不能为空")
-    private Integer loadArea;
+    private Integer loadAreaId;
 
     @TableField(value = "EXCAVATORID")
     @NotNull(message = "挖掘机不能为空")
@@ -38,4 +36,15 @@ public class UserExcavatorLoadArea  implements Serializable {
 
     @TableField(value = "CREATETIME")
     private Date createTime;
+
+    /**
+     * 矿物id
+     * */
+    @TableField(exist = false)
+    private Integer mineralId;
+
+    @TableLogic
+    @JsonIgnore
+    @TableField(value = "ISDEL",select = false)
+    private Integer isDel;
 }

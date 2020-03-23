@@ -5,4 +5,5 @@ import com.zs.gms.entity.monitor.DispatchTask;
 
 public interface DispatchTaskMapper extends BaseMapper<DispatchTask> {
 
+    DispatchTask getUnitByVehicleId(Integer vehicleId);
 }

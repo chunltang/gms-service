@@ -115,9 +115,6 @@ public class UnitController extends BaseController {
     public GmsResponse getTaskRule(@PathVariable Integer vehicleId) throws GmsException {
         try {
             User currentUser = this.getCurrentUser();
-            if(currentUser==null){
-                throw new GmsException("当前用户未登录");
-            }
             TaskRule taskRule = taskRuleService.getTaskRuleByVehicleId(currentUser.getUserId(), vehicleId);
             return new GmsResponse().data(taskRule).message("获取指定车辆调度任务成功").success();
         }catch (Exception e){

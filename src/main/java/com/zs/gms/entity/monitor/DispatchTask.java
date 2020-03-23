@@ -95,6 +95,7 @@ public class DispatchTask implements Serializable {
 
     public enum Status implements IEnum, Desc {
 
+        //与调度统一枚举，不能单方面修改
         DELETE("0","调度单元已删除"),
         RUNING("1","调度单元正在运行..."),
         UNUSED("2","已创建"),

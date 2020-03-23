@@ -3,6 +3,7 @@ package com.zs.gms.service.vehiclemanager.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zs.gms.common.entity.UseStatus;
 import com.zs.gms.entity.vehiclemanager.IconLib;
 import com.zs.gms.mapper.vehiclemanager.IconLibMapper;
 import com.zs.gms.service.vehiclemanager.IconLibService;
@@ -28,7 +29,7 @@ public class IconLibServiceImpl extends ServiceImpl<IconLibMapper,IconLib> imple
     @Transactional
     public List<IconLib> getLibs() {
         LambdaQueryWrapper<IconLib> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(IconLib::getStatus,IconLib.Status.ENABLE);
+        queryWrapper.eq(IconLib::getStatus, UseStatus.ENABLE);
         return this.list(queryWrapper);
     }
 
@@ -36,7 +37,7 @@ public class IconLibServiceImpl extends ServiceImpl<IconLibMapper,IconLib> imple
     @Transactional
     public void delById(Integer id) {
         LambdaUpdateWrapper<IconLib> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.set(IconLib::getStatus,IconLib.Status.DISABLE);
+        updateWrapper.set(IconLib::getStatus,UseStatus.DISABLE);
         updateWrapper.eq(IconLib::getLibId,id);
         this.update(updateWrapper);
     }
@@ -51,7 +52,7 @@ public class IconLibServiceImpl extends ServiceImpl<IconLibMapper,IconLib> imple
     @Transactional
     public boolean isExistName(String name) {
         LambdaQueryWrapper<IconLib> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(IconLib::getStatus,IconLib.Status.ENABLE);
+        queryWrapper.eq(IconLib::getStatus,UseStatus.ENABLE);
         queryWrapper.eq(IconLib::getName,name);
         return this.list(queryWrapper).size()>0;
     }
@@ -59,7 +60,7 @@ public class IconLibServiceImpl extends ServiceImpl<IconLibMapper,IconLib> imple
     @Override
     public IconLib getLib(Integer id) {
         LambdaQueryWrapper<IconLib> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(IconLib::getStatus,IconLib.Status.ENABLE);
+        queryWrapper.eq(IconLib::getStatus,UseStatus.ENABLE);
         queryWrapper.eq(IconLib::getLibId,id);
         return this.getOne(queryWrapper);
     }

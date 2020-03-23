@@ -204,22 +204,27 @@ public class ApproveServiceImpl extends ServiceImpl<ApproveMapper, Approve> impl
         List<Approve> approves = this.list(queryWrapper);
         if(CollectionUtils.isNotEmpty(approves)){
             for (Approve approve : approves) {
-                boolean exist=false;
+                boolean exist=false;//false表示该用户没有待审批处理
                 String ids = approve.getApproveUserIds();
                 if(StringUtils.isNotEmpty(ids)){
                     String[] split = ids.split(StringPool.COMMA);
                     if(Arrays.asList(split).contains(userId)){
                         List<ApproveProcess> process = approve.getApproveProcess();
                         if(CollectionUtils.isNotEmpty(process)){
+                            boolean flag=true;
                             for (ApproveProcess approveProcess : process) {
                                 if(approveProcess.getUserId().equals(userId)){
-                                    exist=true;
+                                    flag=false;
+                                    break;
                                 }
                             }
+                            exist=flag;
+                        }else{
+                            exist=true;
                         }
                     }
                 }
-                if(!exist){
+                if(exist){
                     result.add(approve);
                 }
             }

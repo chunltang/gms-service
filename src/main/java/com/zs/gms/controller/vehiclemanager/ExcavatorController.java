@@ -5,20 +5,17 @@ import com.zs.gms.common.annotation.Mark;
 import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsResponse;
-import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.entity.client.Excavator;
 import com.zs.gms.entity.client.UserExcavatorLoadArea;
 import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
-import com.zs.gms.entity.vehiclemanager.Barney;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
 import com.zs.gms.service.client.ExcavatorService;
 import com.zs.gms.service.client.UserExcavatorLoadAreaService;
 import com.zs.gms.service.init.SyncRedisData;
 import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.system.UserService;
-import com.zs.gms.service.vehiclemanager.BarneyService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +24,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -86,9 +82,9 @@ public class ExcavatorController extends BaseController {
     @ApiOperation(value = "修改挖掘机参数", httpMethod = "PUT")
     public GmsResponse updateExcavator(@MultiRequestBody("excavator") @Valid Excavator excavator) throws GmsException {
         try {
-            boolean exist = this.excavatorService.isExistNo(excavator.getExcavatorNo());
-            if (exist) {
-                return new GmsResponse().message("该挖掘机编号不存在").badRequest();
+            boolean exist = this.excavatorService.isExistId(excavator.getExcavatorId());
+            if (!exist) {
+                return new GmsResponse().message("该挖掘机id不存在").badRequest();
             }
             this.excavatorService.updateExcavator(excavator);
             return new GmsResponse().message("修改挖掘机参数成功").success();
@@ -104,12 +100,17 @@ public class ExcavatorController extends BaseController {
     @ApiOperation(value = "挖掘机绑定用户和装载区", httpMethod = "POST")
     public GmsResponse bindExcavatorAndUserAndLoadArea(@MultiRequestBody("bindExcavator") @Valid UserExcavatorLoadArea bindExcavator) throws GmsException {
         try {
+            boolean existUser = this.bindExcavatorService.isExistUser(bindExcavator.getUserId());
+            if(existUser){
+                return new GmsResponse().message("该用户已绑定挖掘机").badRequest();
+            }
+
             boolean excavatorExist = this.excavatorService.isExistId(bindExcavator.getExcavatorId());
             if (excavatorExist) {
                 return new GmsResponse().message("该挖掘机不存在").badRequest();
             }
 
-            boolean areaExist = MapDataUtil.isAreaExist(bindExcavator.getMapId(), bindExcavator.getLoadArea(), AreaTypeEnum.LOAD_AREA);
+            boolean areaExist = MapDataUtil.isAreaExist(bindExcavator.getMapId(), bindExcavator.getLoadAreaId(), AreaTypeEnum.LOAD_AREA);
             if (areaExist) {
                 return new GmsResponse().message("该地图不存在需设置的装载区").badRequest();
             }

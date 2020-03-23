@@ -28,6 +28,7 @@ CREATE TABLE `sys_user`
     `PASSWORD` varchar(128) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '密码',
     `THEME`    varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci  NULL DEFAULT NULL COMMENT '主题',
     `AVATAR`   varchar(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '头像',
+    `ISDEL`    boolean  COMMENT '逻辑删除：1删除，0保留',
     PRIMARY KEY (`USERID`) USING BTREE,
     UNIQUE KEY username (USERNAME)
 ) ENGINE = InnoDB
@@ -163,7 +164,8 @@ CREATE TABLE `t_vehicle_type`
     `LIMITSPEED`           varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT '车辆限速',
     `TURNRADIAL`           varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT '最小转弯半径',
     `CENTERWIDTH`          varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT '计算中心宽度',
-    `CENTERLENGHT`         varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT '转弯长度',
+    `CENTERLENGHT`         varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT '计算中长度',
+    `CENTERHEIGHT`         varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT '计算中高度',
     primary key (`VEHICLETYPEID`) USING BTREE
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1000
@@ -171,7 +173,7 @@ CREATE TABLE `t_vehicle_type`
   COLLATE = utf8_general_ci COMMENT = '车辆类型表'
   ROW_FORMAT = Dynamic;
 
-
+#alter table t_vehicle_type add column  CENTERHEIGHT varchar(10);
 -- -----------------------------------------------------------------------------------------------------------------------
 
 DROP TABLE IF EXISTS `t_vehicle`;
@@ -186,6 +188,7 @@ CREATE TABLE `t_vehicle`
     `NETINTIME`     datetime(0) COMMENT '车辆入网时间',
     `VEHICLESTATUS` char(2) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL COMMENT '车辆状态，0停用，1启动',
     `REMARK`        varchar(200) CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT '车辆备注',
+    `ISDEL`    boolean  COMMENT '逻辑删除：1删除，0保留',
     primary key (`VEHICLEID`) USING BTREE
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1000
@@ -201,6 +204,7 @@ CREATE TABLE `t_user_vehicle`
     `ID`        int(5) NOT NULL AUTO_INCREMENT COMMENT 'ID',
     `USERID`    int(5) NOT NULL COMMENT '用户ID',
     `VEHICLEID` int(5) NOT NULL COMMENT '车辆ID',
+    `ISDEL`    boolean  COMMENT '逻辑删除：1删除，0保留',
     PRIMARY KEY (`ID`) USING BTREE
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 0
@@ -250,9 +254,11 @@ CREATE TABLE `t_bind_excavator`
 (
     `ID`            int(5) NOT NULL AUTO_INCREMENT COMMENT 'ID',
     `USERID` int(5) NOT NULL COMMENT '用户ID',
-    `LOADAREA`     int(5) NOT NULL COMMENT '装载区ID',
+    `LOADAREAID`     int(5) NOT NULL COMMENT '装载区ID',
     `EXCAVATORID`     int(5) NOT NULL COMMENT '挖掘机ID',
+    `MAPID`     int(5)  COMMENT '地图id',
     `CREATETIME`     DATETIME(0) NOT NULL COMMENT '创建时间',
+    `ISDEL`    boolean  COMMENT '逻辑删除：1删除，0保留',
     PRIMARY KEY (`ID`) USING BTREE
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 0
@@ -260,6 +266,7 @@ CREATE TABLE `t_bind_excavator`
   COLLATE = utf8_general_ci COMMENT = '挖掘机，用户，装载区关联表'
   ROW_FORMAT = Dynamic;
 
+#alter table t_bind_excavator change LOADAREA LOADAREAID int(5);
 -- -----------------------------------------------------------------------------------------------------------------------
 ####矿物管理
 DROP TABLE IF EXISTS `t_mineral`;
@@ -269,12 +276,15 @@ CREATE TABLE `t_mineral`
     `MINERALNAME` VARCHAR(20) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT '矿物名称',
     `REMARK`      VARCHAR(200) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '备注',
     `ADDTIME`     DATETIME(0)                                            NOT NULL COMMENT '添加时间',
+    `ISDEL`    boolean  COMMENT '逻辑删除：1删除，0保留',
     PRIMARY KEY (`MINERALID`) USING BTREE
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 0
   CHARACTER SET = UTF8
   COLLATE = utf8_general_ci COMMENT '矿物种类表'
   ROW_FORMAT = DYNAMIC;
+
+
 
 DROP TABLE IF EXISTS `t_area_mineral`;
 CREATE TABLE `t_area_mineral`
@@ -286,6 +296,7 @@ CREATE TABLE `t_area_mineral`
     `MINERALNAME` VARCHAR(20) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT '矿物名称',
     `STATUS`      VARCHAR(2) CHARACTER SET UTF8 COLLATE utf8_general_ci  NOT NULL COMMENT '使用状态：0正在使用，1已变更',
     `ADDTIME`     DATETIME(0)                                            NOT NULL COMMENT '添加时间',
+    `ISDEL`    boolean  COMMENT '逻辑删除：1删除，0保留',
     PRIMARY KEY (`ID`) USING BTREE
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 0
@@ -312,12 +323,14 @@ CREATE TABLE `t_map_info`
     `APPROVEID`        int(6) COMMENT '审批id',
     `ADDTIME`          DATETIME(0) COMMENT '地图创建时间',
     `UPDATETIME`       DATETIME(0) COMMENT '地图修改时间',
+    `ISDEL`    boolean  COMMENT '逻辑删除：1删除，0保留',
     PRIMARY KEY (`ID`) USING BTREE
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 0
   CHARACTER SET = UTF8
   COLLATE = utf8_general_ci COMMENT '地图信息表'
   ROW_FORMAT = DYNAMIC;
+
 
 -- -----------------------------------------------------------------------------------------------------------------------
 ####运营监控
@@ -406,6 +419,7 @@ CREATE TABLE `t_liveInfo`
   COLLATE = utf8_general_ci COMMENT '实时调度信息表'
   ROW_FORMAT = DYNAMIC;
 
+
 DROP TABLE IF EXISTS `t_dispatchStatus`;
 CREATE TABLE `t_dispatchStatus`
 (
@@ -414,6 +428,12 @@ CREATE TABLE `t_dispatchStatus`
     `USERID`     int(4) COMMENT '用户id',
     `STATUS`     varchar(35) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '调度状态',
     `CREATETIME` datetime(0) COMMENT '产生时间',
+    `UNITID`  int(5)  NOT NULL COMMENT '调度单元id',
+    `MAPID`  int(4)  NOT NULL COMMENT '地图id',
+    `EXCAVATORID`  int(4)  NOT NULL COMMENT '电铲id',
+    `EXCAVATORUSERID`  int(4)  NOT NULL COMMENT '电铲用户id',
+    `MINERALID`  int(4)  NOT NULL COMMENT '矿物id',
+    `UNLOADID`  int(4)  NOT NULL COMMENT '卸载区id',
     primary key (`ID`) using btree
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1
@@ -474,18 +494,23 @@ CREATE TABLE `t_excavator`
 (
     `EXCAVATORID`  int(3)                                                 NOT NULL AUTO_INCREMENT COMMENT '挖掘机id',
     `EXCAVATORNO`  int(6)                                                 NOT NULL COMMENT '电铲编号' unique,
-    `IP`           varchar(15) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT 'GPS的ip',
+    `IP1`           varchar(15) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT 'GPS1的ip1',
+    `IP2`           varchar(15) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT 'GPS2的ip2',
     `CAPACITY`     float(5, 2)                                            NOT NULL COMMENT '容量',
-    `X`            float(4, 2) COMMENT '容量',
-    `Y`            float(4, 2) COMMENT '容量',
+    `X1`            float(4, 2) COMMENT 'GPS安装位置x1',
+    `X2`            float(4, 2) COMMENT 'GPS安装位置x2',
+    `Y1`            float(4, 2) COMMENT 'GPS安装位置y1',
+    `Y2`            float(4, 2) COMMENT 'GPS安装位置y2',
     `BRANCHLENGTH` float(4, 2) COMMENT '臂长',
     `CREATETIME`   datetime(0) COMMENT '创建时间',
+    `ISDEL`    boolean default false COMMENT '逻辑删除：1删除，0保留',
     PRIMARY KEY (`EXCAVATORID`) USING BTREE
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 100
   CHARACTER SET = UTF8
   COLLATE = utf8_general_ci COMMENT '挖掘机参数表'
   ROW_FORMAT = DYNAMIC;
+
 
 ##gps
 DROP TABLE IF EXISTS `t_gps`;
@@ -496,6 +521,7 @@ CREATE TABLE `t_gps`
     `USERID`  int(5)                                                 NOT NULL COMMENT '用户id',
     `IP`           varchar(15) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT 'GPS的ip',
     `CREATETIME`   datetime(0) COMMENT '创建时间',
+    `ISDEL`    boolean  COMMENT '逻辑删除：1删除，0保留',
     PRIMARY KEY (`GPSID`) USING BTREE
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 0
@@ -560,3 +586,16 @@ CREATE TABLE `t_monitor`
     primary key (`ID`) using btree
 )ENGINE = InnoDB AUTO_INCREMENT = 1 CHARACTER SET =UTF8 COLLATE = utf8_general_ci COMMENT '车辆监控数据表' ROW_FORMAT = DYNAMIC;
 */
+
+/*alter table t_gps  add column  `ISDEL`   boolean default 0  COMMENT '逻辑删除：1删除，0保留';
+alter table t_excavator  add column  `ISDEL`   boolean default 0  COMMENT '逻辑删除：1删除，0保留';
+alter table t_map_info  add column  `ISDEL`   boolean default 0  COMMENT '逻辑删除：1删除，0保留';
+alter table t_area_mineral  add column  `ISDEL`   boolean default 0  COMMENT '逻辑删除：1删除，0保留';
+alter table t_mineral  add column  `ISDEL`   boolean default 0  COMMENT '逻辑删除：1删除，0保留';
+alter table t_bind_excavator  add column  `ISDEL`   boolean default 0  COMMENT '逻辑删除：1删除，0保留';
+alter table t_vehicle  add column  `ISDEL`   boolean default 0  COMMENT '逻辑删除：1删除，0保留';
+alter table t_user_vehicle  add column  `ISDEL`   boolean default 0  COMMENT '逻辑删除：1删除，0保留';
+alter table sys_user  add column  `ISDEL`   boolean default 0  COMMENT '逻辑删除：1删除，0保留';
+alter table t_bind_excavator  add column  `MAPID`  int(5)  COMMENT '地图id';*/
+
+

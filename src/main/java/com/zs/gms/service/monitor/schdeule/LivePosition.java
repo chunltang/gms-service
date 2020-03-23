@@ -1,5 +1,6 @@
 package com.zs.gms.service.monitor.schdeule;
 
+import com.company.Interval;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.websocket.WsUtil;
@@ -41,13 +42,15 @@ public class LivePosition {
     }
 
     public static void setPosition(LiveInfo liveInfo) {
-        instance.setArea(liveInfo);
+        instance.setArea(liveInfo,liveInfo.getVehicleId());
     }
 
-    public void setArea(LiveInfo liveInfo) {
+    @Interval(interval = 1000,
+            before = "com.zs.gms.common.utils.GmsUtil.preIntervalHandler",
+            isReturn = true)
+    public void setArea(LiveInfo liveInfo,Integer vehicleId) {
         Integer mapId = GmsUtil.getActiveMap();
         if (null != mapId && liveInfo != null) {
-            Integer vehicleId = liveInfo.getVehicleId();
             Position position = GmsUtil.mapPutAndGet(lastPositionMap, vehicleId, new Position());
             AnglePoint point = new AnglePoint();
             Monitor monitor = liveInfo.getMonitor();

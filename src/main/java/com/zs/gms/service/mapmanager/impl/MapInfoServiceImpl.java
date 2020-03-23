@@ -238,7 +238,6 @@ public class MapInfoServiceImpl extends ServiceImpl<MapInfoMapper, MapInfo> impl
                             }else{
                                 log.error(String.format("删除地图失败，mapId=%s,approveId=%s",mapId,approve.getApproveId()));
                                 ApproveUtil.addError(approve.getApproveId(),"远程地图删除调用失败");
-
                             }
                         });
                         MessageFactory.getMapMessage().sendMessageNoResWithID(entry.getMessageId(),"deleteMap", JSON.toJSONString(paramMap));

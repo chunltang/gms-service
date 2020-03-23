@@ -16,7 +16,7 @@ spring:
     dynamic:
       p6spy: true  #sql打印开关
       hikari:
-        connection-timeout: 30000
+        connection-timeout: 10000
         max-lifetime: 1800000
         max-pool-size: 15
         min-idle: 5
@@ -38,7 +38,7 @@ spring:
   rabbitmq:
     virtual-host: /
     host: ${SERVER_HOST}
-    username: gms
+    username: gms_busi
     password: ${SERVER_PWD}
     port: 5672
     requested-heartbeat: 60
@@ -92,6 +92,9 @@ mybatis-plus:
     #map-underscore-to-camel-case: false   #驼峰转下划线
   global-config:
     banner: false      #关闭 mybatis-plus的 banner
+    db-config:
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
 
 #actuator
 management:

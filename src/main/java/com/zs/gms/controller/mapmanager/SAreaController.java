@@ -115,7 +115,7 @@ public class SAreaController extends BaseController {
         try {
             loadArea.setMapId(mapId);
             String jsonStr = JSONObject.toJSON(loadArea).toString();
-            MessageFactory.getMapMessage().sendMessageNoID("setLoadArea", jsonStr, "设置装载区成功");
+            MessageFactory.getMapMessage().sendMessageNoID("setLoadAreaId", jsonStr, "设置装载区成功");
         } catch (Exception e) {
             String message = "设置装载区失败";
             log.error(message, e);

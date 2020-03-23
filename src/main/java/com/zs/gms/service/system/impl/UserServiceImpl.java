@@ -132,6 +132,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Transactional
     public void deleteUser(Integer userId) {
         this.removeById(userId);
+        userRoleService.removeUserRole(userId);
     }
 
     /**
@@ -141,7 +142,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Transactional
     public void deleteUsers(String[] userIds) {
         List<String> ids = Arrays.asList(userIds);
-        this.removeByIds(ids);
+        for (String id : ids) {
+            deleteUser(Integer.valueOf(id));
+        }
     }
 
     @Override

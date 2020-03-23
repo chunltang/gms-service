@@ -1,11 +1,10 @@
 package com.zs.gms.service.init;
 
-import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.RedisKey;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.properties.GmsProperties;
+import com.zs.gms.common.service.DelayedService;
 import com.zs.gms.common.service.RedisService;
-import com.zs.gms.common.service.ScheduleService;
 import com.zs.gms.common.utils.DateUtil;
 import com.zs.gms.common.utils.IOUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -15,13 +14,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -52,8 +48,8 @@ public class GmsStartedUpRunner implements ApplicationRunner {
         //测试redis是否连接成功
         try {
             RedisService.addConfig();
-            ScheduleService.addSingleTask(this::dispatchInit, 3000);
-            ScheduleService.addSingleTask(this::codeCompress, 5000);
+            DelayedService.addTask(this::dispatchInit, 3000).withDesc("调度初始化");
+            DelayedService.addTask(this::codeCompress, 5000).withDesc("redis监控配置");
         } catch (Exception e) {
             log.error("redis start fail!", e);
             context.close();

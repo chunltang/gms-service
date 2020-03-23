@@ -9,6 +9,13 @@ import java.util.List;
 
      Integer addDispatchTask(DispatchTask dispatchTask);
 
+     List<DispatchTask> getUnitByType(UnitTypeEnum dispatchTaskType);
+
+     /**
+      * 根据车辆id获取调度单元
+      * */
+     DispatchTask getUnitByVehicleId(Integer vehicleId);
+
     /**
      * 根据用户id和单元类型获取unitId
      * */

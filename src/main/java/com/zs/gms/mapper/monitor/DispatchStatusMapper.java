@@ -5,4 +5,5 @@ import com.zs.gms.entity.monitor.DispatchStatus;
 
 public interface DispatchStatusMapper extends BaseMapper<DispatchStatus> {
 
+    DispatchStatus getBaseInfo(Integer vehicleId);
 }

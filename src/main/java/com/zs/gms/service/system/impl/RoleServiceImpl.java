@@ -36,8 +36,8 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
     @Override
     @Transactional
     public boolean roleExistsByRoleSign(String roleSign) {
-        QueryWrapper<Role> queryWrapper=new QueryWrapper<>();
-        queryWrapper.eq("roleSign",roleSign);
+        LambdaQueryWrapper<Role> queryWrapper=new LambdaQueryWrapper<>();
+        queryWrapper.eq(Role::getRoleSign,roleSign);
         int count = this.count(queryWrapper);
         return count>0?true:false;
     }

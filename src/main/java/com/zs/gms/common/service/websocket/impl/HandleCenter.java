@@ -148,6 +148,7 @@ public class HandleCenter extends AbstractFunctionHandler {
         Map<String, Object> params = new HashMap<>();
         params.put(SESSION_FIELD, session);
         handles.get(FunctionEnum.approve).addFunction(params);
+        handles.get(FunctionEnum.checkServer).addFunction(params);
     }
 
     /**

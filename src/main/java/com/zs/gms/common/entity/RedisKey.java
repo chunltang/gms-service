@@ -6,6 +6,8 @@ public class RedisKey {
 
     public final static String REDIS_SCRIPT_PREFIX = "redis_script_";//redis执行脚本
 
+    public final static String METHOD_INVOKE_INTERVAL_PREFIX="method_";//方法执行间隔
+
     /**==================dispatch====================*/
     public final static String VAP_BASE_PREFIX = "vap_base_";//车辆基础信息，包括障碍物信息、异常信息
 
@@ -27,7 +29,7 @@ public class RedisKey {
 
     public final static String DISPATCH_SERVER_INIT = "dispatch_server_init";//监听调度初始化键
 
-    public final static String DISPATCH_SERVER_HEARTBEAT = "dispatch_server_heartbeat";//监听调度初始化键
+    public final static String DISPATCH_SERVER_HEARTBEAT = "dispatch_server_heartbeat";//监听调度心跳
 
     public final static String GPS_ID_IP = "gps_id_ip";//监听调度初始化键
 
@@ -39,6 +41,8 @@ public class RedisKey {
     public final static String SEMI_STATIC_DATA = "semi_static_data_";//半静态层数据
 
     public final static String MAP_EDIT_LOCK = "map_edit_lock_";//地图编辑锁定
+
+    public final static String MAP_SERVER_HEARTBEAT = "map_server_heartbeat";//监听地图心跳
 
 
 }

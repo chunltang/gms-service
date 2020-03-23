@@ -18,5 +18,6 @@ import java.util.Map;
 @Data
 public class ErrorCode {
     private Map<String,String> dispatch=new HashMap<>();
+    private Map<String,String> map=new HashMap<>();
 }
 

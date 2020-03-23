@@ -2,14 +2,14 @@ package com.zs.gms.common.utils;
 
 import com.rabbitmq.client.Channel;
 import com.zs.gms.common.configure.EventPublisher;
-import com.zs.gms.common.entity.MessageEvent;
-import com.zs.gms.common.entity.RedisKey;
-import com.zs.gms.common.entity.StaticPool;
+import com.zs.gms.common.entity.*;
 import com.zs.gms.common.interfaces.RedisListener;
 import com.zs.gms.common.message.EventType;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
+import com.zs.gms.service.init.HeartBeatCheck;
 import com.zs.gms.service.init.RedisScript;
+import com.zs.gms.service.init.ScheduleTask;
 import com.zs.gms.service.monitor.schdeule.DispatchHandle;
 import com.zs.gms.service.monitor.schdeule.LiveVapHandle;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,11 @@ public class MessageUtil {
         String routingKey = message.getMessageProperties().getReceivedRoutingKey();//根据路由键调不同函数处理方法
         String msg = new String(message.getBody());
         String messageId = message.getMessageProperties().getMessageId();
-        log.debug("MQ接收消息，key={}，messgae={},messageId={}", routingKey, msg.length()>1000?msg.substring(0,1000):msg, messageId);
+        if(!GmsUtil.StringNotNull(messageId)){
+            log.error("mq接收消息id为空");
+            return;
+        }
+        log.debug("MQ接收消息，key={}，message={},messageId={}", routingKey, msg.length()>1000?msg.substring(0,1000):msg, messageId);
         MessageEntry entry = MessageFactory.getMessageEntry(messageId);
         if(entry!=null){
             if(entry.getMessage()==null){
@@ -45,7 +49,7 @@ public class MessageUtil {
     /********************************************redis**************************************************/
 
     public static void handeListenerResult(Message message) {
-        StaticPool.monitor_last_time=System.currentTimeMillis();
+        HeartBeatCheck.redis_monitor__last_time =System.currentTimeMillis();
         RedisListener listener=null;
         String key = message.toString();
         if(key.startsWith(RedisKey.VAP_PREFIX))

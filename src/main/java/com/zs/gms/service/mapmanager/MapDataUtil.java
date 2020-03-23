@@ -2,10 +2,11 @@ package com.zs.gms.service.mapmanager;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.company.Interval;
 import com.zs.gms.common.annotation.RedisLock;
 import com.zs.gms.common.entity.GmsConstant;
+import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.common.entity.RedisKey;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.message.MessageEntry;
@@ -18,6 +19,7 @@ import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SpringContextUtil;
 import com.zs.gms.entity.mapmanager.MapInfo;
 import com.zs.gms.entity.mapmanager.SemiStatic;
+import com.zs.gms.entity.monitor.LiveInfo;
 import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
@@ -25,37 +27,28 @@ import com.zs.gms.service.monitor.schdeule.LivePosition;
 import com.zs.gms.service.system.UserService;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class MapDataUtil {
 
-    /**
-     * 同步地图信息 up 需要去掉注释
-     */
+    @Interval(interval = 10000,
+            before = "com.zs.gms.common.utils.GmsUtil.preIntervalHandler",
+            isReturn = true)
     public static void syncMap() {
         MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
         entry.setAfterHandle(() -> {
             if (MessageResult.SUCCESS.equals(entry.getHandleResult())) {
                 String returnData = entry.getReturnData();
-                ObjectMapper mapper = new ObjectMapper();
-                List<MapInfo> mapInfos = null;
-                try {
-                    mapInfos = mapper.readValue(returnData, new TypeReference<List<MapInfo>>() {
-                    });
-                } catch (IOException e) {
-                    log.error("读取地图信息失败");
-                }
+                List<MapInfo> mapInfos = GmsUtil.toCollectObj(returnData, ArrayList.class,MapInfo.class);
+                MapInfoService bean = SpringContextUtil.getBean(MapInfoService.class);
+                Set<Integer> mapIds = mapInfos.stream().map(MapInfo::getMapId).collect(Collectors.toSet());
                 if (GmsUtil.CollectionNotNull(mapInfos)) {
                     for (MapInfo mapInfo : mapInfos) {
                         Integer id = mapInfo.getMapId();
                         if (null != id) {
-                            MapInfoService bean = SpringContextUtil.getBean(MapInfoService.class);
                             MapInfo info = bean.getMapInfo(id);
                             if (null == info) {//新增数据
                                 setDefaultValue(mapInfo);
@@ -66,9 +59,20 @@ public class MapDataUtil {
                         }
                     }
                 }
+                //删除业务层存在而地图不存在的id
+                QueryRequest queryRequest = new QueryRequest();
+                queryRequest.setPageSize(1000);
+                IPage<MapInfo> listPage = bean.getMapInfoListPage(queryRequest);
+                List<MapInfo> records = listPage.getRecords();
+                for (MapInfo mapInfo : records) {
+                    Integer mapId = mapInfo.getMapId();
+                    if(!mapIds.contains(mapId)){
+                        bean.deleteMapInfo(mapId);
+                    }
+                }
             }
         });
-        //MessageFactory.getMapMessage().sendMessageNoResWithID(entry.getMessageId(), "getMapInfos", "");
+        MessageFactory.getMapMessage().sendMessageNoResWithID(entry.getMessageId(), "getAllBasicMapInfo", "");
     }
 
     /**
@@ -81,6 +85,7 @@ public class MapDataUtil {
         mapInfo.setUserId(user.getUserId());
         mapInfo.setUserName(user.getUserName());
     }
+
 
     /**
      * 地图编辑加锁,默认30分钟后释放,false表示不是自己的锁
@@ -193,6 +198,7 @@ public class MapDataUtil {
     /**
      * 判断位置在地图的那个区域
      */
+
     public static void getCoordinateArea(LivePosition.Position position) {
         Map<String, Object> params = new HashMap<>();
         params.put("mapId", position.getMapId());

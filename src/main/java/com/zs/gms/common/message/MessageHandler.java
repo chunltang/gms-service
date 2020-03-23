@@ -83,12 +83,14 @@ public class MessageHandler {
         response.setHeader("Content-Type", "application/json;charset=UTF-8");
         response.setStatus(HttpStatus.OK.value());
         GmsResponse gmsResponse = entry.getMessage().getGmsResponse();
+        String resultInfo = (String) gmsResponse.getMessage();
         if (!StringUtils.isEmpty(message)) {
             JSONObject jsonObject = JSONObject.parseObject(message);
             if (jsonObject.containsKey(RESPONSE_STATUS_FIELD)) {
                 String status = jsonObject.getString(RESPONSE_STATUS_FIELD);
                 jsonObject.remove(RESPONSE_STATUS_FIELD);
                 MessageResult mr = entry.getHandleResult();
+                handleResultData(jsonObject,entry);
                 switch (status) {
                     case "0"://成功
                         if (mr.equals(MessageResult.RESPONSE_EXPIRE)) {
@@ -96,13 +98,22 @@ public class MessageHandler {
                         } else {
                             entry.setHandleResult(MessageResult.SUCCESS);
                         }
+                        //描述为空，则设置为业务层的输入
+                        if (!GmsUtil.StringNotNull(gmsResponse.getMessage())) {
+                            gmsResponse.message(resultInfo);
+                        }
                         break;
                     default:
-                        if (!errorHandler(entry.getMessageId(), gmsResponse, status)) {
-                            String resultInfo = (String) gmsResponse.get(RESPONSE_MESSAGE_FIELD);
+                        gmsResponse.badRequest();
+                        //调度状态码处理
+                        if (entry.getMessageId().startsWith(GmsConstant.DISPATCH)) {
+                            dispatchErrorHandler(gmsResponse, status);
+                        }
+                        //描述为空，则设置为业务层的输入
+                        if (!GmsUtil.StringNotNull(gmsResponse.getMessage())) {
                             gmsResponse.message(resultInfo.replaceAll(SUCCESS_DESC, FAIL_DESC));
                         }
-                        gmsResponse.fail();
+                        //设置失败状态
                         if (mr.equals(MessageResult.RESPONSE_EXPIRE)) {
                             entry.setHandleResult(MessageResult.AFTER_FAIL);
                         } else {
@@ -114,11 +125,13 @@ public class MessageHandler {
                 entry.setHandleResult(MessageResult.NO_STATUS);
                 log.debug("没有处理结果标志位status,messageId={}", entry.getMessageId());
             }
-            handleMapData(jsonObject, entry);
         }
     }
 
-    private void handleMapData(JSONObject jsonObject, MessageEntry entry) {
+    /**
+     * 处理返回数据
+     * */
+    private void handleResultData(JSONObject jsonObject, MessageEntry entry) {
         if (!jsonObject.isEmpty() && jsonObject.containsKey(RESPONSE_MESSAGE_FIELD)) {//有返回数据
             String returnData = jsonObject.getString(RESPONSE_MESSAGE_FIELD);
             GmsResponse gmsResponse = entry.getMessage().getGmsResponse();
@@ -134,7 +147,7 @@ public class MessageHandler {
                     log.error("非JSON格式数据");
                     gmsResponse.message(returnData);
                 }
-            }else{
+            } else {
                 gmsResponse.message(returnData);
             }
         }
@@ -148,8 +161,8 @@ public class MessageHandler {
                 try {
                     JSONObject json = JSONObject.parseObject(returnData);
                     if (json.containsKey(RESPONSE_DATA_FIELD)) {
-                        JSONObject jsonObj = json.getJSONObject(RESPONSE_DATA_FIELD);
-                        entry.setReturnData(jsonObj.toJSONString());
+                        Object data = json.get(RESPONSE_DATA_FIELD);
+                        entry.setReturnData(JSON.toJSONString(data));
                     }
                 } catch (Exception e) {
                     log.error("非JSON格式数据");
@@ -175,28 +188,13 @@ public class MessageHandler {
 
     /**
      * 处理异常返回
+     *
      * @param status 错误码
      */
-    private boolean errorHandler(String messageId, GmsResponse response, String status) {
-        if (GmsUtil.StringNotNull(messageId)) {
-            int i = messageId.indexOf("_");
-            String prefix = "";
-            if (i > 0) {
-                prefix = messageId.substring(0, i);
-            }
-
-            switch (prefix) {
-                case GmsConstant.DISPATCH:
-                    Map<String, String> dispatch = errorCode.getDispatch();
-                    if (dispatch.containsKey(status.substring(1))) {
-                        response.message(dispatch.get(status));
-                        return true;
-                    }
-                    break;
-                case GmsConstant.MAP:
-                    break;
-            }
+    private void dispatchErrorHandler(GmsResponse response, String status) {
+        Map<String, String> dispatch = errorCode.getDispatch();
+        if (dispatch.containsKey(status)) {
+            response.message(dispatch.get(status));
         }
-        return false;
     }
 }

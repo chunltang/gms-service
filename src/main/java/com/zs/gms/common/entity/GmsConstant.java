@@ -11,7 +11,10 @@ public class GmsConstant {
     public static final String DISPATCH="dispatch";
     public static final String MAP="map";
     public static final String VAP="vap";
+    public static final String BUSI="busi";
     public static final String APPROVE="approve";
+
+    public static final String MQ_HEART_BEAT="mq_heart_beat";
 
     public static final int DATA_MAP_INITIAL_CAPACITY=2;
 

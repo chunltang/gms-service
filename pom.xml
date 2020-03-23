@@ -24,6 +24,12 @@
 
     <dependencies>
 
+        <dependency>
+            <groupId>com.study.self</groupId>
+            <artifactId>com.study</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
         <!--spring AOP-->
         <dependency>
             <groupId>org.springframework.boot</groupId>

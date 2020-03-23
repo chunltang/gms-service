@@ -51,8 +51,7 @@ public class BarneyTypeServiceImpl extends ServiceImpl<VehicleTypeMapper, Barney
      * */
     @Override
     @Transactional
-    public void deleteVehicleType(String VehicleTypeIds) {
-        String[] ids = VehicleTypeIds.split(StringPool.COMMA);
-        this.baseMapper.deleteBatchIds(Arrays.asList(ids));
+    public void deleteVehicleType(Integer VehicleTypeId) {
+        this.removeById(VehicleTypeId);
     }
 }

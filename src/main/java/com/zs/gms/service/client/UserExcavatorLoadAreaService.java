@@ -4,7 +4,13 @@ import com.zs.gms.entity.client.UserExcavatorLoadArea;
 
 public interface UserExcavatorLoadAreaService {
 
+    boolean isExistUser(Integer userId);
+
     void bindExcavator(UserExcavatorLoadArea bind);
+
+    UserExcavatorLoadArea getBindByUser(Integer userId);
+
+    UserExcavatorLoadArea getBindByLoad(Integer loadId);
 
     /**
      * 修改电铲所在区域

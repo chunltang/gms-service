@@ -10,11 +10,6 @@ public interface TaskRuleService {
     void addTaskRule(TaskRule taskRule);
 
     /**
-     * 根据车辆编号修改规则执行状态
-     */
-    void updateTaskRuleStatus(Integer userId, String vehicleId, TaskRule.Status status);
-
-    /**
      * 修改指定单元所有车辆规则状态
      */
     void updateTaskRulesStatus(Integer unitId, TaskRule.Status status);

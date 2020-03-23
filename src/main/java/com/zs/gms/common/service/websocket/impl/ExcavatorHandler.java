@@ -1,13 +1,13 @@
 package com.zs.gms.common.service.websocket.impl;
 
-import com.zs.gms.common.service.RedisService;
-import com.zs.gms.common.service.ScheduleService;
 import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.websocket.WsFunction;
 import com.zs.gms.common.utils.GmsUtil;
-import com.zs.gms.service.monitor.schdeule.StatusMonitor;
-import com.zs.gms.service.monitor.schdeule.VehicleDispatchStatusHandle;
+import com.zs.gms.entity.client.UserExcavatorLoadArea;
+import com.zs.gms.service.client.UserExcavatorLoadAreaService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.websocket.Session;
@@ -16,16 +16,18 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 @WsFunction(key = FunctionEnum.excavator)
 @Component
 @Slf4j
 public class ExcavatorHandler extends SetHandler {
 
+    @Autowired
+    @Lazy
+    private UserExcavatorLoadAreaService bindService;
+
     private Map<Integer,Session> areaSessionMap=new ConcurrentHashMap<>();
+
     @Override
     public void sendMessage(Session session, String message) {
         synchronized (session) {
@@ -63,11 +65,20 @@ public class ExcavatorHandler extends SetHandler {
      * 获取挖掘机所在区域
      * */
     public void afterAdd(Session session){
-        Object key = session.getUserProperties().get("key");
-        //获取user管理的电铲，并获取电铲管理的区域
-        Integer excavatorId=1100;
-        //获取电铲所在装载区
-        Integer areaId=1001;
-        areaSessionMap.put(areaId,session);
+        try {
+            Object key = session.getUserProperties().get("key");
+            UserExcavatorLoadArea bind = bindService.getBindByUser(GmsUtil.typeTransform(key, Integer.class));
+            if(null!=bind){
+                areaSessionMap.put(bind.getLoadAreaId(),session);
+            }else{
+                String message="挖掘机绑定数据获取失败";
+                log.error(message);
+                sendError(session,message);
+                sessions.remove(session);
+            }
+        }catch (Exception e){
+            sendError(session,"获取挖掘机所在区域异常");
+            sessions.remove(session);
+        }
     }
 }

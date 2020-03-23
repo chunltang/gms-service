@@ -2,6 +2,7 @@ package com.zs.gms.common.message;
 
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.Message;
+import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.message.impl.DispatchMessage;
 import com.zs.gms.common.message.impl.MapMessage;
 import com.zs.gms.common.message.impl.VapMessage;
@@ -18,11 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Component
 public class MessageFactory {
 
-    private static String bMRequest;
 
-    private static String bDRequest;
-
-    private static String bVRequest;
 
     private static Map<String,MessageEntry> messageEntryMap = new ConcurrentHashMap<>();
 
@@ -126,30 +123,15 @@ public class MessageFactory {
     private static AtomicLong messageId = new AtomicLong(100000L);
 
     public static MessageInterface getMapMessage(){
-        return new MapMessage(GmsConstant.MAP,bMRequest);
+        return new MapMessage(GmsConstant.MAP, StaticConfig.bMRequest);
     }
 
     public static MessageInterface getDispatchMessage(){
-        return new DispatchMessage(GmsConstant.DISPATCH,bDRequest);
+        return new DispatchMessage(GmsConstant.DISPATCH,StaticConfig.bDRequest);
     }
 
     public static MessageInterface getVapMessage(){
-        return new VapMessage(GmsConstant.VAP,bVRequest);
+        return new VapMessage(GmsConstant.VAP,StaticConfig.bVRequest);
     }
 
-
-    @Value("${gms.exchanges.bMRequest}")
-    public void setBMRequest(String exchangeName){
-        bMRequest=exchangeName;
-    }
-
-    @Value("${gms.exchanges.bDRequest}")
-    public void setbDRequest(String exchangeName){
-        bDRequest=exchangeName;
-    }
-
-    @Value("${gms.exchanges.bVRequest}")
-    public void setbVRequest(String exchangeName){
-        bVRequest=exchangeName;
-    }
 }

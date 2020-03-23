@@ -51,7 +51,7 @@ public class WebSocketService {
      * 接收消息,订阅功能点或取消订阅
      */
     @OnMessage
-    public void onMessage(String message, Session session) {//{funcName:"globalPath",type:"remove/add"}
+    public void onMessage(String message, Session session) {//{funcName:"checkServer",type:"remove/add"}
         HashMap params = GmsUtil.toObj(message, HashMap.class);
         if(params==null){
             log.error("websocket监听消息失败,message={}",message);

@@ -101,7 +101,6 @@ public class ScheduleService {
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             public void run() {
-                log.debug("执行一次性延时任务");
                 task.run();
                 this.cancel();
             }

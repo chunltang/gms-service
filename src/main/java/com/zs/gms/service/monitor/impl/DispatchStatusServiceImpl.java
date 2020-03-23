@@ -30,4 +30,9 @@ public class DispatchStatusServiceImpl extends ServiceImpl<DispatchStatusMapper,
             this.save(dispatchStatus);
         }
     }
+
+    @Override
+    public DispatchStatus getBaseInfo(Integer vehicleId) {
+        return this.baseMapper.getBaseInfo(vehicleId);
+    }
 }
