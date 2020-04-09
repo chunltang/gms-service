@@ -3,7 +3,7 @@ package com.zs.gms.service.init;
 import com.alibaba.fastjson.JSONObject;
 import com.zs.gms.common.annotation.RedisLock;
 import com.zs.gms.common.entity.GmsConstant;
-import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.RedisKeyPool;
 import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
@@ -14,6 +14,7 @@ import com.zs.gms.entity.monitor.TaskRule;
 import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
 import com.zs.gms.enums.monitor.UnitTypeEnum;
+import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.monitor.DispatchTaskService;
 import com.zs.gms.service.monitor.TaskRuleService;
 import com.zs.gms.service.system.RoleService;
@@ -58,7 +59,7 @@ public class DispatchInit {
      */
     private void initLeisureInit() {
         Role role = roleService.getRoleIdByRoleSign(Role.RoleSign.DESPATCHER_ROLE.getValue());
-        Integer mapId = GmsUtil.getActiveMap();
+        Integer mapId = MapDataUtil.getActiveMap();
         if (null != role && mapId!=null) {
             List<User> users = userService.getUsersByRoleId(role.getRoleId());
             if (!CollectionUtils.isEmpty(users)) {
@@ -82,7 +83,7 @@ public class DispatchInit {
      * 初始化所有任务单元信息，将所有启动的任务单元置为停止状态
      */
     private void initUnits() throws GmsException {
-        Integer mapId = GmsUtil.getActiveMap();
+        Integer mapId = MapDataUtil.getActiveMap();
         if(mapId==null){
             return;
         }
@@ -200,7 +201,7 @@ public class DispatchInit {
     }
 
 
-    @RedisLock(key = RedisKey.DISPATCH_INIT_LOCK)
+    @RedisLock(key = RedisKeyPool.DISPATCH_INIT_LOCK)
     public void init() {
         log.info("初始化调度依赖");
         try {

@@ -47,7 +47,7 @@ public class MenuController {
     @ApiOperation(value = "新增权限菜单",httpMethod ="POST")
     public GmsResponse addMenu(@Valid @MultiRequestBody Menu menu) throws GmsException {
         try{
-            if(menuService.isExists(menu.getPowerName())){
+            if(menuService.isExists(menu.getPowerLabel())){
                 return new GmsResponse().badRequest().message("权限已存在");
             }
             menuService.addMenu(menu);

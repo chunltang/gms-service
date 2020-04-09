@@ -19,6 +19,6 @@
                  left join sys_role sr on (sr.ROLEID = srm.ROLEID)
                  left join sys_user_role sur on (sur.ROLEID = sr.ROLEID)
                  left join sys_user su on (su.USERID = sur.USERID)
-        where su.USERNAME = #{userName}
+        where su.USERNAME =  #{userName}
     </select>
 </mapper>

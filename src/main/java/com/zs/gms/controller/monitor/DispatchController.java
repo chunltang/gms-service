@@ -16,6 +16,7 @@ import com.zs.gms.entity.monitor.TaskRule;
 import com.zs.gms.entity.system.User;
 import com.zs.gms.enums.monitor.TaskTypeEnum;
 import com.zs.gms.enums.monitor.UnitTypeEnum;
+import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.monitor.DispatchTaskService;
 import com.zs.gms.service.monitor.TaskRuleService;
 import io.swagger.annotations.Api;
@@ -51,7 +52,7 @@ public class DispatchController extends BaseController {
         if (vehicleId == null) {
             throw new GmsException("参数异常");
         }
-        Integer mapId = GmsUtil.getActiveMap();
+        Integer mapId = MapDataUtil.getActiveMap();
         Map<String, Object> paramMap = new HashMap<>();
         paramMap.put("vehicleId", vehicleId);
         paramMap.put("points", points);
@@ -132,7 +133,7 @@ public class DispatchController extends BaseController {
         if (!ObjectUtils.allNotNull(taskType, taskAreaId)) {
             throw new GmsException("参数异常");
         }
-        Integer mapId = GmsUtil.getActiveMap();
+        Integer mapId = MapDataUtil.getActiveMap();
         User currentUser = getCurrentUser();
         DispatchTask dispatchTask = new DispatchTask();
         dispatchTask.setTaskAreaId(taskAreaId);
@@ -174,7 +175,7 @@ public class DispatchController extends BaseController {
         if (!ObjectUtils.allNotNull(loadAreaId, unLoadAreaId)) {
             throw new GmsException("参数异常");
         }
-        Integer mapId = GmsUtil.getActiveMap();
+        Integer mapId = MapDataUtil.getActiveMap();
         User currentUser = getCurrentUser();
         DispatchTask dispatchTask = new DispatchTask();
         dispatchTask.setMapId(mapId);

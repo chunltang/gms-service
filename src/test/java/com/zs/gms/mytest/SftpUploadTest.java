@@ -13,11 +13,11 @@ public class SftpUploadTest {
     private static String user = "root";
 
     //主机ip
-    private static String host = "192.168.2.114";//100
+    private static String host = "192.168.2.100";//100
     //private static String host = "192.168.2.114";
 
     //密码
-    private static String password = "gitlab";
+    private static String password = "gitlab";//630628
 
     private static Channel channel = null;
     private static Session sshSession = null;

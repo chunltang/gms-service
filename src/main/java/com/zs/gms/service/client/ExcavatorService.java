@@ -1,12 +1,16 @@
 package com.zs.gms.service.client;
 
-import com.zs.gms.entity.client.Excavator;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.zs.gms.common.entity.QueryRequest;
+import com.zs.gms.entity.vehiclemanager.Excavator;
 
 import java.util.List;
 
 public interface ExcavatorService {
 
     void addExcavator(Excavator excavator);
+
+    IPage getExcavatorList(Excavator excavator, QueryRequest queryRequest);
 
     List<Excavator> getExcavators();
 

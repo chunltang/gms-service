@@ -20,14 +20,20 @@ public interface ApproveService {
       * */
     Integer createApprove(Map<String,Object> params, String userIds, User user, ApproveType approveType, boolean rule);
 
+    Approve getApprove(Integer approveId);
     /**
      * 删除提交
      * */
-     boolean updateStatus(Integer approveId,Approve.Status status);
+     boolean deleteApprove(Integer approveId, Approve.Status status);
 
      Approve updateProcess(Integer approveId,String userId,Approve.Status status,String reason);
 
      void sendApproveResult(Approve approve);
+
+     /**
+      * 等待中的审批可以取消
+      * */
+     void cancel(Approve approve);
 
     /**
      * 获取指定人员没有审批的消息

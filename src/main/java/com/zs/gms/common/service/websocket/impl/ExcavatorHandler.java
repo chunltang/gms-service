@@ -66,7 +66,7 @@ public class ExcavatorHandler extends SetHandler {
      * */
     public void afterAdd(Session session){
         try {
-            Object key = session.getUserProperties().get("key");
+            Object key = getLoginUser(session);
             UserExcavatorLoadArea bind = bindService.getBindByUser(GmsUtil.typeTransform(key, Integer.class));
             if(null!=bind){
                 areaSessionMap.put(bind.getLoadAreaId(),session);

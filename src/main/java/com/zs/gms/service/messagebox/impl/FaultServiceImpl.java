@@ -8,6 +8,7 @@ import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.common.utils.SortUtil;
 import com.zs.gms.entity.messagebox.Fault;
+import com.zs.gms.enums.messagebox.HandleStatus;
 import com.zs.gms.mapper.messagebox.FaultMapper;
 import com.zs.gms.service.messagebox.FaultService;
 import org.springframework.stereotype.Service;
@@ -48,11 +49,11 @@ public class FaultServiceImpl extends ServiceImpl<FaultMapper, Fault> implements
 
     @Override
     @Transactional
-    public void updateFaultStatus(Integer faultId,Fault.Status status) {
+    public void updateFaultStatus(Integer faultId, HandleStatus status) {
         Fault fault=new Fault();
         fault.setFaultId(faultId);
         fault.setStatus(status);
-        if(status.equals(Fault.Status.PROCESSED)){//添加处理结束时间
+        if(status.equals(HandleStatus.PROCESSED)){//添加处理结束时间
             fault.setHandleTime(new Date());
         }
         this.updateById(fault);

@@ -26,10 +26,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializationContext;
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.serializer.*;
 
 import javax.annotation.PostConstruct;
 import java.time.Duration;
@@ -155,7 +152,7 @@ public class RedisConfig extends CachingConfigurerSupport {
         //使用StringRedisSerializer来序列化和反序列化redis的key值
         StringRedisSerializer redisSerializer = new StringRedisSerializer();
         template.setKeySerializer(redisSerializer);
-        template.setValueSerializer(redisSerializer);
+        template.setValueSerializer(redisSerializer);//二进制数据使用JdkSerializationRedisSerializer
 
         template.setHashKeySerializer(redisSerializer);
         template.setHashValueSerializer(redisSerializer);

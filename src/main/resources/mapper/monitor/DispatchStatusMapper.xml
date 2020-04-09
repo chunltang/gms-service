@@ -10,9 +10,12 @@
                tv.VEHICLENO     VEHICLEID,
                tbe.USERID       EXCAVATORUSERID,
                tbe.EXCAVATORID  EXCAVATORID,
-               tam.MINERALID    MINERALID
+               tam.MINERALID    MINERALID,
+               tvt.VEHICLETON   VEHICLECAPACITY
         from t_vehicle tv
                  inner join t_user_vehicle tuv on tv.VEHICLEID = tuv.VEHICLEID
+                 inner join t_vehicle_vehicleType tvv on tvv.VEHICLEID=tv.VEHICLEID
+                 inner join t_vehicle_type tvt on tvt.VEHICLETYPEID=tvv.VEHICLETYPEID
                  inner join t_task_rule ttr on ttr.VEHICLEID = tv.VEHICLENO
                  inner join t_dispatch_task tdt on tdt.UNITID = ttr.UNITID
                  inner join t_bind_excavator tbe on tbe.LOADAREAID = tdt.LOADAREAID

@@ -15,6 +15,5 @@ import java.io.Serializable;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ImpassableArea extends BaseArea implements Serializable {
 
-    @NotNull(message = "点集不能为空")
     private Point[] points;
 }

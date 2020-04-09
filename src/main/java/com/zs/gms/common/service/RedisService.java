@@ -1,7 +1,7 @@
 package com.zs.gms.common.service;
 
 import com.zs.gms.common.configure.RedisConfig;
-import com.zs.gms.common.entity.GmsConstant;
+import com.zs.gms.common.entity.RedisKeyPool;
 import com.zs.gms.common.entity.StaticConfig;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -34,6 +34,10 @@ public class RedisService {
         RedisTemplate<String, Object> template = redisConfig.getRedisTemplate(index);
         redisTemplates.put(index, template);
         return template;
+    }
+
+    public static synchronized Long generateId() {
+        return RedisService.increment(StaticConfig.KEEP_DB, RedisKeyPool.REDIS_INCR);
     }
 
     /**
@@ -233,20 +237,20 @@ public class RedisService {
     /**
      * 模糊删除
      */
-    public static void deleteLikeKey(int index, String prefix) {
-        deleteKey(index, getLikeKey(index, prefix));
+    public static void deleteLikeKey(int index, String like) {
+        deleteKey(index, getLikeKey(index, like));
     }
 
     /**
-     * 匹配前缀,获取键值集合
+     * 模糊匹配,获取键值集合
      */
-    public static Collection<String> getLikeKey(int index, String prefix) {
+    public static Collection<String> getLikeKey(int index, String like) {
         RedisTemplate<String, Object> template=getTemplate(index);
-        if (StringUtils.isEmpty(prefix)) {
+        if (StringUtils.isEmpty(like)) {
             log.info("参数异常");
             return null;
         }
-        return template.keys(prefix + "*");
+        return template.keys("*"+like + "*");
     }
 
     /**
@@ -321,6 +325,14 @@ public class RedisService {
             return;
         }
         template.persist(key);
+    }
+
+    /**
+     * 自增键
+     * */
+    public static Long increment(int index, String key){
+        RedisTemplate<String, Object> template=getTemplate(index);
+        return template.opsForValue().increment(key);
     }
 
 

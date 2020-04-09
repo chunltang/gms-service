@@ -1,6 +1,6 @@
-package com.zs.gms.common.service;
+package com.zs.gms.common.configure;
 
-import com.zs.gms.common.utils.GmsUtil;
+import com.zs.gms.common.service.GmsService;
 import com.zs.gms.entity.system.User;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +26,7 @@ public class WebSocketConfig extends ServerEndpointConfig.Configurator {
      * */
     @Override
     public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response){
-        User user = GmsUtil.getCurrentUser();
+        User user = GmsService.getCurrentUser();
         sec.getUserProperties().put("key",user==null?"":user.getUserId());
         super.modifyHandshake(sec,request,response);
     }

@@ -23,7 +23,7 @@ public class Mineral implements Serializable {
      * 矿物id
      * */
     @TableId(value = "MINERALID",type = IdType.AUTO)
-    private Long mineralId;
+    private Integer mineralId;
 
     /**
      * 矿物名称

@@ -1,5 +1,8 @@
 package com.zs.gms.common.utils;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.jni.Local;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -9,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Locale;
 
+@Slf4j
 public class DateUtil {
 
     public static final String FULL_TIME_PATTERN = "yyyyMMddHHmmss";
@@ -37,9 +41,24 @@ public class DateUtil {
         return DateUtil.getDateFormat(usDate, format);
     }
 
-    public static String formatLongTime(Long date) {
+    public static Date formatStringTime(String date, String format) throws ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(format,Locale.CHINA);
+        return dateFormat.parse(date);
+    }
+
+    public static String formatLongToString(Long date) {
         SimpleDateFormat dateFormat = new SimpleDateFormat(FULL_TIME_SPLIT_PATTERN);
         return dateFormat.format(new Date(date));
+    }
+
+    public static Date formatLongToDate(Long date) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(FULL_TIME_SPLIT_PATTERN);
+        try {
+            return dateFormat.parse(dateFormat.format(new Date(date)));
+        } catch (ParseException e) {
+            log.error("时间解析异常",e);
+        }
+        return null;
     }
 
     public static String formatInstant(Instant instant, String format) {

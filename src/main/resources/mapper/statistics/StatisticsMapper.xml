@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zs.gms.mapper.statistics.StatisticsMapper">
+
+    <select id="statisticsByUser" resultType="java.util.Map">
+        SELECT date_format(CREATETIME, #{format}) time,
+        count(*) count,
+        tds.USERID userId,
+        (select userName from sys_user su where su.USERID = tds.USERID) userName,
+        tds.VEHICLEID,
+        IFNULL(tds.VEHICLECAPACITY, 0) * count(*) volume
+        FROM t_dispatchStatus tds where 1=1
+        <if test="userId!=null">
+            and tds.userId=#{userId}
+        </if>
+        GROUP BY date_format(CREATETIME, #{format}), tds.USERID,tds.VEHICLEID,tds.VEHICLECAPACITY
+        ORDER BY time DESC;
+    </select>
+
+    <select id="statisticsByVehicle" resultType="java.util.Map">
+        SELECT date_format(CREATETIME, #{format}) time,
+        count(*) count,
+        tds.VEHICLEID vehicleId,
+        IFNULL(tds.VEHICLECAPACITY, 0) * count(*) volume
+        FROM t_dispatchStatus tds where 1=1
+        <if test="vehicleId!=null">
+            and tds.vehicleId=#{vehicleId}
+        </if>
+        GROUP BY date_format(CREATETIME, #{format}), tds.VEHICLEID,tds.VEHICLECAPACITY
+        ORDER BY time DESC;
+    </select>
+
+    <select id="statisticsByExcavator" resultType="java.util.Map">
+        SELECT date_format(CREATETIME, #{format}) time,
+        count(*) count,
+        tds.EXCAVATORID excavatorId,
+        (select te.EXCAVATORNO from t_excavator te where tds.EXCAVATORID = te.EXCAVATORID) excavatorNo,
+        tds.VEHICLEID
+        FROM t_dispatchStatus tds where 1=1
+        <if test="excavatorId!=null">
+            and tds.excavatorId=#{excavatorId}
+        </if>
+        GROUP BY date_format(CREATETIME, #{format}), tds.EXCAVATORID,tds.VEHICLEID
+        ORDER BY time DESC;
+    </select>
+
+    <select id="statisticsByUnload" resultType="java.util.Map">
+        SELECT date_format(CREATETIME, #{format}) time,
+        count(*) count,
+        tds.UNLOADID unloadId,
+        tds.MAPID mapId,
+        IFNULL(tds.VEHICLECAPACITY, 0) * count(*) volume
+        FROM t_dispatchStatus tds where 1=1
+        <if test="unloadId!=null">
+            and tds.unloadId=#{unloadId}
+        </if>
+        GROUP BY date_format(CREATETIME, #{format}), tds.UNLOADID, tds.MAPID,tds.VEHICLECAPACITY
+        ORDER BY time DESC;
+    </select>
+
+    <select id="statisticsByWarn" resultType="java.util.Map">
+        SELECT tvw.PARTNO partNo,
+        tvw.WARNCODE warnCode,
+        sum(case when tvw.STATUS in('0','1') then 1 else 0 end) untreated,
+        sum(case when tvw.STATUS='2' then 1 else 0 end) completed
+        from t_vehicle_warn tvw where 1=1
+        <if test="vehicleId!=null">
+            and tvw.VEHICLEID=#{vehicleId}
+        </if>
+        GROUP BY tvw.PARTNO,tvw.WARNCODE ORDER BY tvw.PARTNO,tvw.WARNCODE;
+    </select>
+</mapper>

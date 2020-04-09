@@ -50,33 +50,9 @@ public class AreaMineral implements Serializable {
     @TableField(value = "USERID")
     private Integer userId;
 
-    /**
-     * 使用状态：0正在使用，1已变更
-     * */
-    @TableField(value = "STATUS")
-    public String status;
 
     @TableLogic
     @JsonIgnore
     @TableField(value = "ISDEL",select = false)
     private Integer isDel;
-
-    public enum Status{
-
-        USING("0","正在使用"),
-        CHANGED("1","已变更");
-
-        private String value;
-
-        private String desc;
-
-        Status(String value, String desc){
-            this.value=value;
-            this.desc=desc;
-        }
-
-        public String getValue(){
-            return value;
-        }
-    }
 }

@@ -2,7 +2,7 @@ package com.zs.gms.service.monitor.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zs.gms.common.annotation.RedisLock;
-import com.zs.gms.entity.monitor.LiveInfo;
+import com.zs.gms.entity.monitor.VehicleLiveInfo;
 import com.zs.gms.mapper.monitor.LiveInfoMapper;
 import com.zs.gms.service.monitor.LiveInfoService;
 import org.springframework.scheduling.annotation.Async;
@@ -18,17 +18,17 @@ import java.util.Map;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED, readOnly = true, rollbackFor = Exception.class)
-public class LiveInfoServiceImpl extends ServiceImpl<LiveInfoMapper,LiveInfo> implements LiveInfoService {
+public class LiveInfoServiceImpl extends ServiceImpl<LiveInfoMapper, VehicleLiveInfo> implements LiveInfoService {
 
     @Override
     @Transactional
     @Async(value = "gmsAsyncThreadPool")
-    @RedisLock(key = "liveInfo",seconds = 30L)
-    public void addLiveInfo(LiveInfo liveInfo) {
+    @RedisLock(key = "vehicleLiveInfo",seconds = 30L)
+    public void addLiveInfo(VehicleLiveInfo vehicleLiveInfo) {
         Map<String,Object> params=new HashMap<>();
-        getParams(liveInfo.getMonitor(),params);
-        getParams(liveInfo,params,"monitor");
-        //DataUtil.pushDataToDruid(liveInfo.getVehicleId().toString(),JSON.toJSONString(params));
+        getParams(vehicleLiveInfo.getMonitor(),params);
+        getParams(vehicleLiveInfo,params,"monitor");
+        //DataUtil.pushDataToDruid(vehicleLiveInfo.getVehicleId().toString(),JSON.toJSONString(params));
     }
 
     public void getParams(Object obj,Map<String,Object> params,String ...excludes){

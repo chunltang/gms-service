@@ -43,7 +43,6 @@ public class RemoteServiceImpl implements RemoteService, ApproveInterface {
         return true;
     }
 
-
     @Override
     public boolean remoteAccess(Integer vehicleId,User user) {
         List<User> users = userService.getUsersByRoleSign(Role.RoleSign.CHIEFDESPATCHER_ROLE.getValue());

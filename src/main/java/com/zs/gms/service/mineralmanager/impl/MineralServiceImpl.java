@@ -33,7 +33,16 @@ public class MineralServiceImpl extends ServiceImpl<MineralMapper, Mineral> impl
         LambdaQueryWrapper<Mineral> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Mineral::getMineralName,mineralName);
         int count = this.count(queryWrapper);
-        return count>0?true:false;
+        return count > 0;
+    }
+
+    @Override
+    public boolean isMineralExist(Integer mineralId, String mineralName) {
+        LambdaQueryWrapper<Mineral> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.ne(Mineral::getMineralId,mineralId);
+        queryWrapper.eq(Mineral::getMineralName,mineralName);
+        int count = this.count(queryWrapper);
+        return count > 0;
     }
 
     @Override

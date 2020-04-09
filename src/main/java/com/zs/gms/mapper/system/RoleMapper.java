@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface RoleMapper extends BaseMapper<Role> {
 
-    public List<Role> findRolesByUserName(String userName);
+     List<Role> findRolesByUserName(String userName);
 
-    public List<Role> findRoles();
+     List<Role> findRoles();
 
-    public List<Menu> getMenusByRoleId(Integer roleId);
+     List<Menu> getMenusByRoleId(Integer roleId);
 }

@@ -13,9 +13,9 @@ public interface BarneyMapper extends BaseMapper<Barney> {
     /**
      * 分页查询
      * */
-    public IPage<Barney> findVehicleListPage(Page page, Barney barney);
+     IPage<Barney> findVehicleListPage(Page page, Barney barney);
 
-    public List<Barney> findVehicleList(@Param("barney") Barney barney);
+     List<Barney> findVehicleList(@Param("barney") Barney barney);
 
-    public Integer findUserIdByVehicleNo(@Param("vehicleNo") Integer vehicleNo);
+     Integer findUserIdByVehicleNo(@Param("vehicleNo") Integer vehicleNo);
 }

@@ -7,15 +7,16 @@ import com.zs.gms.common.service.websocket.WsUtil;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.mapmanager.SemiStatic;
 import com.zs.gms.entity.mapmanager.point.AnglePoint;
+import com.zs.gms.entity.monitor.GpsLiveInfo;
 import com.zs.gms.entity.monitor.LiveInfo;
 import com.zs.gms.entity.monitor.Monitor;
+import com.zs.gms.entity.monitor.VehicleLiveInfo;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
 import com.zs.gms.enums.monitor.DispatchStateEnum;
 import com.zs.gms.service.mapmanager.MapDataUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import java.util.ArrayList;
-import java.util.List;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,42 +27,43 @@ import java.util.concurrent.ConcurrentHashMap;
 public class LivePosition {
 
     /**
-     * 过期时间
-     */
-    private static final long expire = 1000;
-
-    private static LivePosition instance = new LivePosition();
-
-    /**
      * 车辆上一个位置
      */
     private static Map<Integer, Position> lastPositionMap = new ConcurrentHashMap<>();
 
-    public LivePosition getInstance() {
-        return instance;
-    }
-
-    public static void setPosition(LiveInfo liveInfo) {
-        instance.setArea(liveInfo,liveInfo.getVehicleId());
-    }
-
     @Interval(interval = 1000,
-            before = "com.zs.gms.common.utils.GmsUtil.preIntervalHandler",
+            before = "com.zs.gms.common.service.GmsService.preIntervalHandler",
             isReturn = true)
-    public void setArea(LiveInfo liveInfo,Integer vehicleId) {
-        Integer mapId = GmsUtil.getActiveMap();
-        if (null != mapId && liveInfo != null) {
+    public static void handleDelegate(LiveInfo liveInfo,Integer deviceId) {
+        switch (liveInfo.getType()){
+            case GPS:
+                handle((GpsLiveInfo)liveInfo);
+                break;
+            case VEHICLE:
+                handle((VehicleLiveInfo)liveInfo);
+                break;
+        }
+    }
+
+    private static void handle(GpsLiveInfo gpsLiveInfo){
+
+    }
+
+    private static void handle(VehicleLiveInfo vehicleLiveInfo) {
+        Integer mapId = MapDataUtil.getActiveMap();
+        if (null != mapId && vehicleLiveInfo != null) {
+            Integer vehicleId = vehicleLiveInfo.getVehicleId();
             Position position = GmsUtil.mapPutAndGet(lastPositionMap, vehicleId, new Position());
             AnglePoint point = new AnglePoint();
-            Monitor monitor = liveInfo.getMonitor();
+            Monitor monitor = vehicleLiveInfo.getMonitor();
             point.setX(monitor.getXworld());
             point.setY(monitor.getYworld());
             point.setYawAngle(monitor.getYawAngle());
             point.setZ(0);
             position.setPoint(point);
-            position.setDispState(liveInfo.getDispState());
+            position.setDispState(vehicleLiveInfo.getDispState());
             position.setVehicleId(vehicleId);
-            position.setLastLiveInfo(liveInfo);
+            position.setLastVehicleLiveInfo(vehicleLiveInfo);
             position.setMapId(mapId);
             position.setLastDate(System.currentTimeMillis());
             lastPositionMap.put(vehicleId, position);
@@ -81,35 +83,16 @@ public class LivePosition {
 
     public static boolean isAreaType(Position position, AreaTypeEnum typeEnum) {
         SemiStatic areaInfo = getAreaInfo(position);
-        if (null != areaInfo && areaInfo.getAreaType().equals(typeEnum)) {
-            return true;
-        }
-        return false;
+        return null != areaInfo && areaInfo.getAreaType().equals(typeEnum);
     }
 
-    public Position getLastPosition(Integer vehicleId) {
+    public static Position getLastPosition(Integer vehicleId) {
         return lastPositionMap.getOrDefault(vehicleId, null);
     }
 
-    /**
-     * 获取最新的位置信息
-     */
-    public List<Position> getLivePosition() {
-        ArrayList<Position> positions = new ArrayList<>();
-        ArrayList<Position> list = new ArrayList<>(lastPositionMap.values());
-        for (Position position : list) {
-            long lastDate = position.getLastDate();
-            long newTime = System.currentTimeMillis();
-            Integer lastArea = position.getLastArea();
-            if (newTime - lastDate < expire && null != lastArea) {
-                positions.add(position);
-            }
-            if (newTime - lastDate > 60 * expire) {
-                Integer vehicleId = position.getVehicleId();
-                lastPositionMap.remove(vehicleId);
-            }
-        }
-        return positions;
+    public static LiveInfo getLastLiveInfo(Integer vehicleId){
+        Position position = getLastPosition(vehicleId);
+        return null==position?null:position.getLastVehicleLiveInfo();
     }
 
     @Data
@@ -131,7 +114,7 @@ public class LivePosition {
         private Integer lastArea;
 
         @JsonIgnore
-        private LiveInfo lastLiveInfo;
+        private LiveInfo lastVehicleLiveInfo;
 
         /**
          * 车辆位置

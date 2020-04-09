@@ -1,8 +1,12 @@
 package com.zs.gms.common.entity;
 
-public class RedisKey {
+public class RedisKeyPool {
 
     public final static String REDIS_MONITOR = "redis_monitor";//redis监听
+
+    public final static String REDIS_INCR="redis_incr";//自增键
+
+    public final static String DELAY_TASK_PREFIX="delay_task_";//延时任务参数
 
     public final static String REDIS_SCRIPT_PREFIX = "redis_script_";//redis执行脚本
 
@@ -11,7 +15,7 @@ public class RedisKey {
     /**==================dispatch====================*/
     public final static String VAP_BASE_PREFIX = "vap_base_";//车辆基础信息，包括障碍物信息、异常信息
 
-    public final static String VAP_LIST_PREFIX = "vap_list_";//地图点集
+    public final static String VAP_COLLECTION_PREFIX = "vap_collection_";//地图点集
 
     public final static String VAP_TRAIL_PREFIX = "vap_trail_";//车辆轨迹
 

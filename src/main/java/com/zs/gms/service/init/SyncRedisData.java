@@ -1,11 +1,11 @@
 package com.zs.gms.service.init;
 
-import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.RedisKeyPool;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.interfaces.MarkInterface;
 import com.zs.gms.common.service.DelayedService;
 import com.zs.gms.common.service.RedisService;
-import com.zs.gms.entity.client.Excavator;
+import com.zs.gms.entity.vehiclemanager.Excavator;
 import com.zs.gms.entity.terminalmanager.Gps;
 import com.zs.gms.entity.vehiclemanager.Barney;
 import com.zs.gms.service.client.ExcavatorService;
@@ -49,7 +49,7 @@ public class SyncRedisData implements MarkInterface {
         for (Barney barney : vehicles) {
             valueMap.put(barney.getVehicleNo().toString(),barney.getIp());
         }
-        execute(valueMap,RedisKey.VEH_ID_IP);
+        execute(valueMap, RedisKeyPool.VEH_ID_IP);
     }
 
     /**
@@ -61,7 +61,7 @@ public class SyncRedisData implements MarkInterface {
         for (Excavator excavator : excavators) {
             valueMap.put(excavator.getExcavatorNo().toString(),excavator.getIp1());
         }
-        execute(valueMap,RedisKey.VEH_ID_IP);
+        execute(valueMap, RedisKeyPool.VEH_ID_IP);
     }
 
     /**
@@ -73,7 +73,7 @@ public class SyncRedisData implements MarkInterface {
         for (Gps gps : allGps) {
             valueMap.put(gps.getGpsNo().toString(),gps.getIp());
         }
-        execute(valueMap,RedisKey.GPS_ID_IP);
+        execute(valueMap, RedisKeyPool.GPS_ID_IP);
     }
 
     private static void execute(Map<String, Object> valueMap,String key){

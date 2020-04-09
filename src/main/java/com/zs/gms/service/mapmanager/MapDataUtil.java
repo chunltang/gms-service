@@ -7,7 +7,7 @@ import com.company.Interval;
 import com.zs.gms.common.annotation.RedisLock;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.QueryRequest;
-import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.RedisKeyPool;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
@@ -19,13 +19,13 @@ import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SpringContextUtil;
 import com.zs.gms.entity.mapmanager.MapInfo;
 import com.zs.gms.entity.mapmanager.SemiStatic;
-import com.zs.gms.entity.monitor.LiveInfo;
 import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
 import com.zs.gms.service.monitor.schdeule.LivePosition;
 import com.zs.gms.service.system.UserService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 public class MapDataUtil {
 
     @Interval(interval = 10000,
-            before = "com.zs.gms.common.utils.GmsUtil.preIntervalHandler",
+            before = "com.zs.gms.common.service.GmsService.preIntervalHandler",
             isReturn = true)
     public static void syncMap() {
         MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
@@ -66,13 +66,32 @@ public class MapDataUtil {
                 List<MapInfo> records = listPage.getRecords();
                 for (MapInfo mapInfo : records) {
                     Integer mapId = mapInfo.getMapId();
+                    MapInfo.Status status = mapInfo.getStatus();
                     if(!mapIds.contains(mapId)){
+                        if(status.equals(MapInfo.Status.USING)){
+                            log.error("业务层信息和地图服务信息不同步，业务层活动地图在地图模块没有相关数据");
+                            continue;
+                        }
                         bean.deleteMapInfo(mapId);
                     }
                 }
             }
         });
         MessageFactory.getMapMessage().sendMessageNoResWithID(entry.getMessageId(), "getAllBasicMapInfo", "");
+    }
+
+    /**
+     * 获取活动地图
+     */
+    public static Integer getActiveMap() {
+        Object obj = RedisService.getTemplate(StaticConfig.KEEP_DB).opsForValue().get(RedisKeyPool.ACTIVITY_MAP);
+        if (obj != null) {
+            String value = String.valueOf(obj);
+            if (StringUtils.isNotEmpty(value)) {
+                return Integer.valueOf(value);
+            }
+        }
+        return null;
     }
 
     /**
@@ -92,10 +111,10 @@ public class MapDataUtil {
      */
     @RedisLock(key = "mapServerLock")
     public static boolean editLock(Integer mapId, String userId) {
-        synchronized (RedisKey.MAP_EDIT_LOCK + mapId) {
+        synchronized (RedisKeyPool.MAP_EDIT_LOCK + mapId) {
             if (!getLockStatus(mapId, userId)) {
                 log.debug("添加地图编辑锁");
-                return RedisService.set(StaticConfig.KEEP_DB, RedisKey.MAP_EDIT_LOCK + mapId, userId, 30l, TimeUnit.MINUTES);
+                return RedisService.set(StaticConfig.KEEP_DB, RedisKeyPool.MAP_EDIT_LOCK + mapId, userId, 30l, TimeUnit.MINUTES);
             }
         }
         return false;
@@ -105,10 +124,10 @@ public class MapDataUtil {
      * 释放锁
      */
     public static void releaseLock(Integer mapId, String userId) {
-        synchronized (RedisKey.MAP_EDIT_LOCK) {
+        synchronized (RedisKeyPool.MAP_EDIT_LOCK) {
             if (!getLockStatus(mapId, userId)) {
                 log.debug("释放地图编辑锁");
-                RedisService.deleteKey(StaticConfig.KEEP_DB, RedisKey.MAP_EDIT_LOCK + mapId);
+                RedisService.deleteKey(StaticConfig.KEEP_DB, RedisKeyPool.MAP_EDIT_LOCK + mapId);
             }
         }
     }
@@ -128,14 +147,14 @@ public class MapDataUtil {
      * 获取当前编辑用户
      */
     public static Object getLockUser(Integer mapId) {
-        return RedisService.get(StaticConfig.KEEP_DB, RedisKey.MAP_EDIT_LOCK + mapId);
+        return RedisService.get(StaticConfig.KEEP_DB, RedisKeyPool.MAP_EDIT_LOCK + mapId);
     }
 
     /**
      * 获取半静态层数据
      */
     public static List<SemiStatic> getSemiStaticData(Integer mapId) {
-        Object obj = RedisService.get(StaticConfig.KEEP_DB, RedisKey.SEMI_STATIC_DATA + mapId);
+        Object obj = RedisService.get(StaticConfig.KEEP_DB, RedisKeyPool.SEMI_STATIC_DATA + mapId);
         List<SemiStatic> semiStatics = new ArrayList<>();
         if (null != obj) {
             JSONArray jsonObject = JSON.parseArray(obj.toString());

@@ -7,9 +7,12 @@ import com.baomidou.mybatisplus.core.enums.IEnum;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.exception.GmsException;
+import com.zs.gms.common.utils.DateUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.core.MethodParameter;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
@@ -19,8 +22,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class MultiRequestBodyArgumentResolver implements HandlerMethodArgumentResolver {
 
@@ -43,7 +45,7 @@ public class MultiRequestBodyArgumentResolver implements HandlerMethodArgumentRe
     public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
 
         String jsonBody = getRequestBody(webRequest);
-        if(StringUtils.isEmpty(jsonBody)){
+        if (StringUtils.isEmpty(jsonBody)) {
             return null;
         }
         JSONObject jsonObject = JSON.parseObject(jsonBody);
@@ -58,7 +60,7 @@ public class MultiRequestBodyArgumentResolver implements HandlerMethodArgumentRe
             if (value == null && parameterAnnotation.required()) {
                 throw new GmsException(String.format("必要参数不存在:%s", key));
             }
-        } else{
+        } else {
             // 注解没有设置value，则用参数名当做json的key
             key = parameter.getParameterName();
             value = jsonObject.get(key);
@@ -78,23 +80,29 @@ public class MultiRequestBodyArgumentResolver implements HandlerMethodArgumentRe
 
             } else if (parameterType == String.class) {//字符串类型
                 return value.toString();
-            }else if(parameterType.isEnum()){//枚举类型
+            } else if (parameterType.isEnum()) {//枚举类型
                 Method method = parameterType.getMethod("name", null);
                 for (Object enumConstant : parameterType.getEnumConstants()) {
-                       if(enumConstant instanceof IEnum){//传的枚举value值
-                           IEnum iEnum = (IEnum) enumConstant;
-                           if(iEnum.getValue().equals(value)){
-                               return enumConstant;
-                           }
-                       }
-                       if(method.invoke(enumConstant).equals(value)){//传的枚举名称
-                           return enumConstant;
-                       }
+                    if (enumConstant instanceof IEnum) {//传的枚举value值
+                        IEnum iEnum = (IEnum) enumConstant;
+                        if (iEnum.getValue().equals(value)) {
+                            return enumConstant;
+                        }
+                    }
+                    if (method.invoke(enumConstant).equals(value)) {//传的枚举名称
+                        return enumConstant;
+                    }
+                }
+                return null;
+            }else if(parameterType==Date.class){
+                DateTimeFormat format = parameter.getParameterAnnotation(DateTimeFormat.class);
+                if(null!=format){
+                    return DateUtil.formatStringTime(String.valueOf(value),format.pattern());
                 }
                 return null;
             }
             // 其他复杂对象
-            ObjectMapper mapper=new ObjectMapper();
+            ObjectMapper mapper = new ObjectMapper();
             return mapper.readValue(value.toString(), parameterType);
         }
 
@@ -118,7 +126,7 @@ public class MultiRequestBodyArgumentResolver implements HandlerMethodArgumentRe
 
         Object result;// 非基本类型，允许解析，将外层属性解析
         try {
-            ObjectMapper mapper=new ObjectMapper();
+            ObjectMapper mapper = new ObjectMapper();
             result = mapper.readValue(jsonObject.toString(), parameterType);
         } catch (JSONException jsonException) {
             result = null;
@@ -128,8 +136,10 @@ public class MultiRequestBodyArgumentResolver implements HandlerMethodArgumentRe
             return result;
         } else {
             boolean haveValue = false;
-            Field[] declaredFields = parameterType.getDeclaredFields();
-            for (Field field : declaredFields) {
+            Set<Field> fields = new HashSet<>();
+            fields.addAll(Arrays.asList(parameterType.getDeclaredFields()));
+            fields.addAll(Arrays.asList(parameterType.getFields()));
+            for (Field field : fields) {
                 field.setAccessible(true);
                 if (field.get(result) != null) {
                     haveValue = true;

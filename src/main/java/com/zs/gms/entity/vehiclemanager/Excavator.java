@@ -1,4 +1,4 @@
-package com.zs.gms.entity.client;
+package com.zs.gms.entity.vehiclemanager;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -82,10 +82,19 @@ public class Excavator implements Serializable {
     @TableField(exist = false)
     private Integer userId;
 
+    @TableField(exist = false)
+    private String userName;
+
     /**
      * 装载区id
      * */
     @TableField(exist = false)
     private Integer loadId;
+
+    @TableField(exist = false)
+    private String loadName;
+
+    @TableField(exist = false)
+    private Integer mapId;
 
 }

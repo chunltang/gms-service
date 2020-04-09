@@ -9,7 +9,6 @@ import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.service.init.HeartBeatCheck;
 import com.zs.gms.service.init.RedisScript;
-import com.zs.gms.service.init.ScheduleTask;
 import com.zs.gms.service.monitor.schdeule.DispatchHandle;
 import com.zs.gms.service.monitor.schdeule.LiveVapHandle;
 import lombok.extern.slf4j.Slf4j;
@@ -52,15 +51,15 @@ public class MessageUtil {
         HeartBeatCheck.redis_monitor__last_time =System.currentTimeMillis();
         RedisListener listener=null;
         String key = message.toString();
-        if(key.startsWith(RedisKey.VAP_PREFIX))
+        if(key.startsWith(RedisKeyPool.VAP_PREFIX))
         {   //车辆数据
             listener= LiveVapHandle.getInstance();
         }
-        else if(key.startsWith(RedisKey.DISPATCH_PREFIX))
+        else if(key.startsWith(RedisKeyPool.DISPATCH_PREFIX))
         {   //调度服务
             listener= DispatchHandle.getInstance();
         }
-        else if(key.startsWith(RedisKey.REDIS_SCRIPT_PREFIX))
+        else if(key.startsWith(RedisKeyPool.REDIS_SCRIPT_PREFIX))
         {   //脚本
             listener= RedisScript.getInstance();
         }

@@ -7,6 +7,7 @@ import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.entity.messagebox.Fault;
+import com.zs.gms.enums.messagebox.HandleStatus;
 import com.zs.gms.service.messagebox.FaultService;
 import com.zs.gms.entity.system.User;
 import io.swagger.annotations.Api;
@@ -67,7 +68,7 @@ public class FaultController extends BaseController {
     @PutMapping("/statuses")
     @ApiOperation(value = "修改故障处理进度",httpMethod = "PUT")
     public GmsResponse updateFaultStatus(@MultiRequestBody("faultId") Integer faultId,
-                                         @MultiRequestBody("status") Fault.Status status) throws GmsException {
+                                         @MultiRequestBody("status") HandleStatus status) throws GmsException {
         try {
             faultService.updateFaultStatus(faultId,status);
             return new GmsResponse().message("修改故障处理进度成功").success();

@@ -1,5 +1,6 @@
 package com.zs.gms.common.service.websocket.impl;
 
+import com.zs.gms.common.service.DelayedService;
 import com.zs.gms.common.service.ScheduleService;
 import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.websocket.WsFunction;
@@ -23,32 +24,40 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class DispatchProcessHandler extends AbstractFunctionHandler {
 
-    private Map<Session, Set<ScheduledFuture>> sessionMap = new ConcurrentHashMap();
+    private Map<Session, Set<DelayedService.Task>> sessionMap = new ConcurrentHashMap();
+
+    private final static long INTERVAL = 5 * 1000;
 
     @Override
     public void addFunction(Map<String, Object> params) {
         if (GmsUtil.mapContains(params, SESSION_FIELD, VEHICLE_FIELD)) {
             Session session = (Session) params.get(SESSION_FIELD);
             Integer integer = Integer.valueOf(params.get(VEHICLE_FIELD).toString());
-            log.debug("添加调度任务推送定时线程");
-            ScheduledFuture future = ScheduleService.addTask(() -> {
-                VehicleDispatchStatusHandle handle = StatusMonitor.getHandle(VehicleDispatchStatusHandle.class);
-                if (handle != null) {
-                    String message = handle.push(integer);
-                    sendMessage(session, getResult(message, FunctionEnum.dispatchProcess.name()));
-                }
-            }, 5, TimeUnit.SECONDS);
-            sessionMap.computeIfAbsent(session, s -> new CopyOnWriteArraySet<>()).add(future);
+            log.debug("添加调度进程数据推送");
+            DelayedService.Task task = DelayedService.buildTask()
+                    .withAtOnce(true)
+                    .withDelay(INTERVAL)
+                    .withNum(-1)
+                    .withDesc("调度进程dispatchProcess数据推送")
+                    .withTask(() -> {
+                        VehicleDispatchStatusHandle handle = StatusMonitor.getHandle(VehicleDispatchStatusHandle.class);
+                        if (handle != null) {
+                            String message = handle.push(integer);
+                            sendMessage(session, getResult(message, FunctionEnum.dispatchProcess.name()));
+                        }
+                    });
+            DelayedService.addTask(task);
+            sessionMap.computeIfAbsent(session, s -> new CopyOnWriteArraySet<>()).add(task);
         }
     }
 
     @Override
     public void removeFunction(Session session) {
         if (sessionMap.containsKey(session)) {
-            Set<ScheduledFuture> futures = sessionMap.get(session);
+            Set<DelayedService.Task> tasks = sessionMap.get(session);
             sessionMap.remove(session);
-            for (ScheduledFuture future : futures) {
-                ScheduleService.cancel(future, false);
+            for (DelayedService.Task task : tasks) {
+                task.setNeedExec(false);
             }
         }
     }

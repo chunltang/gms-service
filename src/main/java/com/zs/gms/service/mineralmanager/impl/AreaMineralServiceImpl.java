@@ -45,12 +45,13 @@ public class AreaMineralServiceImpl extends ServiceImpl<AreaMineralMapper, AreaM
     public void addAreaMineral(AreaMineral areaMineral) {
         Mineral mineral = mineralService.getMineral(areaMineral.getMineralId());
         if (null != mineral) {
-            updateAreaMineral(areaMineral);
+            removeArea(areaMineral.getAreaId());
             areaMineral.setAddTime(new Date());
             areaMineral.setMineralName(mineral.getMineralName());
-            areaMineral.setStatus(AreaMineral.Status.USING.getValue());
             this.save(areaMineral);
+            return;
         }
+        log.error("添加矿种和装载区关系时，没找到对应矿种");
     }
 
     /**
@@ -61,7 +62,6 @@ public class AreaMineralServiceImpl extends ServiceImpl<AreaMineralMapper, AreaM
     public AreaMineral getAreaMineral(Integer areaId) {
         LambdaQueryWrapper<AreaMineral> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AreaMineral::getAreaId, areaId);
-        queryWrapper.eq(AreaMineral::getStatus, AreaMineral.Status.USING.getValue());
         return this.getOne(queryWrapper);
     }
 
@@ -79,18 +79,16 @@ public class AreaMineralServiceImpl extends ServiceImpl<AreaMineralMapper, AreaM
     public List<AreaMineral> getUnAreaIds(Integer mineralId) {
         LambdaQueryWrapper<AreaMineral> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AreaMineral::getMineralId,mineralId);
-        queryWrapper.eq(AreaMineral::getStatus, AreaMineral.Status.USING.getValue());
         return this.list(queryWrapper);
     }
 
     /**
-     * 修改状态为已变更
+     * 逻辑删除
      */
-    private void updateAreaMineral(AreaMineral areaMineral) {
-        LambdaUpdateWrapper<AreaMineral> queryWrapper = new LambdaUpdateWrapper<>();
-        queryWrapper.eq(AreaMineral::getAreaId, areaMineral.getAreaId());
-        queryWrapper.set(AreaMineral::getStatus, AreaMineral.Status.CHANGED.getValue());
-        this.update(queryWrapper);
+    private void removeArea(Integer areaId) {
+        LambdaQueryWrapper<AreaMineral> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AreaMineral::getAreaId, areaId);
+        this.remove(queryWrapper);
     }
 
     @Override
@@ -147,4 +145,5 @@ public class AreaMineralServiceImpl extends ServiceImpl<AreaMineralMapper, AreaM
         MessageFactory.getDispatchMessage().sendMessageNoResWithID(entry.getMessageId(), "ChangeLoadType", GmsUtil.toJson(dispatchMap));
         return true;
     }
+
 }

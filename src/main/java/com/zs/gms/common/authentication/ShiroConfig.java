@@ -4,6 +4,7 @@ import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.properties.GmsProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.codec.Base64;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.session.SessionListener;
@@ -12,6 +13,7 @@ import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.session.mgt.eis.SessionIdGenerator;
 import org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor;
 import org.apache.shiro.spring.web.ShiroFilterFactoryBean;
+import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.mgt.CookieRememberMeManager;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.apache.shiro.web.servlet.ShiroHttpServletRequest;
@@ -181,7 +183,6 @@ public class ShiroConfig {
     /**
      * sessionID生成器
      * */
-    @Bean
     public SessionIdGenerator sessionIdGenerator() {
         return new JavaUuidSessionIdGenerator();
     }

@@ -1,5 +1,6 @@
 package com.zs.gms.common.service.websocket.impl;
 
+import com.zs.gms.common.service.DelayedService;
 import com.zs.gms.common.service.ScheduleService;
 import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.websocket.FunctionHandler;
@@ -8,6 +9,8 @@ import com.zs.gms.common.service.websocket.WsFunction;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SpringContextUtil;
 import com.zs.gms.entity.messagebox.Approve;
+import com.zs.gms.entity.system.Role;
+import com.zs.gms.entity.system.User;
 import com.zs.gms.service.messagebox.ApproveService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
@@ -24,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class HandleCenter extends AbstractFunctionHandler {
 
-    private final static long HEARTBEAT_INTERVAL = 1000 * 10;
+    private final static int HEARTBEAT_INTERVAL = 100 * 1000 * 10;
 
     private static volatile HandleCenter instance;
 
@@ -33,8 +36,6 @@ public class HandleCenter extends AbstractFunctionHandler {
     private Map<Session, Long> heartbeatMap;
 
     private Map<FunctionEnum, FunctionHandler> handles;
-
-    private ScheduledFuture future;
 
     private final static Object lock = new Object();
 
@@ -100,25 +101,32 @@ public class HandleCenter extends AbstractFunctionHandler {
      * 心跳检测
      */
     private void heartbeatCheck() {
-        log.debug("添加心跳检测定时线程");
-        future = ScheduleService.addTask(() -> {
-            for (SessionEntry entry : userSessionCache.values()) {
-                for (Session session : entry.getSessions()) {
-                    if (System.currentTimeMillis() - heartbeatMap.getOrDefault(session, 0L) > HEARTBEAT_INTERVAL) {
-                        synchronized (session) {
-                            try {
-                                log.debug("心跳检测失败，关闭连接!,key={}", entry.getKey());
-                                session.close();
-                            } catch (Exception e) {
-                                log.error("关闭过期websocket连接异常", e);
+        log.debug("添加websocket心跳检测");
+        DelayedService.Task task = DelayedService.buildTask()
+                .withNum(-1)
+                .withDelay(HEARTBEAT_INTERVAL)
+                .withAtOnce(true)
+                .withAddTime(GmsUtil.getCurTime())
+                .withDesc("websocket心跳检测")
+                .withPrintLog(true)
+                .withTask(() -> {
+                    for (SessionEntry entry : userSessionCache.values()) {
+                        for (Session session : entry.getSessions()) {
+                            if (System.currentTimeMillis() - heartbeatMap.getOrDefault(session, 0L) > HEARTBEAT_INTERVAL) {
+                                synchronized (session) {
+                                    try {
+                                        log.debug("心跳检测失败，关闭连接!,key={}", entry.getKey());
+                                        session.close();
+                                    } catch (Exception e) {
+                                        log.error("关闭过期websocket连接异常", e);
+                                    }
+                                }
+                                removeSession(session);
                             }
                         }
-                        removeSession(session);
                     }
-                }
-            }
-        }, 10, TimeUnit.SECONDS);
-
+                });
+        DelayedService.addTask(task);
     }
 
     public void newSession(String key, Session session) {
@@ -131,12 +139,10 @@ public class HandleCenter extends AbstractFunctionHandler {
             entry.addSession(session);
             userSessionCache.put(key, entry);
         }
-        if (future.isCancelled()) {
-            heartbeatCheck();
-        }
         updateHeartbeat(session);
         addDefaultFunction(session);
         whenLogin(key);
+        addSessionByRole(session);
         log.debug("新增连接key={},当前连接:{}", key, Arrays.toString(userSessionCache.keySet().toArray()));
     }
 
@@ -162,6 +168,27 @@ public class HandleCenter extends AbstractFunctionHandler {
         approves.addAll(approveNoMark);
         if (CollectionUtils.isNotEmpty(approves)) {
             sendMessage(key, GmsUtil.toJson(approves), FunctionEnum.approve);
+        }
+    }
+
+    /**
+     * 根据角色添加功能
+     */
+    private void addSessionByRole(Session session) {
+        User user = getLoginUser(session);
+        if (null != user) {
+            String roleSign = user.getRoleSign();
+            Role.RoleSign sign = Role.getEnum(roleSign);
+            if (null != sign) {
+                switch (sign) {
+                    case DESPATCHER_ROLE:
+                    case CHIEFDESPATCHER_ROLE:
+                        Map<String, Object> params = new HashMap<>();
+                        params.put(SESSION_FIELD, session);
+                        handles.get(FunctionEnum.maintainTask).addFunction(params);
+                        break;
+                }
+            }
         }
     }
 
@@ -223,7 +250,6 @@ public class HandleCenter extends AbstractFunctionHandler {
                     handler.sendMessage(session, getResult(message, nEnum.name()));
                 }
             }
-
         }
     }
 

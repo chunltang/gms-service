@@ -22,7 +22,7 @@ public class DataTest {
         String time = DateUtil.formatFullTime(LocalDateTime.now(),"mm");
         System.out.println(time);
 
-        String longTime = DateUtil.formatLongTime(1574401275000l);
+        String longTime = DateUtil.formatLongToString(1574401275000l);
         System.out.println(longTime);
     }
 }

@@ -7,6 +7,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.*;
 
+/**
+ * 定时任务服务
+ * */
 @Data
 @Slf4j
 public class ScheduleService {

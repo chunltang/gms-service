@@ -5,51 +5,53 @@ import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.entity.mapmanager.MapInfo;
 import com.zs.gms.entity.system.User;
 
-public interface MapInfoService  {
+public interface MapInfoService {
 
     /**
      * 保存地图信息
-     * */
-    public void addMapInfo(MapInfo  Info);
+     */
+    void addMapInfo(MapInfo Info);
 
     /**
      * 查询地图id是否已存在
-     * */
-    public boolean existMapId(Integer mapId);
+     */
+    boolean existMapId(Integer mapId);
 
-    public MapInfo getMapInfo(Integer mapId);
+    MapInfo getMapInfo(Integer mapId);
+
+    MapInfo getActiveMapInfo();
 
     /**
      * 修改地图信息
-     * */
-    public void updateMapInfo(MapInfo info);
+     */
+    void updateMapInfo(MapInfo info);
 
     /**
      * 删除地图信息
-     * */
-    public void deleteMapInfo(Integer mapId);
+     */
+    void deleteMapInfo(Integer mapId);
 
-    public MapInfo.Status getMapStatus(Integer mapId);
+    MapInfo.Status getMapStatus(Integer mapId);
 
     /**
      * 分页获取地图信息
-     * */
-    public IPage<MapInfo>  getMapInfoListPage(QueryRequest request);
+     */
+    IPage<MapInfo> getMapInfoListPage(QueryRequest request);
 
     /**
      * 修改地图状态
-     * */
-    public void updateMapStatus(Integer mapId, MapInfo.Status status);
+     */
+    void updateMapStatus(Integer mapId, MapInfo.Status status);
 
     /**
      * 提交申请发布地图
-     * */
-    public boolean submitPublishMap(Integer mapId, String approveUserIds, User user);
+     */
+    boolean submitPublishMap(Integer mapId, String approveUserIds, User user);
 
     /**
      * 提交申请删除地图
-     * */
-    public boolean submitDeleteMap(Integer mapId, String approveUserIds, User user);
+     */
+    boolean submitDeleteMap(Integer mapId, String approveUserIds, User user);
 
-    public boolean submitInactiveMap(Integer mapId, String approveUserIds, User user);
+    boolean submitInactiveMap(Integer mapId, String approveUserIds, User user);
 }

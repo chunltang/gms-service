@@ -2,6 +2,8 @@ package com.zs.gms.service.system.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zs.gms.common.utils.Assert;
+import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.system.UserRole;
 import com.zs.gms.mapper.system.UserRoleMapper;
 import com.zs.gms.service.system.UserRoleService;
@@ -24,5 +26,16 @@ public class UserRoleServiceImpl extends ServiceImpl<UserRoleMapper, UserRole> i
     @Transactional
     public void removeUserRole(Integer userId) {
         this.remove(new LambdaQueryWrapper<UserRole>().eq(UserRole::getUserId, userId));
+    }
+
+    @Override
+    @Transactional
+    public void addUserRole(Integer userId, Integer roleId) {
+        Assert.AllNotNull("字段不能为空",new Object[]{userId,roleId});
+        removeUserRole(userId);
+        UserRole userRole=new UserRole();
+        userRole.setRoleId(roleId);
+        userRole.setUserId(userId);
+        this.save(userRole);
     }
 }

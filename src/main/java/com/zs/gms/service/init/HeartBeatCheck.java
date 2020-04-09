@@ -1,6 +1,6 @@
 package com.zs.gms.service.init;
 
-import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.RedisKeyPool;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.service.DelayedService;
 import com.zs.gms.common.service.RedisService;
@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 
-import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -52,8 +51,7 @@ public class HeartBeatCheck {
     @Lazy
     private ConnectionFactory rabbitMqFactory;
 
-    @PostConstruct
-    public void go() {
+    public void run() {
         check();
         heartBeat();
     }
@@ -61,7 +59,7 @@ public class HeartBeatCheck {
     /**
      * 执行数据初始化检测
      */
-    public void check() {
+    private void check() {
         this.flag = false;
         checkDispatch();
         checkMap();
@@ -74,8 +72,8 @@ public class HeartBeatCheck {
     /**
      * 检测心跳,30秒，延时2秒检测线程是否阻塞
      */
-    public void heartBeat() {
-        DelayedService.Task task = DelayedService.Task.build()
+    private void heartBeat() {
+        DelayedService.Task task = DelayedService.buildTask()
                 .withAtOnce(true)
                 .withNum(-1)
                 .withDesc("业务层心跳检测")
@@ -114,7 +112,9 @@ public class HeartBeatCheck {
     private static void checkResult() {
         Map<String, Boolean> errorMessage = getErrorMessage();
         String toJson = GmsUtil.toJson(errorMessage);
-        log.debug("心跳检测结果:{}", toJson);
+        if(errorMessage.values().contains(false)){
+            log.error("心跳检测异常结果:{}", toJson);
+        }
         WsUtil.sendMessage(toJson, FunctionEnum.checkServer);
     }
 
@@ -168,7 +168,7 @@ public class HeartBeatCheck {
     private void checkDispatch() {
         boolean result;
         try {
-            Object dispatchValue = RedisService.get(StaticConfig.KEEP_DB, RedisKey.DISPATCH_SERVER_HEARTBEAT);
+            Object dispatchValue = RedisService.get(StaticConfig.KEEP_DB, RedisKeyPool.DISPATCH_SERVER_HEARTBEAT);
             if (null == dispatchValue || dispatchValue.toString().equals(dispatch_pre_Time)) {
                 result = false;
             } else {
@@ -187,7 +187,7 @@ public class HeartBeatCheck {
     private void checkMap() {
         boolean result;
         try {
-            Object mapValue = RedisService.get(StaticConfig.KEEP_DB, RedisKey.MAP_SERVER_HEARTBEAT);
+            Object mapValue = RedisService.get(StaticConfig.KEEP_DB, RedisKeyPool.MAP_SERVER_HEARTBEAT);
             if (null == mapValue || mapValue.toString().equals(map_pre_Time)) {
                 result = false;
             } else {
@@ -214,7 +214,7 @@ public class HeartBeatCheck {
                 bean.stop();
                 bean.start();
             }
-            RedisService.set(StaticConfig.MONITOR_DB, RedisKey.REDIS_MONITOR, String.valueOf(timeMillis));
+            RedisService.set(StaticConfig.MONITOR_DB, RedisKeyPool.REDIS_MONITOR, String.valueOf(timeMillis));
         } catch (Exception e) {
             log.debug("redis监听程序检测异常");
             result = false;

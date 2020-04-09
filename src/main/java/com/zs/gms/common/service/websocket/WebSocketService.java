@@ -1,8 +1,7 @@
 package com.zs.gms.common.service.websocket;
 
-import com.alibaba.fastjson.JSONObject;
 import com.zs.gms.common.exception.GmsException;
-import com.zs.gms.common.service.WebSocketConfig;
+import com.zs.gms.common.configure.WebSocketConfig;
 import com.zs.gms.common.service.websocket.impl.HandleCenter;
 import com.zs.gms.common.utils.GmsUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +50,7 @@ public class WebSocketService {
      * 接收消息,订阅功能点或取消订阅
      */
     @OnMessage
-    public void onMessage(String message, Session session) {//{funcName:"checkServer",type:"remove/add"}
+    public void onMessage(String message, Session session) {//{funcName:"maintainTask",type:"remove/add"}
         HashMap params = GmsUtil.toObj(message, HashMap.class);
         if(params==null){
             log.error("websocket监听消息失败,message={}",message);

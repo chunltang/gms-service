@@ -6,11 +6,13 @@ import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.entity.QueryRequest;
+import com.zs.gms.common.entity.RedisKeyPool;
+import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.exception.GmsException;
-import com.zs.gms.common.service.ScheduleService;
+import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.utils.DateUtil;
-import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.mapmanager.MapFile;
+import com.zs.gms.entity.mapmanager.MapInfo;
 import com.zs.gms.entity.mapmanager.SemiStatic;
 import com.zs.gms.entity.mineralmanager.AreaMineral;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
@@ -35,7 +37,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -68,6 +69,24 @@ public class OtherController extends BaseController {
         }
     }
 
+    @Log("获取活动地图信息")
+    @GetMapping(value = "/activeMap")
+    @ApiOperation(value = "获取活动地图信息",httpMethod = "GET")
+    public GmsResponse getStaticLayerInfo() throws GmsException {
+        try {
+            MapInfo activeMap = mapInfoService.getActiveMapInfo();
+            if(null==activeMap){
+                return new GmsResponse().badRequest().message("没有发布状态的活动地图");
+            }
+            RedisService.set(StaticConfig.KEEP_DB, RedisKeyPool.ACTIVITY_MAP,String.valueOf(activeMap.getMapId()));
+            return new GmsResponse().data(activeMap).success().message("获取活动地图信息成功");
+        }catch (Exception e){
+            String message="获取活动地图信息失败";
+            log.error(message,e);
+            throw  new GmsException(message);
+        }
+    }
+
     @Log("获取地图文件列表")
     @GetMapping("/files")
     @ApiOperation(value = "获取地图文件列表", httpMethod = "GET")
@@ -88,7 +107,7 @@ public class OtherController extends BaseController {
                 mapFile=new MapFile();
                 mapFile.setSize(mf.length());
                 mapFile.setFileType(mf.toPath().getParent().getFileName().toString());
-                mapFile.setLastUpdateTime(DateUtil.formatLongTime(mtime));
+                mapFile.setLastUpdateTime(DateUtil.formatLongToString(mtime));
                 String[] split = StringUtils.split(name, StringPool.DOT);
                 String fileName=name;
                 String rex="[0-9]{13}";
@@ -99,13 +118,13 @@ public class OtherController extends BaseController {
                     matcher.find();
                     Long value = Long.valueOf(matcher.group());
                     mapFile.setId(value);
-                    mapFile.setCreatTime(DateUtil.formatLongTime(value));
+                    mapFile.setCreatTime(DateUtil.formatLongToString(value));
                 }else{
                     String all = mf.getCanonicalPath().replaceAll(mf.getName(), "");
                     log.debug("重命名文件:{}",(all+name+"."+mtime));
                     mf.renameTo(new File(all+name+"."+mtime));//加id重命名文件
                     mapFile.setId(mtime);
-                    mapFile.setCreatTime(DateUtil.formatLongTime(mtime));
+                    mapFile.setCreatTime(DateUtil.formatLongToString(mtime));
                 }
                 mapFile.setName(fileName);
                 mapFiles.add(mapFile);
@@ -221,7 +240,7 @@ public class OtherController extends BaseController {
     @ApiOperation(value = "获取活动地图区域信息", httpMethod = "GET")
     public GmsResponse getAreaListByType(@MultiRequestBody(value = "type",required = false,parseAllFields = false) AreaTypeEnum areaType) throws GmsException {
         try {
-            Integer activeMap = GmsUtil.getActiveMap();
+            Integer activeMap = MapDataUtil.getActiveMap();
             if(null==activeMap){
                 return new GmsResponse().message("当前无活动地图").badRequest();
             }

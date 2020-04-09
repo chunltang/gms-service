@@ -34,7 +34,7 @@ import java.util.Map;
 @Api(tags = {"地图管理"}, description = "Map Controller")
 public class SAreaController extends BaseController {
 
-    @Log("创建地图单元")
+    @Log("创建地图单元")//可以设置不可通行区域
     @PostMapping(value = "/{mapId}/areas")
     @ApiOperation(value = "创建地图单元", httpMethod = "POST")
     public void createArea(@MultiRequestBody AreaInfo areaInfo,
@@ -52,7 +52,8 @@ public class SAreaController extends BaseController {
         }
     }
 
-    @Log("创建可通行区域")
+    /*该接口和createArea合并
+    @Log("创建可通行区域")//无设置可通行区域
     @PostMapping(value = "/{mapId}/passableArea")
     @ApiOperation(value = "创建可通行区域", httpMethod = "POST")
     public void createPassableArea(@Valid @MultiRequestBody AreaInfo areaInfo, @PathVariable Long mapId) throws GmsException {
@@ -66,7 +67,7 @@ public class SAreaController extends BaseController {
             log.error(message, e);
             throw new GmsException(message);
         }
-    }
+    }*/
 
     @Log("设置不可通行区域")
     @PutMapping(value = "/{mapId}/impassableArea")
@@ -115,7 +116,7 @@ public class SAreaController extends BaseController {
         try {
             loadArea.setMapId(mapId);
             String jsonStr = JSONObject.toJSON(loadArea).toString();
-            MessageFactory.getMapMessage().sendMessageNoID("setLoadAreaId", jsonStr, "设置装载区成功");
+            MessageFactory.getMapMessage().sendMessageNoID("setLoadArea", jsonStr, "设置装载区成功");
         } catch (Exception e) {
             String message = "设置装载区失败";
             log.error(message, e);

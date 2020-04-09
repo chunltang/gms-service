@@ -1,6 +1,6 @@
 package com.zs.gms.service.monitor.schdeule;
 
-import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.RedisKeyPool;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.interfaces.RedisListener;
 import com.zs.gms.common.service.RedisService;
@@ -32,15 +32,15 @@ public class DispatchHandle implements RedisListener {
         }
 
         switch (prefix){
-            case RedisKey.DISPATCH_AREA_PREFIX:
+            case RedisKeyPool.DISPATCH_AREA_PREFIX:
                 TaskAreaState taskState = GmsUtil.getMessage(key, TaskAreaState.class);
                 WsUtil.sendMessage(GmsUtil.toJsonIEnumDesc(taskState), FunctionEnum.taskAreaState);
                 break;
-            case RedisKey.DISPATCH_SERVER_INIT:
+            case RedisKeyPool.DISPATCH_SERVER_INIT:
                 DispatchInit dispatchInit = SpringContextUtil.getBean(DispatchInit.class);
                 dispatchInit.init();
                 break;
-            case RedisKey.DISPATCH_UNIT:
+            case RedisKeyPool.DISPATCH_UNIT:
                 DispatchTaskService dispatchTaskService = SpringContextUtil.getBean(DispatchTaskService.class);
                 String unitId = GmsUtil.subLastStr(key, "_");
                 Object value = RedisService.get(StaticConfig.MONITOR_DB, key);

@@ -10,6 +10,7 @@ import com.zs.gms.common.authentication.ShiroRealm;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.common.exception.GmsException;
+import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.MD5Util;
 import com.zs.gms.common.utils.PropertyUtil;
 import com.zs.gms.common.utils.SortUtil;
@@ -79,7 +80,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
 
     /**
-     * 添加用户，有默认密码
+     * 添加用户
      */
     @Override
     @Transactional
@@ -167,14 +168,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Override
     @Transactional
     public void updateUser(User user) throws GmsException {
-
-       /* if(null!=user.getRoleId()){
-            updateUserRole(user.getUserId(),user.getRoleId());
-        }*/
-        //设置为空的字段不更新
+        if(null!=user.getRoleId()){
+            Integer roleId = Integer.valueOf(user.getRoleId());
+            Role role = roleService.getRole(roleId);
+            if(null!=role){
+                userRoleService.addUserRole(user.getUserId(),roleId);
+            }
+        }
+        if(GmsUtil.allObjNotNull(user.getPassword())){
+            User u = findUserById(user.getUserId());
+            user.setPassword(MD5Util.encrypt(u.getUserName(),user.getPassword()));
+        }
         user.setUserName(null);
-        user.setPassword(null);
-        user.setRoleName(null);
         user.setRoleId(null);
         if (PropertyUtil.isAllFieldNull(user, "userId", "serialVersionUID")) {
             log.debug("对象可修改属性都为空，不能更新");

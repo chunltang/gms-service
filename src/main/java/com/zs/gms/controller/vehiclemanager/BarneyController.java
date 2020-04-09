@@ -1,7 +1,9 @@
 package com.zs.gms.controller.vehiclemanager;
 
 import com.zs.gms.common.annotation.Mark;
+import com.zs.gms.common.service.DelayedService;
 import com.zs.gms.entity.vehiclemanager.Barney;
+import com.zs.gms.enums.vehiclemanager.DateEnum;
 import com.zs.gms.service.init.SyncRedisData;
 import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.common.annotation.Log;
@@ -20,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.util.Map;
+import java.util.zip.ZipEntry;
 
 @Slf4j
 @RestController
@@ -69,6 +72,7 @@ public class BarneyController extends BaseController {
     @ApiOperation(value = "修改矿车信息", httpMethod = "PUT")
     public GmsResponse updateVehicle(@MultiRequestBody Barney barney) throws GmsException {
         try {
+            barney.setVehicleNo(null);//编号不能修改
             this.barneyService.updateVehicle(barney);
             return new GmsResponse().message("修改矿车信息成功").success();
         } catch (Exception e) {
@@ -107,18 +111,6 @@ public class BarneyController extends BaseController {
         } catch (Exception e) {
             String message = "批量矿车分配失败";
             log.error(message, e);
-            throw new GmsException(message);
-        }
-    }
-
-    @Log("图标压缩文件上传")
-    @PostMapping("/upload")
-    public GmsResponse upload(@MultiRequestBody("file") MultipartFile file) throws GmsException {
-        try{
-            return new GmsResponse().message("文件上传成功").success();
-        }catch (Exception e){
-            String message="文件上传失败";
-            log.error(message,e);
             throw new GmsException(message);
         }
     }

@@ -13,6 +13,11 @@ public interface MineralService {
      * */
      boolean isMineralExist(String mineralName);
 
+     /**
+      * 除mineralId外是否存在
+      * */
+     boolean isMineralExist(Integer mineralId,String mineralName);
+
      Mineral getMineral(Integer mineralId);
 
      List<Mineral> getMineralList();

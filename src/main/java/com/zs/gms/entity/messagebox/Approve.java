@@ -1,11 +1,9 @@
 package com.zs.gms.entity.messagebox;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 import com.baomidou.mybatisplus.core.enums.IEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.zs.gms.common.handler.ListTypeHandler;
 import com.zs.gms.common.handler.MapTypeHandler;
@@ -126,7 +124,7 @@ public class Approve implements Serializable {
 
         private String desc;
 
-        private Status(String value, String desc){
+        Status(String value, String desc){
             this.value=value;
             this.desc=desc;
         };

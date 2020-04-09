@@ -1,90 +1,91 @@
 package com.zs.gms.common.utils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.zs.gms.common.entity.GmsResponse;
-import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.RedisKeyPool;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.handler.IEnumDescSerializer;
 import com.zs.gms.common.handler.IEnumDeserializer;
 import com.zs.gms.common.service.RedisService;
-import com.zs.gms.entity.mapmanager.MapInfo;
+import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
-import com.zs.gms.service.system.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.shiro.SecurityUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.zip.ZipEntry;
 
 @Slf4j
 public class GmsUtil {
 
     /**
-     * 获取当前登录用户
+     * {}匹配替换
      */
-    public static User getCurrentUser() {
-        try {
-            return (User) SecurityUtils.getSubject().getPrincipal();
+    public static String format(String format, Object... objs) {
+        Pattern pattern = Pattern.compile("\\{([^}])*\\}");
+        Matcher matcher = pattern.matcher(format);
+        int index = 0;
+        int num = 0;
+        StringBuilder sb = new StringBuilder();
+        while (matcher.find()) {
+            int start = matcher.start();
+            sb.append(format.substring(index, start));
+            if (null != objs && objs.length >= num + 1) {
+                sb.append(objs[num]);
+            }
+            index = matcher.end();
+            num++;
+        }
+        if (num == 0) {
+            sb.append(format);
+        }
+        if (index < format.length()) {
+            sb.append(format.substring(index));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 对象序列化
+     * */
+    public static byte[] serializer(Object obj) {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             ObjectOutputStream os = new ObjectOutputStream(bos)) {
+            os.writeObject(obj);
+            return bos.toByteArray();
         } catch (Exception e) {
-            log.error("获取当前登录用户异常");
+            log.error("对象序列化失败",e);
         }
         return null;
     }
 
     /**
-     * 返回前端数据
-     */
-    public static void callResponse(GmsResponse gmsResponse, HttpServletResponse response) {
-        response.setHeader("Content-Type", "application/json;charset=UTF-8");
-        PrintWriter writer = null;
-        try {
-            writer = response.getWriter();
-            writer.print(GmsUtil.toJson(gmsResponse));
-            writer.flush();
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+     * 对象反序列化
+     * */
+    public static Object deserializer(byte[] bytes) {
+        try (ByteArrayInputStream bin = new ByteArrayInputStream(bytes);
+             ObjectInputStream in = new ObjectInputStream(bin)){
+            return in.readObject();
+        } catch (Exception e) {
+            log.error("对象反序列化失败",e);
         }
+        return null;
     }
 
-    /**
-     * 前置处理，判断当前用户调用的方法是否被锁定
-     */
-    public static boolean preIntervalHandler(long interval, String methodName, Object... params) {
-        String key_suffix = "none";
-        if (params.length > 0) {
-            key_suffix = String.valueOf(params[0]);
-        } else {
-            User user = GmsUtil.getCurrentUser();
-            if (user != null) {
-                key_suffix = String.valueOf(user.getUserId());
-            }
-        }
-        String key = RedisKey.METHOD_INVOKE_INTERVAL_PREFIX + methodName + "_" + key_suffix;
-        boolean intervalLock = RedisService.intervalLock(key, "interval", interval);
-        log.debug("前置preIntervalHandler检查结果:key={}:{}",key,intervalLock?"pass":"stop");
-        return intervalLock;
-    }
-
-    /**
-     * 后置处理
-     */
-    public static void afterIntervalHandler() {
-        System.out.println("after");
-    }
 
     /**
      * 获取当前时间，毫秒
@@ -171,6 +172,33 @@ public class GmsUtil {
             }
         }
         return map;
+    }
+
+    /**
+     * 基础类型和包装类型转换
+     */
+    public static Class typeClass(Class clazz) {
+        Class re = null;
+        if (null != clazz && clazz.isPrimitive()) {
+            if (clazz.equals(int.class)) {
+                re = Integer.class;
+            } else if (clazz.equals(short.class)) {
+                re = Short.class;
+            } else if (clazz.equals(long.class)) {
+                re = Long.class;
+            } else if (clazz.equals(byte.class)) {
+                re = Byte.class;
+            } else if (clazz.equals(char.class)) {
+                re = Character.class;
+            } else if (clazz.equals(boolean.class)) {
+                re = Boolean.class;
+            } else if (clazz.equals(float.class)) {
+                re = Float.class;
+            } else if (clazz.equals(double.class)) {
+                re = Double.class;
+            }
+        }
+        return re;
     }
 
     /**
@@ -288,20 +316,6 @@ public class GmsUtil {
             return mapper.writeValueAsString(obj);
         } catch (IOException e) {
             log.error("jackson读取数据失败", e);
-        }
-        return null;
-    }
-
-    /**
-     * 获取活动地图
-     */
-    public static Integer getActiveMap() {
-        Object obj = RedisService.getTemplate(StaticConfig.KEEP_DB).opsForValue().get(RedisKey.ACTIVITY_MAP);
-        if (obj != null) {
-            String value = String.valueOf(obj);
-            if (StringUtils.isNotEmpty(value)) {
-                return Integer.valueOf(value);
-            }
         }
         return null;
     }

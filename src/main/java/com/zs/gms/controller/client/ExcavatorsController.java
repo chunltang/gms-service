@@ -226,7 +226,7 @@ public class ExcavatorsController extends BaseController {
      * 根据任务点id获取调度单元
      * */
     private Integer getUnitId(Integer taskSpotId){
-        Integer activeMap = GmsUtil.getActiveMap();
+        Integer activeMap = MapDataUtil.getActiveMap();
         if(null==activeMap){
             return null;
         }

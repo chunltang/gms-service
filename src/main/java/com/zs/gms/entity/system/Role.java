@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
@@ -56,6 +57,16 @@ public class Role implements Serializable {
 
     @TableField(exist =false)
     private String menuNames;
+
+    @JsonIgnore
+    public static RoleSign getEnum(String value){
+        for (RoleSign sign : RoleSign.values()) {
+            if(sign.getValue().equals(value)){
+                return sign;
+            }
+        }
+        return null;
+    }
 
     /**
      * 系统角色标识

@@ -10,6 +10,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.util.Date;
 
 
 @Data
@@ -86,4 +87,12 @@ public class User implements Serializable {
     @JsonIgnore
     @TableField(value = "ISDEL",select = false)
     private Integer isDel;
+
+    @JsonIgnore
+    @TableField(exist = false)
+    private String sessionId;
+
+    @JsonIgnore
+    @TableField(exist = false)
+    private Date lastLoginTime;
 }

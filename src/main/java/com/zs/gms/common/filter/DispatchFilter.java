@@ -2,9 +2,9 @@ package com.zs.gms.common.filter;
 
 
 import com.zs.gms.common.entity.GmsResponse;
-import com.zs.gms.common.utils.GmsUtil;
+import com.zs.gms.common.service.GmsService;
 import com.zs.gms.service.init.HeartBeatCheck;
-import com.zs.gms.service.init.ScheduleTask;
+import com.zs.gms.service.mapmanager.MapDataUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.*;
@@ -24,14 +24,14 @@ public class DispatchFilter implements Filter {
         HttpServletResponse res = (HttpServletResponse) response;
         if(HeartBeatCheck.getServiceStatus(HeartBeatCheck.CheckStatusEnum.DISPATCH_SERVICE_STATUS)){
             GmsResponse gmsResponse = new GmsResponse().message("当前调度服务断开连接，不能执行调度相关操作").badRequest();
-            GmsUtil.callResponse(gmsResponse,res);
+            GmsService.callResponse(gmsResponse,res);
             return;
         }
-        Integer mapId = GmsUtil.getActiveMap();
+        Integer mapId = MapDataUtil.getActiveMap();
         if(mapId==null){
             log.debug("当前不存在活动地图，不能执行调度相关操作");
             GmsResponse gmsResponse = new GmsResponse().message("当前不存在活动地图，不能执行调度相关操作").badRequest();
-            GmsUtil.callResponse(gmsResponse,res);
+            GmsService.callResponse(gmsResponse,res);
             return;
         }
         chain.doFilter(request,response);

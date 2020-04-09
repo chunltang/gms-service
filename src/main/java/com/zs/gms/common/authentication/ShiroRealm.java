@@ -38,6 +38,10 @@ public class ShiroRealm extends AuthorizingRealm {
     @Lazy
     private MenuService menuService;
 
+    @Autowired
+    @Lazy
+    private ShiroHelper shiroHelper;
+
 
     /**
      * 授权模块，获取角色和权限
@@ -79,7 +83,6 @@ public class ShiroRealm extends AuthorizingRealm {
         if (!StringUtils.equals(password, user.getPassword())) {
             throw new IncorrectCredentialsException("账号或密码不存在!");
         }
-
         return new SimpleAuthenticationInfo(user, password, getName());
     }
 

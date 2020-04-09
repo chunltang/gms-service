@@ -4,12 +4,13 @@ import com.zs.gms.common.annotation.Parser;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.interfaces.Desc;
 import com.zs.gms.entity.client.UserExcavatorLoadArea;
-import com.zs.gms.entity.monitor.DispatchTask;
-import com.zs.gms.entity.monitor.TaskRule;
+import com.zs.gms.entity.mineralmanager.AreaMineral;
+import com.zs.gms.entity.monitor.*;
 import com.zs.gms.enums.monitor.DispatchStateEnum;
 import com.zs.gms.enums.monitor.UnitTypeEnum;
 import com.zs.gms.service.client.UserExcavatorLoadAreaService;
 import com.zs.gms.service.client.impl.UserExcavatorLoadAreaServiceImpl;
+import com.zs.gms.service.mineralmanager.AreaMineralService;
 import com.zs.gms.service.monitor.DispatchTaskService;
 import com.zs.gms.service.monitor.TaskRuleService;
 import com.zs.gms.service.monitor.impl.DispatchTaskServiceImpl;
@@ -18,11 +19,10 @@ import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.service.vehiclemanager.impl.BarneyServiceImpl;
 import com.zs.gms.common.entity.LimitQueue;
 import com.zs.gms.common.utils.SpringContextUtil;
-import com.zs.gms.entity.monitor.DispatchStatus;
-import com.zs.gms.entity.monitor.VehicleStatus;
 import com.zs.gms.service.monitor.DispatchStatusService;
 import com.zs.gms.service.monitor.impl.DispatchStatusServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,6 +40,8 @@ public class VehicleDispatchStatusHandle extends AbstractVehicleStatusHandle {
         super();
         historyStatusMap = new ConcurrentHashMap<>();
         dispatchStatusService = SpringContextUtil.getBean(DispatchStatusServiceImpl.class);
+
+
     }
 
     @Override
@@ -50,24 +52,24 @@ public class VehicleDispatchStatusHandle extends AbstractVehicleStatusHandle {
 
     @Override
     public void changed(VehicleStatus vehicleStatus) {
-        log.debug("{}车辆调度状态改变:{}", vehicleStatus.getVehicleId(), ((Desc)(vehicleStatus.getStatus())).getDesc());
+        log.debug("{}车辆调度状态改变:{}", vehicleStatus.getVehicleId(), ((Desc) (vehicleStatus.getStatus())).getDesc());
         super.changed(vehicleStatus);
     }
 
     @Override
     public void save(VehicleStatus vehicleStatus) {
         DispatchStatus dispatchStatus = getBean(vehicleStatus);
-        if(addToQueue(dispatchStatus)){//第一次数据不保存
+        if (addToQueue(dispatchStatus, vehicleStatus.getVehicleId())) {//第一次数据不保存
             dispatchStatusService.addDispatchStatus(dispatchStatus);
         }
     }
 
-    private DispatchStatus getBean(VehicleStatus vehicleStatus){
+    private DispatchStatus getBean(VehicleStatus vehicleStatus) {
         Integer vehicleId = vehicleStatus.getVehicleId();
         DispatchStatus dispatchStatus = dispatchStatusService.getBaseInfo(vehicleId);
-        if(Parser.notNull(dispatchStatus)){
+        if (Parser.notNull(dispatchStatus)) {
             dispatchStatus.setCreateTime(vehicleStatus.getCreateTime());
-            dispatchStatus.setStatus((DispatchStateEnum)(vehicleStatus.getStatus()));
+            dispatchStatus.setStatus((DispatchStateEnum) (vehicleStatus.getStatus()));
             return dispatchStatus;
         }
         return null;
@@ -75,22 +77,22 @@ public class VehicleDispatchStatusHandle extends AbstractVehicleStatusHandle {
 
     @Override
     public void overtime(VehicleStatus vehicleStatus) {
-        addToQueue(getBean(vehicleStatus));
+        addToQueue(getBean(vehicleStatus), vehicleStatus.getVehicleId());
     }
 
     /**
      * 添加数据到队列
      */
-    public boolean addToQueue(DispatchStatus dispatchStatus) {
-        boolean result=false;
-        if(null==dispatchStatus){
-            log.error("数据异常，请检查获取BeanInfo代码");
-            return result;
+    public boolean addToQueue(DispatchStatus dispatchStatus, Integer vehicleId) {
+        boolean result = false;
+        if (null == dispatchStatus) {
+            checkProblem(vehicleId);
+            return false;
         }
-        Integer vehicleId = dispatchStatus.getVehicleId();
+        log.debug("车{}调度状态:{}，添加调度状态到数据库", vehicleId, GmsUtil.toJsonIEnumDesc(dispatchStatus));
         if (historyStatusMap.containsKey(vehicleId)) {
             historyStatusMap.get(vehicleId).add(dispatchStatus);
-            result= true;
+            result = true;
         } else {
             LimitQueue<DispatchStatus> limitQueue = new LimitQueue<DispatchStatus>(LIMIT_QUEUE_SIZE);
             limitQueue.add(dispatchStatus);
@@ -100,11 +102,54 @@ public class VehicleDispatchStatusHandle extends AbstractVehicleStatusHandle {
     }
 
     /**
-     * 数据推送
+     * 数据检查
      * */
+    private void checkProblem(Integer vehicleId){
+        DispatchTaskService dispatchTaskService = SpringContextUtil.getBean(DispatchTaskService.class);
+        DispatchTask dispatchTask = dispatchTaskService.getUnitByVehicleId(vehicleId);
+        if(null==dispatchTask){
+            log.debug("车[{}]没有分配调度单元",vehicleId);
+            return;
+        }
+
+        Integer bUnitId = dispatchTask.getUnitId();
+        LiveInfo liveInfo = LivePosition.getLastLiveInfo(vehicleId);
+        if(null!=liveInfo){
+            VehicleLiveInfo info = (VehicleLiveInfo) liveInfo;
+            Integer dUnitId = info.getUnitId();
+            if(!bUnitId.equals(dUnitId)){
+                log.debug("车[{}]业务层调度单元[{}]与调度服务[{}]不匹配",vehicleId,bUnitId,dUnitId);
+            }
+        }
+
+        TaskRuleService taskRuleService = SpringContextUtil.getBean(TaskRuleService.class);
+        TaskRule taskRule = taskRuleService.getTaskRuleByVehicleId(null, vehicleId);
+        if(null==taskRule){
+            log.debug("车[{}]没有分配任务规则,调度单元[{}]",vehicleId,bUnitId);
+            return;
+        }
+
+        UserExcavatorLoadAreaService bindService = SpringContextUtil.getBean(UserExcavatorLoadAreaService.class);
+        Integer loadAreaId = dispatchTask.getLoadAreaId();
+        UserExcavatorLoadArea userExcavatorLoadArea = bindService.getBindByLoad(loadAreaId);
+        if(null==userExcavatorLoadArea){
+            log.debug("车[{}]所在调度单元[{}]的装载区[{}]没有绑定挖掘机",vehicleId,bUnitId,loadAreaId);
+            return;
+        }
+
+        AreaMineralService areaMineralService = SpringContextUtil.getBean(AreaMineralService.class);
+        AreaMineral areaMineral = areaMineralService.getAreaMineral(loadAreaId);
+        if(null==areaMineral){
+            log.debug("车[{}]所在调度单元[{}]的装载区[{}]没有绑定矿物种类",vehicleId,bUnitId,loadAreaId);
+        }
+    }
+
+    /**
+     * 数据推送
+     */
     @Override
     public String push(Integer vehicleId) {
-        if(historyStatusMap.containsKey(vehicleId)){
+        if (historyStatusMap.containsKey(vehicleId)) {
             LimitQueue<DispatchStatus> queues = historyStatusMap.get(vehicleId);
             return GmsUtil.toJson(queues);
         }

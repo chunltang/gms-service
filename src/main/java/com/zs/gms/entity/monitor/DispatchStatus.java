@@ -16,7 +16,7 @@ import java.util.Date;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-@TableName(value = "t_dispatchStatus")
+@TableName(value = "t_dispatch_status")
 public class DispatchStatus implements Serializable {
 
     @TableId(value = "ID",type = IdType.AUTO)
@@ -42,6 +42,13 @@ public class DispatchStatus implements Serializable {
     @TableField(value = "VEHICLEID")
     public Integer vehicleId;
 
+    /**
+     * 矿车容量
+     * */
+    @NotNull
+    @TableField(value = "VEHICLECAPACITY")
+    public float vehicleCapacity;
+
     @TableField(value = "STATUS")
     public DispatchStateEnum status;
 
@@ -65,6 +72,7 @@ public class DispatchStatus implements Serializable {
     @NotNull
     @TableField(value = "EXCAVATORID")
     public Integer excavatorId;
+
 
     /**
      * 电铲用户id

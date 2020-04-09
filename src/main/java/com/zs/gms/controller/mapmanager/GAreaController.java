@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.zs.gms.common.annotation.Log;
-import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.RedisKeyPool;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.common.message.MessageEntry;
@@ -582,7 +582,6 @@ public class GAreaController {
         }
     }
 
-
     @Log("获取全局路径")
     @GetMapping(value = "/{mapId}/paths/globalPath")
     @ApiOperation(value = "获取全局路径",httpMethod = "GET")
@@ -711,7 +710,7 @@ public class GAreaController {
                         semiStatics.add(semiStatic);
                     }
                     if(GmsUtil.CollectionNotNull(semiStatics)){
-                        RedisService.set(StaticConfig.KEEP_DB, RedisKey.SEMI_STATIC_DATA+mapId,GmsUtil.toJson(semiStatics));
+                        RedisService.set(StaticConfig.KEEP_DB, RedisKeyPool.SEMI_STATIC_DATA+mapId,GmsUtil.toJson(semiStatics));
                     }
                 }
             }

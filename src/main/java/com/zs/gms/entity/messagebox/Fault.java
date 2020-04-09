@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.enums.IEnum;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.zs.gms.entity.mapmanager.Point;
+import com.zs.gms.enums.messagebox.HandleStatus;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -33,6 +34,12 @@ public class Fault implements Serializable {
     private String level;
 
     /**
+     * 车辆故障码
+     * */
+    @TableField(value = "FAULTCODE")
+    private String faultCode;
+
+    /**
      * 故障描述
      * */
     @TableField(value = "FAULTDESC")
@@ -48,7 +55,7 @@ public class Fault implements Serializable {
      * 故障状态:0未处理，1处理中，2已处理
      * */
     @TableField(value = "STATUS")
-    private Status status;
+    private HandleStatus status;
 
     /**
      * 受理故障人员
@@ -91,27 +98,4 @@ public class Fault implements Serializable {
      * */
     @TableField(value = "REMARK")
     private String remark;
-
-    public enum Status implements IEnum {
-
-        UNTREATED("0","未处理"),
-        HANDING("1","处理中"),
-        PROCESSED("2","已处理");
-
-        private String value;
-
-        private String desc;
-
-        Status(String value, String desc){
-            this.value=value;
-            this.desc=desc;
-        }
-
-        @Override
-        @JsonValue
-        public String getValue() {
-            return value;
-        }
-
-    }
 }

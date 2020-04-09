@@ -1,6 +1,9 @@
 package com.zs.gms.common.entity;
 
+import com.zs.gms.common.annotation.Mark;
+import com.zs.gms.service.init.SyncRedisData;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 

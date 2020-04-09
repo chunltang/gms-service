@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.websocket.WsUtil;
+import com.zs.gms.common.utils.Assert;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SpringContextUtil;
 import com.zs.gms.entity.messagebox.Approve;
@@ -64,11 +65,21 @@ public class ApproveServiceImpl extends ServiceImpl<ApproveMapper, Approve> impl
         return integer;
     }
 
+    @Override
+    @Transactional
+    public Approve getApprove(Integer approveId) {
+        return this.getById(approveId);
+    }
+
     /**
-     * 审批创建成功，推送消息给审批人
+     * 审批创建成功，推送消息给提交人和审批人
      * */
     public void sendMessage(Approve approve){
+        Assert.notNull(approve,"approve不能为空");
         String userIds = approve.getApproveUserIds();
+        //发给提交人
+        WsUtil.sendMessage(String.valueOf(approve.getSubmitUserId()), GmsUtil.toJson(approve), FunctionEnum.approve);
+        //发给审批人
         if(StringUtils.isNotEmpty(userIds)){
             String[] ids = userIds.split(StringPool.COMMA);
             for (String id : ids) {
@@ -79,12 +90,13 @@ public class ApproveServiceImpl extends ServiceImpl<ApproveMapper, Approve> impl
 
     @Override
     @Transactional
-    public boolean updateStatus(Integer approveId,Approve.Status status) {
+    public boolean deleteApprove(Integer approveId, Approve.Status status) {
         if(status.equals(Approve.Status.DELETE)){
             LambdaUpdateWrapper<Approve> updateWrapper = new LambdaUpdateWrapper<>();
             updateWrapper.eq(Approve::getApproveId,approveId);
             updateWrapper.set(Approve::isApproveMark,true);
             updateWrapper.set(Approve::getStatus,status);
+            this.cancel(this.getApprove(approveId));
             return this.update(updateWrapper);
         }
         return false;
@@ -179,6 +191,18 @@ public class ApproveServiceImpl extends ServiceImpl<ApproveMapper, Approve> impl
         updateStatus(approve);
     }
 
+    @Override
+    @Transactional
+    public void cancel(Approve approve) {
+        if(approve.getStatus().equals(Approve.Status.WAIT)){
+            ApproveType approveType = approve.getApproveType();
+            if(approveType!=null){
+                ApproveInterface approveInterface=SpringContextUtil.getBean(approveType.getHandler());
+                approveInterface.cancel(approve);
+            }
+        }
+    }
+
     /**
      * 根据审批类型进行状态改变
      * */
@@ -187,10 +211,7 @@ public class ApproveServiceImpl extends ServiceImpl<ApproveMapper, Approve> impl
          ApproveType approveType = approve.getApproveType();
          if(approveType!=null){
              ApproveInterface approveInterface=SpringContextUtil.getBean(approveType.getHandler());
-             boolean b = approveInterface.updateStatus(approve);
-             if(!b){
-                 log.error("根据审批类型进行状态改变执行失败");
-             }
+             approveInterface.updateStatus(approve);
          }
     }
 

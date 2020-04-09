@@ -84,7 +84,6 @@ public class MessageFactory {
      */
     public static String messageIdGenerator(String prefix) {
         messageId.incrementAndGet();
-        checkOver();
         return prefix + "_" + messageId.get();
     }
 
@@ -106,11 +105,11 @@ public class MessageFactory {
     /**
      * 检查数据是否已过期
      * */
-    private static void checkOver(){
+    public static void checkOver(){
         List<MessageEntry> entries = new ArrayList<>(messageEntryMap.values());
         for (MessageEntry entry : entries) {
             long bTime = entry.getBTime();
-            if(System.currentTimeMillis()-bTime> GmsConstant.WAIT_TIME *2){
+            if(System.currentTimeMillis()-bTime> GmsConstant.WAIT_TIME){
                 entry.exec();
                 delMessageEntry(entry.getMessageId());
             }

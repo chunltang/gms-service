@@ -43,7 +43,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
     @Transactional
     public boolean isExists(String name) {
         LambdaQueryWrapper<Menu> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Menu::getPowerName,name);
+        queryWrapper.eq(Menu::getPowerLabel,name);
         Integer count = this.count(queryWrapper);
         return count!=null && count>0;
     }

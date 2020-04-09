@@ -151,7 +151,7 @@ public class UserController extends BaseController {
     @Log(value = "修改用户")
     @PutMapping
     @ApiOperation(value = "修改用户",httpMethod = "PUT")
-    public GmsResponse updateUser(@Valid @MultiRequestBody User user) throws GmsException {
+    public GmsResponse updateUser(@MultiRequestBody User user) throws GmsException {
         try {
             if(user.getUserId()==null)
                 throw new GmsException("用户ID为空");

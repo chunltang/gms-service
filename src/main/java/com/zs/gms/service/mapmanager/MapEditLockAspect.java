@@ -2,25 +2,20 @@ package com.zs.gms.service.mapmanager;
 
 import com.zs.gms.common.authentication.ShiroHelper;
 import com.zs.gms.common.entity.GmsResponse;
+import com.zs.gms.common.service.GmsService;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.HttpContextUtil;
 import com.zs.gms.entity.system.User;
-import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.system.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.shiro.SecurityUtils;
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -59,7 +54,7 @@ public class MapEditLockAspect {
                         User editUser = userService.findUserById(userId);
                         GmsResponse gmsResponse = new GmsResponse().message("用户["+editUser.getUserName()+"]正在编辑地图，当前地图被锁定").badRequest();
                         HttpServletResponse response = HttpContextUtil.getHttpServletResponse();
-                        GmsUtil.callResponse(gmsResponse,response);
+                        GmsService.callResponse(gmsResponse,response);
                         return null;
                     }
                 }

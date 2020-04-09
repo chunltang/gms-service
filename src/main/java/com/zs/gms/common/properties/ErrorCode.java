@@ -7,12 +7,13 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.support.EncodedResource;
 import org.springframework.core.io.support.PropertySourceFactory;
 import org.springframework.core.io.support.ResourcePropertySource;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-@SpringBootConfiguration
+@Component
 @PropertySource(value = {"classpath:properties/errorCode.properties"},encoding = "gbk")
 @ConfigurationProperties(prefix = "errorcode")
 @Data

@@ -3,6 +3,9 @@ package com.zs.gms.common.service.websocket.impl;
 import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.websocket.FunctionHandler;
 import com.zs.gms.common.utils.GmsUtil;
+import com.zs.gms.common.utils.SpringContextUtil;
+import com.zs.gms.entity.system.User;
+import com.zs.gms.service.system.UserService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,37 +60,49 @@ public abstract class AbstractFunctionHandler implements FunctionHandler {
     }
 
     @Override
-    public boolean isNeed(Object ...params){
+    public boolean isNeed(Object... params) {
         return false;
     }
 
     /**
      * 组合返回数据
-     * */
-    public String getResult(String message,String name){
-        log.debug("websocket推送:{}",name);
-        Map<String,String> map=new HashMap<>();
-        map.put("funcName",name);
+     */
+    public String getResult(String message, String name) {
+        log.debug("websocket推送:{}", name);
+        Map<String, String> map = new HashMap<>();
+        map.put("funcName", name);
         map.put("data", message);
         return GmsUtil.toJson(map);
     }
 
-    public void afterAdd(Session session){
+    public void afterAdd(Session session) {
         //do nothing
     }
 
     /**
+     * 获取登录session的用户信息
+     */
+    public User getLoginUser(Session session) {
+        Object obj = session.getUserProperties().get("key");
+        if (null != obj) {
+            UserService userService = SpringContextUtil.getBean(UserService.class);
+            return userService.findUserById(GmsUtil.typeTransform(obj, Integer.class));
+        }
+        return null;
+    }
+
+    /**
      * 发送异常信息
-     * */
-    public void sendError(Session session, String message){
+     */
+    public void sendError(Session session, String message) {
         String result = getResult(message, FunctionEnum.linkError.name());
-        synchronized (session){
-            if(session.isOpen()){
+        synchronized (session) {
+            if (session.isOpen()) {
                 try {
                     log.error("发送ws-linkError信息");
                     session.getBasicRemote().sendText(result);
                 } catch (IOException e) {
-                    log.error("发送ws-linkError异常信息失败",e);
+                    log.error("发送ws-linkError异常信息失败", e);
                 }
             }
         }

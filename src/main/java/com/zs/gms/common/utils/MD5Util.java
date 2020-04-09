@@ -19,8 +19,6 @@ public class MD5Util {
 
 
     public static String encrypt(String userName,String password){
-        userName= StringUtils.lowerCase(userName);
-        password= StringUtils.lowerCase(password);
         return new SimpleHash(ALGORITH_NAME,password, ByteSource.Util.bytes(userName+ User.DEAFULT_PASSWORD),HASH_ITERATIONS).toHex();
     }
 }

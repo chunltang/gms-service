@@ -106,8 +106,11 @@ public class TaskRuleServiceImpl extends ServiceImpl<TaskRuleMapper, TaskRule> i
     public TaskRule getTaskRuleByVehicleId(Integer userId,Integer vehicleId) {
         LambdaQueryWrapper<TaskRule> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(TaskRule::getVehicleId,vehicleId);
-        queryWrapper.eq(TaskRule::getUserId,userId);
+        if(null!=userId){
+            queryWrapper.eq(TaskRule::getUserId,userId);
+        }
         queryWrapper.notIn(TaskRule::getStatus,TaskRule.Status.DELETE,TaskRule.Status.INTERACTION);
+        queryWrapper.orderByDesc(TaskRule::getAddTime);
         List<TaskRule> taskRules = this.list(queryWrapper);
         return GmsUtil.CollectionNotNull(taskRules)?taskRules.get(0):null;
     }

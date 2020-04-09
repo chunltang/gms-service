@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 
 @Service
 @CacheConfig(cacheNames = "vehicles")
-@Transactional(propagation = Propagation.SUPPORTS,readOnly = true,rollbackFor = Exception.class)
+@Transactional(propagation = Propagation.SUPPORTS, readOnly = true, rollbackFor = Exception.class)
 public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> implements BarneyService, MarkInterface {
 
     @Autowired
@@ -48,7 +48,7 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
 
     /**
      * 添加车辆
-     * */
+     */
     @Override
     @Transactional
     public void addVehicle(Barney barney) {
@@ -58,35 +58,35 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
         Integer userId = barney.getUserId();
         Integer vehicleId = barney.getVehicleId();
         Integer vehicleTypeId = barney.getVehicleTypeId();
-        addVehicleVehicleType(vehicleTypeId,vehicleId);
-        if(null!=userId){
-            addUserVehicle(userId,vehicleId);
+        addVehicleVehicleType(vehicleTypeId, vehicleId);
+        if (null != userId) {
+            addUserVehicle(userId, vehicleId);
         }
     }
 
     /**
      * 修改车辆信息
-     * */
+     */
     @Override
     @Transactional
-    @Mark(value = "修改车辆信息",markImpl = BarneyServiceImpl.class)
+    @Mark(value = "修改车辆信息", markImpl = BarneyServiceImpl.class)
     public void updateVehicle(Barney barney) {
         Integer userId = barney.getUserId();
         Integer vehicleId = barney.getVehicleId();
         //修改车辆归属
-        if(null!=userId){
-           userBarneyService.deleteByVehicleId(vehicleId);
-           addUserVehicle(userId,vehicleId);
+        if (null != userId && null != vehicleId) {
+            userBarneyService.deleteByVehicleId(vehicleId);
+            addUserVehicle(userId, vehicleId);
             barney.setUserId(null);
-       }
+        }
         //修改车辆类型
         Integer vehicleTypeId = barney.getVehicleTypeId();
-        if(null!=vehicleTypeId){
+        if (null != vehicleTypeId && null != vehicleId) {
             barneyVehicleTypeService.deleteByVehicleId(vehicleId);
-            addVehicleVehicleType(vehicleTypeId,vehicleId);
+            addVehicleVehicleType(vehicleTypeId, vehicleId);
             barney.setVehicleTypeId(null);
         }
-        if(!PropertyUtil.isAllFieldNull(barney,"vehicleId")){
+        if (!PropertyUtil.isAllFieldNull(barney, "vehicleId","userId","vehicleTypeId")) {
             this.updateById(barney);
         }
 
@@ -94,10 +94,10 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
 
     /**
      * 添加用户车辆关系
-     * */
+     */
     @Transactional
-    public void addUserVehicle(Integer userId,Integer vehicleId){
-        UserVehicle userVehicle=new UserVehicle();
+    public void addUserVehicle(Integer userId, Integer vehicleId) {
+        UserVehicle userVehicle = new UserVehicle();
         userVehicle.setUserId(userId);
         userVehicle.setVehicleId(vehicleId);
         userBarneyService.addUserVehicle(userVehicle);
@@ -105,12 +105,12 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
 
     /**
      * 批量分配用户车辆
-     * */
-    @Mark(value = "批量分配用户车辆",markImpl = BarneyServiceImpl.class)
-    public void addUserVehicles(Integer userId,String vehicleIds){
+     */
+    @Mark(value = "批量分配用户车辆", markImpl = BarneyServiceImpl.class)
+    public void addUserVehicles(Integer userId, String vehicleIds) {
         String[] ids = StringUtils.split(vehicleIds, StringPool.COMMA);
         for (String id : ids) {
-            UserVehicle userVehicle=new UserVehicle();
+            UserVehicle userVehicle = new UserVehicle();
             userVehicle.setUserId(userId);
             userVehicle.setVehicleId(Integer.valueOf(id));
             userBarneyService.addUserVehicle(userVehicle);
@@ -124,18 +124,18 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
 
     /**
      * 添加车辆和车辆类型关系
-     * */
+     */
     @Transactional
-    public void addVehicleVehicleType(Integer vehicleTypeId,Integer vehicleId){
-        BarneyVehicleType barneyVehicleType =new BarneyVehicleType();
+    public void addVehicleVehicleType(Integer vehicleTypeId, Integer vehicleId) {
+        BarneyVehicleType barneyVehicleType = new BarneyVehicleType();
         barneyVehicleType.setVehicleTypeId(vehicleTypeId);
         barneyVehicleType.setVehicleId(vehicleId);
         barneyVehicleTypeService.addVehicleVehicleType(barneyVehicleType);
     }
 
     /**
-     *删除车辆信息
-     * */
+     * 删除车辆信息
+     */
     @Override
     @Transactional
     public void deleteVehicle(Integer vehicleId) {
@@ -146,66 +146,67 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
 
     /**
      * 分页获取车辆列表
+     *
      * @param queryRequest 分页对象
-     * */
+     */
     @Override
     @Transactional
     public IPage<Barney> getVehicleList(Barney barney, QueryRequest queryRequest) {
-        Page page=new Page();
-        SortUtil.handlePageSort(queryRequest,page, GmsConstant.SORT_DESC,"VEHICLEID");
+        Page page = new Page();
+        SortUtil.handlePageSort(queryRequest, page, GmsConstant.SORT_DESC, "VEHICLEID");
         return this.baseMapper.findVehicleListPage(page, barney);
     }
 
     @Override
     public List<Barney> getAllVehicles() {
         LambdaQueryWrapper<Barney> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Barney::getVehicleStatus,"1");
-        return  this.list(queryWrapper);
+        queryWrapper.eq(Barney::getVehicleStatus, "1");
+        return this.list(queryWrapper);
     }
 
     /**
      * 根据用户id获取车辆列表
-     * */
+     */
     @Override
     @Transactional
     public List<Barney> getVehicleListByUserId(Integer userId) {
-        Barney barney =new Barney();
+        Barney barney = new Barney();
         barney.setUserId(userId);
         List<Barney> barneyList = this.baseMapper.findVehicleList(barney);
-        return barneyList.stream().filter(v->{
+        return barneyList.stream().filter(v -> {
             return v.getVehicleStatus().equals("1");//0停用，1再用
         }).collect(Collectors.toList());
     }
 
     /**
      * 根据车辆编号获取用户id
-     * */
+     */
     @Override
     @Transactional
-    @Cacheable(cacheNames = "vehicles",key = "'getUserIdByVehicleNo'+#p0",unless = "#result==null")
+    @Cacheable(cacheNames = "vehicles", key = "'getUserIdByVehicleNo'+#p0", unless = "#result==null")
     public Integer getUserIdByVehicleNo(Integer vehicleNo) {
-         return this.baseMapper.findUserIdByVehicleNo(vehicleNo);
+        return this.baseMapper.findUserIdByVehicleNo(vehicleNo);
     }
 
     /**
      * 根据车牌号是否已添加
-     * */
+     */
     @Override
     @Transactional
     public boolean queryVehicleExist(Integer vehicleNo) {
         Integer count = this.baseMapper.selectCount(new LambdaQueryWrapper<Barney>().eq(Barney::getVehicleNo, vehicleNo));
-        return count > 0? true : false;
+        return count > 0 ? true : false;
     }
 
     @Override
     @Transactional
     public List<Integer> getAllVehicleNos() {
         List<Barney> barneys = getAllVehicles();
-        return barneys.stream().map(vehicle ->vehicle.getVehicleNo()).collect(Collectors.toList());
+        return barneys.stream().map(vehicle -> vehicle.getVehicleNo()).collect(Collectors.toList());
     }
 
     @Override
     public void execute() {
-        RedisService.deleteLikeKey(StaticConfig.KEEP_DB,"getUserIdByVehicleNo");//删除缓存数据
+        RedisService.deleteLikeKey(StaticConfig.KEEP_DB, "getUserIdByVehicleNo");//删除缓存数据
     }
 }

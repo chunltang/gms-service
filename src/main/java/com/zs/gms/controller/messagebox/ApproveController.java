@@ -22,7 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/approves")
 @Slf4j
-@Api(tags = "消息盒子",description = "Approve Controller")
+@Api(tags = "消息盒子", description = "Approve Controller")
 public class ApproveController extends BaseController {
 
     @Autowired
@@ -31,57 +31,58 @@ public class ApproveController extends BaseController {
 
     @Log("更新审批结果")
     @PutMapping("/{approveId}")
-    @ApiOperation(value = "更新审批结果",httpMethod = "PUT")
+    @ApiOperation(value = "更新审批结果", httpMethod = "PUT")
     public GmsResponse updateProcess(@PathVariable Integer approveId,
                                      @MultiRequestBody("userId") String userId,
                                      @MultiRequestBody("status") Approve.Status status,
-                                     @MultiRequestBody(value = "reason",parseAllFields=false,required = false) String reason) throws GmsException {
-       if(!ObjectUtils.allNotNull(userId,status)){
-           throw new GmsException("参数异常");
-       }
+                                     @MultiRequestBody(value = "reason", parseAllFields = false, required = false) String reason) throws GmsException {
+
+        if (!ObjectUtils.allNotNull(userId, status)) {
+            throw new GmsException("参数异常");
+        }
         try {
             User user = super.getCurrentUser();
             //提交人删除审批
-            if(status.equals(Approve.Status.DELETE)){
-                if(String.valueOf(user.getUserId()).equals(userId)){
-                    approveService.updateStatus(approveId, status);
+            if (status.equals(Approve.Status.DELETE)) {
+                if (String.valueOf(user.getUserId()).equals(userId)) {
+                    approveService.deleteApprove(approveId, status);
                     return new GmsResponse().message("删除审批成功").success();
                 }
                 return new GmsResponse().message("当前不是审批提交人，删除审批失败").badRequest();
-            }else{
-                Approve approve = approveService.updateProcess(approveId, userId, status,reason);
-                if(approve!=null){
+            } else {
+                Approve approve = approveService.updateProcess(approveId, userId, status, reason);
+                if (approve != null) {
                     approveService.sendApproveResult(approve);
                     return new GmsResponse().message("更新审批结果成功").success();
-                }else{
+                } else {
                     return new GmsResponse().message("更新审批结果失败").badRequest();
                 }
             }
 
-        }catch (Exception e){
-            String message="更新审批结果失败";
-            log.error(message,e);
-            throw  new GmsException(message);
+        } catch (Exception e) {
+            String message = "更新审批结果失败";
+            log.error(message, e);
+            throw new GmsException(message);
         }
     }
 
     @Log("审批结果标记为已读")
     @PutMapping("/{approveId}/mark")
-    @ApiOperation(value = "审批结果标记为已读",httpMethod = "PUT")
+    @ApiOperation(value = "审批结果标记为已读", httpMethod = "PUT")
     public GmsResponse updateProcess(@PathVariable Integer approveId) throws GmsException {
         try {
             approveService.updateApproveResult(approveId);
             return new GmsResponse().message("审批结果标记为已读成功").success();
-        }catch (Exception e){
-            String message="审批结果标记为已读失败";
-            log.error(message,e);
-            throw  new GmsException(message);
+        } catch (Exception e) {
+            String message = "审批结果标记为已读失败";
+            log.error(message, e);
+            throw new GmsException(message);
         }
     }
 
     @Log("获取所有未处理审批")
     @GetMapping
-    @ApiOperation(value = "获取所有未处理审批",httpMethod = "GET")
+    @ApiOperation(value = "获取所有未处理审批", httpMethod = "GET")
     public GmsResponse getProcess() throws GmsException {
         try {
             User user = super.getCurrentUser();
@@ -91,10 +92,10 @@ public class ApproveController extends BaseController {
             approves.addAll(remaining);
             approves.addAll(noMark);
             return new GmsResponse().data(approves).message("获取所有未处理审批成功").success();
-        }catch (Exception e){
-            String message="获取所有未处理审批失败";
-            log.error(message,e);
-            throw  new GmsException(message);
+        } catch (Exception e) {
+            String message = "获取所有未处理审批失败";
+            log.error(message, e);
+            throw new GmsException(message);
         }
     }
 }

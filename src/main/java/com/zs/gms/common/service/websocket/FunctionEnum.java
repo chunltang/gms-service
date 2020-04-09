@@ -9,19 +9,20 @@ public enum FunctionEnum {
     checkServer,//检测系统服务
     taskAreaState,//任务点状态
     excavator,//挖掘机用户
+    maintainTask,//维护任务
     unitStatus,//调度单元状态
     trail,//车辆轨迹
-    partPath,//局部路径
     collectMap,//地图数据采集
-    fault,//告警信息
     approve,//审批结果
-    obstacle,//障碍物信息
-    notification,//通知信息
-    videoPush,//视频推送
     console,//控制台
     linkError,//异常信息
     dispatchProcess,//调度任务过程
-    notarize;//确认信息
+
+    partPath,//局部路径
+    fault,//告警信息
+    videoPush,//视频推送
+    obstacle;//障碍物信息
+
 
     public static FunctionEnum getFunction(String funcName){
         for (FunctionEnum value : values()) {

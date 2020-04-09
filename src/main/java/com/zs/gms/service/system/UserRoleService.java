@@ -5,7 +5,9 @@ import com.zs.gms.entity.system.UserRole;
 
 public interface UserRoleService extends IService<UserRole> {
 
-    public boolean userExistsByRoleSign(String roleSign);
+     boolean userExistsByRoleSign(String roleSign);
 
-    public void removeUserRole(Integer userId);
+     void removeUserRole(Integer userId);
+
+     void addUserRole(Integer userId,Integer roleId);
 }

@@ -5,7 +5,7 @@ import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.entity.QueryRequest;
-import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.RedisKeyPool;
 import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.entity.monitor.VehicleLive;
 import com.zs.gms.service.monitor.schdeule.LiveVapHandle;
@@ -66,7 +66,7 @@ public class DataController extends BaseController{
     @ApiOperation(value = "获取车辆全局路径",httpMethod = "GET")
     public GmsResponse getGlobalPath(@PathVariable Integer vehicleId) throws GmsException {
         try {
-            Map<String, Object> path = LiveVapHandle.getGlobalPath(RedisKey.VAP_PATH_PREFIX + vehicleId);
+            Map<String, Object> path = LiveVapHandle.getGlobalPath(RedisKeyPool.VAP_PATH_PREFIX + vehicleId);
             return new GmsResponse().data(path).message("获取车辆全局路径成功").success();
         }catch (Exception e){
             String message="获取车辆全局路径失败";

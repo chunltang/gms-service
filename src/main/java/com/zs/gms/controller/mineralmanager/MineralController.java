@@ -77,6 +77,10 @@ public class MineralController extends BaseController {
         if(null==mineral.getMineralId())
             throw  new GmsException("矿物id为空");
         try {
+            boolean exist = mineralService.isMineralExist(mineral.getMineralId(),mineral.getMineralName());
+            if(exist){
+                return new GmsResponse().message("矿物名称已存在").badRequest();
+            }
             mineralService.updateMineral(mineral);
             return new GmsResponse().message("修改矿物信息成功").success();
         }catch (Exception e){
@@ -116,7 +120,7 @@ public class MineralController extends BaseController {
             throw new GmsException("该矿种类型不存在");
         }
         if(null==mapId){
-            mapId = GmsUtil.getActiveMap();
+            mapId = MapDataUtil.getActiveMap();
         }
         if(null==mapId){
             throw new GmsException("当前地图不存在，不能新增");

@@ -1,12 +1,16 @@
 package com.zs.gms.service.init;
 
-import com.zs.gms.common.entity.RedisKey;
+import com.zs.gms.common.entity.RedisKeyPool;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.properties.GmsProperties;
 import com.zs.gms.common.service.DelayedService;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.utils.DateUtil;
+import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.IOUtil;
+import com.zs.gms.common.utils.SpringContextUtil;
+import com.zs.gms.service.mapmanager.MapDataUtil;
+import com.zs.gms.service.vehiclemanager.VehicleMaintainTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +24,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.net.InetAddress;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.zip.ZipOutputStream;
 
 @Component
@@ -47,17 +50,15 @@ public class GmsStartedUpRunner implements ApplicationRunner {
     public void run(ApplicationArguments args) throws Exception {
         //测试redis是否连接成功
         try {
-            RedisService.addConfig();
-            DelayedService.addTask(this::dispatchInit, 3000).withDesc("调度初始化");
-            DelayedService.addTask(this::codeCompress, 5000).withDesc("redis监控配置");
+            run();
         } catch (Exception e) {
             log.error("redis start fail!", e);
             context.close();
         }
         if (context.isActive()) {
-            systemInit.init();
+
             InetAddress address = InetAddress.getLocalHost();
-            String url = String.format("http://%s:%s", address.getHostAddress(), port);
+            String url = GmsUtil.format("{}->http://{}:{}",serverName,address.getHostAddress(),port);
             String loginUrl = gmsProperties.getShiro().getLoginUrl();
             if (StringUtils.isNotBlank(loginUrl))
                 url += loginUrl;
@@ -66,10 +67,58 @@ public class GmsStartedUpRunner implements ApplicationRunner {
     }
 
     /**
+     * 延时初始化调用
+     * */
+    private void run() {
+        RedisService.addConfig();
+        DelayedService.addTask(this.systemInit::init, 500).withDesc("系统初始化");
+        DelayedService.addTask(this::checkService, 1000).withDesc("执行心跳检测");
+        DelayedService.addTask(this::loadMaintainTask, 1000).withDesc("加载维护任务");
+        DelayedService.addTask(this::dispatchInit, 3000).withDesc("调度初始化");
+        DelayedService.addTask(MapDataUtil::syncMap, 3000).withDesc("同步地图基础信息");
+        DelayedService.addTask(this::initDelayTask, 4000).withDesc("初始化延时任务");
+        DelayedService.addTask(this::codeCompress, 5000).withDesc("执行代码压缩");
+    }
+
+    /**
+     * 初始化缓存中的延时任务
+     * */
+    private void initDelayTask(){
+        Collection<String> keys = RedisService.getLikeKey(StaticConfig.KEEP_DB, RedisKeyPool.DELAY_TASK_PREFIX);
+        if (GmsUtil.CollectionNotNull(keys)) {
+            for (String key : keys) {
+                Object json = RedisService.get(StaticConfig.KEEP_DB, key);
+                DelayedService.Task task = GmsUtil.toObj(json, DelayedService.Task.class);
+                if(null!=task&&task.getNum()==0){
+                    RedisService.deleteKey(StaticConfig.KEEP_DB, RedisKeyPool.DELAY_TASK_PREFIX+task.getTaskId());
+                    continue;
+                }
+                DelayedService.addInitializedTask(task,false);
+            }
+        }
+    }
+
+    /**
+     * 加载维护任务
+     * */
+    public void loadMaintainTask() {
+        VehicleMaintainTaskService maintainTaskService = SpringContextUtil.getBean(VehicleMaintainTaskService.class);
+        maintainTaskService.loadMaintainTasks();
+    }
+
+    /**
+     * 执行心跳检测
+     */
+    public void checkService() {
+        HeartBeatCheck beatCheck = SpringContextUtil.getBean(HeartBeatCheck.class);
+        beatCheck.run();
+    }
+
+    /**
      * 初始化调度
      */
     public void dispatchInit() {
-        RedisService.set(StaticConfig.MONITOR_DB, RedisKey.DISPATCH_SERVER_INIT, DateUtil.formatLongTime(System.currentTimeMillis()));
+        RedisService.set(StaticConfig.MONITOR_DB, RedisKeyPool.DISPATCH_SERVER_INIT, DateUtil.formatLongToString(System.currentTimeMillis()));
     }
 
     /**
@@ -77,7 +126,7 @@ public class GmsStartedUpRunner implements ApplicationRunner {
      */
     public void codeCompress() {
         String system = System.getProperty("os.name");
-        if(!system.startsWith("Win")){
+        if (!system.startsWith("Win")) {
             return;
         }
         String property = System.getProperty("user.dir");
@@ -90,6 +139,5 @@ public class GmsStartedUpRunner implements ApplicationRunner {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 }

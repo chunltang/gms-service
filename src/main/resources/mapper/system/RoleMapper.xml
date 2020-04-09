@@ -12,7 +12,7 @@
         from sys_role ro
                  left join sys_user_role ur on (ro.ROLEID = ur.ROLEID)
                  left join sys_user us on (us.USERID = ur.USERID)
-        where us.USERNAME = #{userName}
+        where  us.USERNAME = #{userName}
     </select>
 
     <select id="findRoles" resultType="com.zs.gms.entity.system.Role">
@@ -20,7 +20,7 @@
                ro.ROLENAME,
                ro.ROLEDESC,
                GROUP_CONCAT(ur.MENUID)  menuIds,
-               GROUP_CONCAT(sm.MENUNAME) menuNames
+               GROUP_CONCAT(sm.POWERNAME) menuNames
         from sys_role ro
                  left join sys_role_menu ur on (ro.ROLEID = ur.ROLEID)
                  left join sys_menu sm on (ur.MENUID = sm.MENUID)

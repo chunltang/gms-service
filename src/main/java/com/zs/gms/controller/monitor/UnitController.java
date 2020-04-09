@@ -2,6 +2,7 @@ package com.zs.gms.controller.monitor;
 
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.vehiclemanager.Barney;
+import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.common.annotation.Log;
 import com.zs.gms.common.controller.BaseController;
@@ -48,7 +49,7 @@ public class UnitController extends BaseController {
     public String getDispatchTaskList() throws GmsException {
         User currentUser = this.getCurrentUser();
         try {
-            List<DispatchTask> list = dispatchTaskService.getDispatchTaskList(currentUser.getUserId(), GmsUtil.getActiveMap());
+            List<DispatchTask> list = dispatchTaskService.getDispatchTaskList(currentUser.getUserId(), MapDataUtil.getActiveMap());
             return GmsUtil.toJsonIEnumDesc(new GmsResponse().data(list).message("获取调度单元列表成功").success());
         }catch ( Exception e){
             String message="获取调度单元列表失败";

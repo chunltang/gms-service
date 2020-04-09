@@ -3,6 +3,7 @@ package com.zs.gms.service.messagebox;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.entity.messagebox.Fault;
+import com.zs.gms.enums.messagebox.HandleStatus;
 
 public interface FaultService {
 
@@ -24,5 +25,5 @@ public interface FaultService {
     /**
      * 修改故障处理进度
      * */
-    public void updateFaultStatus(Integer faultId,Fault.Status status);
+    public void updateFaultStatus(Integer faultId, HandleStatus status);
 }
