@@ -66,18 +66,18 @@ public class MapInfo implements Serializable {
     private Float speed;
 
     /**
-     * 底图文件绝对路径
-     */
-    @NotBlank(message = "底图文件绝对路径不能为空")
-    @TableField(value = "BASEMAPPATH")
-    private String baseMapPath;
-
-    /**
      * 靠左/右行驶
      */
     @NotNull(message = "靠左/右行驶不能为空")
     @TableField(value = "LEFTDRING")
     private boolean leftDring;
+
+    /**
+     * 底图文件绝对路径
+     */
+    @NotBlank(message = "底图文件绝对路径不能为空")
+    @TableField(value = "BASEMAPPATH")
+    private String baseMapPath;
 
     //////////////////////////////////////上面为地图模块所需信息/////////////////////////////////////////
 

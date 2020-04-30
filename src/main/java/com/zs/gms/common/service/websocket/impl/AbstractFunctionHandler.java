@@ -4,6 +4,7 @@ import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.websocket.FunctionHandler;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SpringContextUtil;
+import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
 import com.zs.gms.service.system.UserService;
 import lombok.Data;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -89,6 +91,22 @@ public abstract class AbstractFunctionHandler implements FunctionHandler {
             return userService.findUserById(GmsUtil.typeTransform(obj, Integer.class));
         }
         return null;
+    }
+
+    /**
+     * 判断连接是否是指定角色列表
+     * */
+    public boolean isRole(Session session, Role.RoleSign... signs) {
+        User user = getLoginUser(session);
+        String roleSign = user.getRoleSign();
+        if (GmsUtil.allObjNotNull(signs)) {
+            Set<String> names = new HashSet<>();
+            for (Role.RoleSign sign : signs) {
+                names.add(sign.getValue());
+            }
+            return names.contains(roleSign);
+        }
+        return false;
     }
 
     /**

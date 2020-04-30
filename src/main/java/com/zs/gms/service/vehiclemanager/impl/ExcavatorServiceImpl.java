@@ -1,4 +1,4 @@
-package com.zs.gms.service.client.impl;
+package com.zs.gms.service.vehiclemanager.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -10,8 +10,9 @@ import com.zs.gms.common.utils.SortUtil;
 import com.zs.gms.entity.mapmanager.SemiStatic;
 import com.zs.gms.entity.vehiclemanager.Excavator;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
+import com.zs.gms.enums.vehiclemanager.ActivateStatusEnum;
 import com.zs.gms.mapper.vehiclemanager.ExcavatorMapper;
-import com.zs.gms.service.client.ExcavatorService;
+import com.zs.gms.service.vehiclemanager.ExcavatorService;
 import com.zs.gms.service.mapmanager.MapDataUtil;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -29,6 +30,7 @@ public class ExcavatorServiceImpl extends ServiceImpl<ExcavatorMapper, Excavator
     @Transactional
     public void addExcavator(Excavator excavator) {
         excavator.setCreateTime(new Date());
+        excavator.setVehicleStatus(ActivateStatusEnum.ACTIVATED);
         this.save(excavator);
     }
 

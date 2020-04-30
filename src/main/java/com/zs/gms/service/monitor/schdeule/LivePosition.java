@@ -31,7 +31,7 @@ public class LivePosition {
      */
     private static Map<Integer, Position> lastPositionMap = new ConcurrentHashMap<>();
 
-    @Interval(interval = 1000,
+    @Interval(interval = 2000,
             before = "com.zs.gms.common.service.GmsService.preIntervalHandler",
             isReturn = true)
     public static void handleDelegate(LiveInfo liveInfo,Integer deviceId) {

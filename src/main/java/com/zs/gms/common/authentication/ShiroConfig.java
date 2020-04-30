@@ -2,6 +2,7 @@ package com.zs.gms.common.authentication;
 
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.properties.GmsProperties;
+import com.zs.gms.common.utils.ThreadLocalUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
@@ -76,8 +77,8 @@ public class ShiroConfig {
         filterChainDefinitionMap.put(gmsProperties.getShiro().getLogoutUrl(), "logout");
 
         //自定义拦截器
-        Map<String, Filter> myFilter=new HashMap<>();
-        myFilter.put("custom",new ShiroUserFilter());
+        Map<String, Filter> myFilter = new HashMap<>();
+        myFilter.put("custom", new ShiroUserFilter());
         shiroFilterFactoryBean.setFilters(myFilter);
         // 除上以外所有 url都必须认证通过才可以访问，未通过认证自动访问 LoginUrl
         filterChainDefinitionMap.put("/**", "custom");
@@ -115,7 +116,7 @@ public class ShiroConfig {
     }
 
     @Bean
-    public ShiroRealm getShiroRealm(){
+    public ShiroRealm getShiroRealm() {
         return new ShiroRealm();
     }
 
@@ -143,15 +144,14 @@ public class ShiroConfig {
     }
 
 
-
     @Bean
-    public SessionDAO sessionDAO(){
-        RedisSessionDAO redisSessionDAO=new RedisSessionDAO();
+    public SessionDAO sessionDAO() {
+        RedisSessionDAO redisSessionDAO = new RedisSessionDAO();
         redisSessionDAO.setRedisManager(redisManager());
         //sessionId生成器
         redisSessionDAO.setSessionIdGenerator(sessionIdGenerator());
         //设置session缓存的名字 默认为 shiro-activeSessionCache
-        redisSessionDAO.setKeyPrefix("shiro-session_");
+        redisSessionDAO.setKeyPrefix(GmsConstant.SHIRO_SESSION_PREFIX);
         return redisSessionDAO;
     }
 
@@ -172,7 +172,7 @@ public class ShiroConfig {
 
     /**
      * 开启shiro的注解方式
-     * */
+     */
     @Bean
     public AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor(SecurityManager securityManager) {
         AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor = new AuthorizationAttributeSourceAdvisor();
@@ -182,35 +182,35 @@ public class ShiroConfig {
 
     /**
      * sessionID生成器
-     * */
+     */
     public SessionIdGenerator sessionIdGenerator() {
         return new JavaUuidSessionIdGenerator();
     }
 
     /**
      * 自定义sessionId获取方式
-     * */
-class OverDefaultWebSessionManager extends DefaultWebSessionManager{
+     */
+    class OverDefaultWebSessionManager extends DefaultWebSessionManager {
 
         private static final String AUTHORIZATION = "authorization";
 
         @Override
         protected Serializable getSessionId(ServletRequest request, ServletResponse response) {
-             String id= WebUtils.toHttp(request).getHeader(AUTHORIZATION);
-             if(!StringUtils.isEmpty(id)){
-                 log.debug("跨域请求连接");
-                 request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID_SOURCE, "url");
-                 request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID, id);
-                 request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID_IS_VALID, Boolean.TRUE);
-                 return id;
-             }else if(StringUtils.isNotEmpty(request.getParameter(AUTHORIZATION))){
-                 log.debug("websocket请求连接");
-                 return request.getParameter(AUTHORIZATION);
-             }
-             else{
-                 log.debug("非跨域请求连接");
-                 return super.getSessionId(request,response);
-             }
+            Serializable id = WebUtils.toHttp(request).getHeader(AUTHORIZATION);
+            if (null != id) {
+                log.debug("跨域请求连接");
+                request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID_SOURCE, "url");
+                request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID, id);
+                request.setAttribute(ShiroHttpServletRequest.REFERENCED_SESSION_ID_IS_VALID, Boolean.TRUE);
+            } else if (StringUtils.isNotEmpty(request.getParameter(AUTHORIZATION))) {
+                log.debug("websocket请求连接");
+                id = request.getParameter(AUTHORIZATION);
+            } else {
+                log.debug("非跨域请求连接");
+                id = super.getSessionId(request, response);
+            }
+            ThreadLocalUtil.set(id);
+            return id;
         }
-}
+    }
 }

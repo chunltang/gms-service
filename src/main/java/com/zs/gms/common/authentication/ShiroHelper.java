@@ -2,6 +2,7 @@ package com.zs.gms.common.authentication;
 
 import com.mchange.v2.ser.SerializableUtils;
 import com.zs.gms.common.entity.GmsConstant;
+import com.zs.gms.common.entity.RedisKeyPool;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.utils.DateUtil;
@@ -17,6 +18,7 @@ import org.apache.shiro.subject.support.DefaultSubjectContext;
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.util.ByteUtils;
@@ -29,6 +31,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Slf4j
@@ -37,6 +40,47 @@ public class ShiroHelper extends ShiroRealm {
     @Autowired
     @Lazy
     private SessionDAO sessionDAO;
+
+
+    public static void put(User user){
+        if(null!=user){
+            HashOperations<String, String, Object> hashOperations = RedisService.hashOperations(StaticConfig.KEEP_DB);
+            hashOperations.put(RedisKeyPool.ACTIVATE_USERS,user.getUserId().toString(),GmsUtil.toJson(user));
+        }
+    }
+
+    public static void remove(Integer userId){
+        HashOperations<String, String, Object> hashOperations = RedisService.hashOperations(StaticConfig.KEEP_DB);
+        hashOperations.delete(RedisKeyPool.ACTIVATE_USERS,userId.toString());
+    }
+
+    public static Map<String, Object> getActivateUsers(){
+        HashOperations<String, String, Object> hashOperations = RedisService.hashOperations(StaticConfig.KEEP_DB);
+        return hashOperations.entries(RedisKeyPool.ACTIVATE_USERS);
+    }
+
+    /**
+     * 判断用户是否在线
+     * */
+    public static boolean isActivate(Integer userId){
+        Map<String, Object> users = getActivateUsers();
+        if(null!=users){
+            if(!users.keySet().contains(userId.toString())){
+                return false;
+            }
+            User user = GmsUtil.toObj(users.get(userId.toString()), User.class);
+            if(null!=user){
+                boolean existsKey = RedisService.existsKey(StaticConfig.CACHE_DB, user.getSessionId());
+                if(existsKey){
+                    return true;
+                }else{
+                    remove(userId);
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
 
     /**
      * 获取当前用户的角色和权限集合

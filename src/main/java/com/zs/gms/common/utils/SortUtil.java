@@ -13,6 +13,9 @@ public class SortUtil {
      * @param defaultSortType  默认排序类型
      * */
     public static void handlePageSort(QueryRequest request, Page page, String defaultSortType, String defaultSortField){
+        if(null==request){
+            request=new QueryRequest();
+        }
         page.setCurrent(request.getPageNo());
         page.setSize(request.getPageSize());
         String sortField = request.getField();

@@ -1,6 +1,8 @@
 package com.zs.gms.service.vehiclemanager;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.entity.vehiclemanager.BarneyType;
 
 import java.util.List;
@@ -8,11 +10,11 @@ import java.util.List;
 
 public interface BarneyTypeService extends IService<BarneyType> {
 
-    public void addVehicleType(BarneyType barneyType);
+     void addVehicleType(BarneyType barneyType);
 
-    public List<BarneyType> getVehicleTypeList();
+     IPage<BarneyType> getVehicleTypeList(QueryRequest queryRequest);
 
-    public void updateVehicleType(BarneyType barneyType);
+     void updateVehicleType(BarneyType barneyType);
 
-    public void deleteVehicleType(Integer VehicleTypeId);
+     void deleteVehicleType(Integer VehicleTypeId);
 }

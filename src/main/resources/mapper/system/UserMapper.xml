@@ -4,6 +4,9 @@
     <sql id="findUserListSql">
         select su.USERID,
         su.userName,
+        su.LASTLOGINTIME,
+        su.CREATETIME,
+        su.PHONE,
         '***' password,
         su.theme,
         su.avatar,
@@ -26,6 +29,9 @@
         select su.USERID,
                su.userName,
                su.password,
+               su.LASTLOGINTIME,
+               su.CREATETIME,
+               su.PHONE,
                su.theme,
                sr.roleId,
                sr.roleName,
@@ -45,6 +51,9 @@
         select su.USERID,
                su.userName,
                su.password,
+               su.PHONE,
+               su.LASTLOGINTIME,
+               su.CREATETIME,
                su.theme,
                sr.roleId,
                sr.roleName
@@ -58,6 +67,9 @@
         select su.USERID,
                su.userName,
                su.password,
+               su.PHONE,
+               su.LASTLOGINTIME,
+               su.CREATETIME,
                su.theme,
                sr.roleSign,
                sr.roleId,
@@ -72,6 +84,10 @@
     <select id="getUsersByRoleSign" parameterType="string" resultType="com.zs.gms.entity.system.User">
         select su.USERID,
                su.userName,
+               su.LASTLOGINTIME,
+               su.PHONE,
+               su.CREATETIME,
+               su.theme,
                sr.roleSign,
 			   sr.ROLEID
                from sys_user su

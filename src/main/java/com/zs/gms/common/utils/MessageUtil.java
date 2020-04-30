@@ -37,11 +37,6 @@ public class MessageUtil {
             }else{
                 EventPublisher.publish(new MessageEvent(new Object(), msg, messageId, EventType.httpMq));
             }
-            try {
-                channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
-            } catch (IOException e) {
-                log.error("mq消息确认异常", e);
-            }
         }
     }
 

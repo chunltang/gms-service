@@ -58,16 +58,17 @@ public class LiveVapHandle implements RedisListener {
         String vehicleNo = GmsUtil.subLastStr(key, "_");
         Integer userId = barneyService.getUserIdByVehicleNo(Integer.valueOf(vehicleNo));
         if (userId == null) {
-            log.error("不存在的车辆编号或者车辆没有分配，{}",vehicleNo);
-            return;
+            log.error("不存在的车辆编号或者车辆没有分配，{}", vehicleNo);
         }
         switch (prefix) {
             case RedisKeyPool.VAP_BASE_PREFIX:
                 //车辆基本信息
                 VehicleLiveInfo vehicleLiveInfo = GmsUtil.getMessage(key, VehicleLiveInfo.class);
                 StatusMonitor.delegateStatus(vehicleLiveInfo);
-                WsUtil.sendMessage(userId.toString(), GmsUtil.toJsonIEnumDesc(vehicleLiveInfo), FunctionEnum.console, Integer.valueOf(vehicleNo));
-                WsUtil.sendMessage(userId.toString(), GmsUtil.toJsonIEnumDesc(vehicleLiveInfo), FunctionEnum.vehicle);
+                if (null != userId) {
+                    WsUtil.sendMessage(userId.toString(), GmsUtil.toJsonIEnumDesc(vehicleLiveInfo), FunctionEnum.console, Integer.valueOf(vehicleNo));
+                }
+                WsUtil.sendMessage(GmsUtil.toJsonIEnumDesc(vehicleLiveInfo), FunctionEnum.vehicle);
                 break;
             case RedisKeyPool.VAP_PATH_PREFIX:
                 //交互式路径请求
@@ -80,19 +81,19 @@ public class LiveVapHandle implements RedisListener {
                 //全局路径
                 if (WsUtil.isNeed(FunctionEnum.globalPath)) {
                     Map<String, Object> globalPath = getGlobalPath(key);
-                    WsUtil.sendMessage(userId.toString(), GmsUtil.toJson(globalPath), FunctionEnum.globalPath);
+                    WsUtil.sendMessage(GmsUtil.toJson(globalPath), FunctionEnum.globalPath);
                 }
                 break;
             case RedisKeyPool.VAP_COLLECTION_PREFIX:
                 if (WsUtil.isNeed(FunctionEnum.collectMap, vehicleNo)) {
                     HashMap map = GmsUtil.getMessage(key, HashMap.class);
-                    WsUtil.sendMessage(userId.toString(), GmsUtil.toJson(map), FunctionEnum.collectMap, Integer.valueOf(vehicleNo));
+                    WsUtil.sendMessage(GmsUtil.toJson(map), FunctionEnum.collectMap, Integer.valueOf(vehicleNo));
                 }
                 break;
             case RedisKeyPool.VAP_TRAIL_PREFIX:
                 if (WsUtil.isNeed(FunctionEnum.trail, vehicleNo)) {
                     Map<String, Object> trailPath = getTrailPath(key);
-                    WsUtil.sendMessage(userId.toString(), GmsUtil.toJson(trailPath), FunctionEnum.trail, Integer.valueOf(vehicleNo));
+                    WsUtil.sendMessage(GmsUtil.toJson(trailPath), FunctionEnum.trail, Integer.valueOf(vehicleNo));
                 }
                 break;
             default:
@@ -142,11 +143,11 @@ public class LiveVapHandle implements RedisListener {
             resultMap.put("vertex_num", convertToInt(strs[3]));
             resultMap.put("data", list);
             GmsResponse response = getResponse(convertToInt(strs[1]));
-            if(GmsUtil.objNotNull(response)){
-                handEmptyResult(response,list);
+            if (GmsUtil.objNotNull(response)) {
+                handEmptyResult(response, list);
                 handResult(response, convertToInt(strs[2]));
-            }else{
-               log.error("全局路径解析未获取到请求实体");
+            } else {
+                log.error("全局路径解析未获取到请求实体");
             }
         } catch (Exception e) {
             log.error("全局路径解析失败", e);
@@ -190,7 +191,7 @@ public class LiveVapHandle implements RedisListener {
     }
 
     private static Boolean convertToBool(String str) {
-        return Boolean.valueOf(str);
+        return !str.equals("0");
     }
 
     @Override

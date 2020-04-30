@@ -6,11 +6,13 @@ import java.util.List;
 
 public interface AreaMineralService {
 
-    public void addAreaMineral(AreaMineral areaMineral);
+     void addAreaMineral(AreaMineral areaMineral);
 
-    public AreaMineral getAreaMineral(Integer areaId);
+     AreaMineral getAreaMineral(Integer areaId);
 
-    public void deleteAreaMineral(Integer id);
+     void deleteAreaMineralById(Integer id);
 
-    public List<AreaMineral> getUnAreaIds(Integer mineralId);
+     void deleteAreaMineral(Integer mineralId);
+
+     List<AreaMineral> getAreaIds(Integer mineralId);
 }

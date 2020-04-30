@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-@PropertySource(value = {"classpath:properties/gms.properties"})
+@PropertySource(value = {"classpath:properties/gms.properties"},encoding = "utf8")
 @ConfigurationProperties(prefix = "gms")
 @Data
 public class GmsProperties {

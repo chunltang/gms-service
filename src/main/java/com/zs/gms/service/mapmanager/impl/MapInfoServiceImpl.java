@@ -50,7 +50,9 @@ public class MapInfoServiceImpl extends ServiceImpl<MapInfoMapper, MapInfo> impl
     @Override
     @Transactional
     public void addMapInfo(MapInfo Info) {
-        Info.setAddTime(new Date());
+        Date date = new Date();
+        Info.setAddTime(date);
+        Info.setUpdateTime(date);
         Info.setStatus(MapInfo.Status.UNUSED);
         this.save(Info);
     }
@@ -80,8 +82,9 @@ public class MapInfoServiceImpl extends ServiceImpl<MapInfoMapper, MapInfo> impl
     @Override
     @Transactional
     public void updateMapInfo(MapInfo info) {
-        info.setUpdateTime(new Date());
-        this.update(info, new LambdaQueryWrapper<MapInfo>().eq(MapInfo::getMapId, info.getMapId()));
+        LambdaUpdateWrapper<MapInfo> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(MapInfo::getMapId, info.getMapId());
+        this.update(info,updateWrapper);
     }
 
     @Override

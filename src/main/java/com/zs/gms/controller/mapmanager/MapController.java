@@ -1,6 +1,7 @@
 package com.zs.gms.controller.mapmanager;
 
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.zs.gms.common.annotation.Log;
@@ -12,8 +13,12 @@ import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.message.MessageResult;
+import com.zs.gms.common.service.GmsService;
 import com.zs.gms.common.utils.GmsUtil;
+import com.zs.gms.entity.MapConfig;
+import com.zs.gms.entity.init.GmsGlobalConfig;
 import com.zs.gms.entity.mapmanager.MapInfo;
+import com.zs.gms.service.init.GmsConfigService;
 import com.zs.gms.service.mapmanager.MapInfoService;
 import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
@@ -27,8 +32,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,13 +54,16 @@ public class MapController extends BaseController {
     @Lazy
     private UserService userService;
 
+    @Autowired
+    private GmsConfigService gmsConfigService;
+
     @Log("开始地图采集")
     @PutMapping("/startCollection")
     @ApiOperation(value = "开始地图采集", httpMethod = "PUT")
     public void startCollection(Integer vehicleId) throws GmsException {
         try {
             Map<String, Object> params = new HashMap<>();
-            params.put("vehicleId",vehicleId);
+            params.put("vehicleId", vehicleId);
             MessageFactory.getMapMessage().sendMessageNoID("startCollection", GmsUtil.toJson(params), "开始地图采集提交成功");
         } catch (Exception e) {
             String message = "开始地图采集提交失败";
@@ -68,7 +78,7 @@ public class MapController extends BaseController {
     public void endCollection(Integer vehicleId) throws GmsException {
         try {
             Map<String, Object> params = new HashMap<>();
-            params.put("vehicleId",vehicleId);
+            params.put("vehicleId", vehicleId);
             MessageFactory.getMapMessage().sendMessageNoID("endCollection", GmsUtil.toJson(params), "结束地图采集提交成功");
         } catch (Exception e) {
             String message = "结束地图采集提交失败";
@@ -80,8 +90,19 @@ public class MapController extends BaseController {
     @Log("创建地图")
     @PostMapping
     @ApiOperation(value = "创建地图", httpMethod = "POST")
-    public void createMap(@Valid @MultiRequestBody MapInfo mapInfo) throws GmsException {
+    public void createMap(@MultiRequestBody("mapName") String mapName,HttpServletResponse response) throws GmsException {
         try {
+            GmsGlobalConfig gmsConfig = gmsConfigService.getGmsConfig(GmsConstant.MAP_GLOBAL_CONFIG);
+            if(null==gmsConfig){
+                GmsService.callResponse(new GmsResponse().badRequest().message("请先添加全局属性!"),response);
+                return;
+            }
+            MapConfig mapConfig = GmsUtil.toObj(gmsConfig.getConfigValue(), MapConfig.class);
+            MapInfo mapInfo = new MapInfo();
+            mapInfo.setName(mapName);
+            mapInfo.setCoordinateOrigin(mapConfig.getCoordinateOrigin());
+            mapInfo.setLeftDring(mapConfig.isLeftDring());
+            mapInfo.setSpeed(mapConfig.getSpeed());
             String jsonStr = JSONObject.toJSON(mapInfo).toString();
             MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
             User user = super.getCurrentUser();
@@ -116,6 +137,7 @@ public class MapController extends BaseController {
             MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
             entry.setAfterHandle(() -> {
                 if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {
+                    mapInfo.setUpdateTime(new Date());
                     mapInfoService.updateMapInfo(mapInfo);
                 }
             });
@@ -241,17 +263,29 @@ public class MapController extends BaseController {
         }
     }
 
-    @Log("申请地图删除")
+    @Log("地图删除")
     @DeleteMapping(value = "/{mapId}")
-    @ApiOperation(value = "申请地图删除", httpMethod = "DELETE")
-    public GmsResponse deleteMap(@PathVariable Integer mapId, @MultiRequestBody("userIds") String userIds) throws GmsException {
-        submitCheck(userIds);
+    @ApiOperation(value = "地图删除", httpMethod = "DELETE")
+    public void deleteMap(@PathVariable Integer mapId, HttpServletResponse response) throws GmsException {
         try {
-            boolean result = mapInfoService.submitDeleteMap(mapId, userIds, super.getCurrentUser());
-            if (result) {
-                return new GmsResponse().message("地图删除提交成功").success();
-            } else {
-                return new GmsResponse().message("地图不存在或地图处于非使用状态不可删除").badRequest();
+            boolean existMapId = mapInfoService.existMapId(mapId);
+            if (existMapId){
+                MapInfo activeMapInfo = mapInfoService.getActiveMapInfo();
+                if(null!=activeMapInfo&&activeMapInfo.getMapId().equals(mapId)){
+                    GmsService.callResponse(new GmsResponse().message("活动地图不能删除!").badRequest(),response);
+                    return;
+                }
+                Map<String, Object> paramMap = new HashMap<>();
+                paramMap.put("mapId", mapId);
+                MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
+                entry.setAfterHandle(() -> {
+                    if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {
+                        mapInfoService.deleteMapInfo(mapId);
+                    }
+                });
+                MessageFactory.getMapMessage().sendMessageWithID(entry.getMessageId(),"deleteMap", JSON.toJSONString(paramMap),"地图删除提交成功");
+            }else{
+                GmsService.callResponse(new GmsResponse().message("该地图不存在!").badRequest(),response);
             }
         } catch (Exception e) {
             String message = "申请地图删除提交失败";

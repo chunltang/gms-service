@@ -1,5 +1,7 @@
 package com.zs.gms.controller.vehiclemanager;
 
+import com.zs.gms.common.controller.BaseController;
+import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.vehiclemanager.BarneyType;
 import com.zs.gms.service.vehiclemanager.BarneyTypeService;
@@ -18,13 +20,14 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
 @RequestMapping(value = "/vehicleTypes")
 @Validated
 @Api(tags = {"车辆管理"},description = "vehicle Controller")
-public class BarneyTypeController {
+public class BarneyTypeController extends BaseController {
 
     @Autowired
     @Lazy
@@ -47,10 +50,10 @@ public class BarneyTypeController {
     @Log("获取车辆类型列表")
     @GetMapping
     @ApiOperation(value = "获取车辆类型列表",httpMethod = "GET")
-    public GmsResponse getVehicleTypeList() throws GmsException {
+    public GmsResponse getVehicleTypeList(QueryRequest queryRequest) throws GmsException {
         try {
-            List<BarneyType> list = this.barneyTypeService.getVehicleTypeList();
-            return new GmsResponse().data(list).message("获取车辆类型列表成功").success();
+            Map<String, Object> dataTable = super.getDataTable(this.barneyTypeService.getVehicleTypeList(queryRequest));
+            return new GmsResponse().data(dataTable).message("获取车辆类型列表成功").success();
         }catch (Exception e){
             String message="获取车辆类型列表失败";
             log.error(message,e);

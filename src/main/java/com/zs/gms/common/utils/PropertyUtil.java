@@ -5,35 +5,43 @@ import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.formula.functions.T;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.zip.ZipEntry;
 
 @Slf4j
 public class PropertyUtil {
     /**
      * 判断对象的所有属性都为空，不判断静态属性，exclued为排除字段
+     *
      * @return false为有属性不为空
-     * */
-    public static boolean isAllFieldNull(Object obj, String ...exluedes) {
-        boolean flag=true;
-        if(obj!=null){
+     */
+    public static boolean isAllFieldNull(Object obj, String... exluedes) {
+        boolean flag = true;
+        if (obj != null) {
             List<String> exluedeList = Arrays.asList(exluedes);
             Field[] fields = obj.getClass().getDeclaredFields();
             for (Field field : fields) {
-                if(Modifier.isStatic(field.getModifiers()) || exluedeList.contains(field.getName()))
+                if (Modifier.isStatic(field.getModifiers()) || exluedeList.contains(field.getName()))
                     continue;
                 field.setAccessible(true);
                 Object value = null;
                 try {
                     value = field.get(obj);
                 } catch (Exception e) {
-                    log.error("获取对象属性失败",e);
+                    log.error("获取对象属性失败", e);
                 }
-                if(value != null){
-                    flag=false;
+                if (value != null) {
+                    flag = false;
                     break;
                 }
             }
@@ -43,18 +51,18 @@ public class PropertyUtil {
 
     /**
      * 有字段为空,true为有字段为空
-     * */
-    public static boolean isAnyFiledNull(Object obj){
+     */
+    public static boolean isAnyFiledNull(Object obj) {
         Field[] fields = obj.getClass().getDeclaredFields();
         for (Field field : fields) {
             field.setAccessible(true);
             try {
                 Object value = field.get(obj);
-                if(null==value){
+                if (null == value) {
                     return true;
                 }
             } catch (Exception e) {
-                log.error("获取对象属性失败",e);
+                log.error("获取对象属性失败", e);
             }
         }
         return false;
@@ -62,7 +70,7 @@ public class PropertyUtil {
 
     /**
      * 按对象属性名称生层次转换json数据
-     * */
+     */
     public static <T> T jsonToBean(String jsonStr, Class target) {
         if (Map.class.isAssignableFrom(target)) {
             return (T) JSONObject.parseObject(jsonStr, Map.class);
@@ -77,15 +85,15 @@ public class PropertyUtil {
                 e.printStackTrace();
             }
             Field[] fields = target.getDeclaredFields();
-            handleField(fields,t,jsonObject);
-            return (T)t;
+            handleField(fields, t, jsonObject);
+            return (T) t;
         }
     }
 
     /**
      * 字段设值
-     * */
-    private static void handleField(Field[] fields,Object t,JSONObject jsonObject){
+     */
+    private static void handleField(Field[] fields, Object t, JSONObject jsonObject) {
         for (Field field : fields) {
             if (Modifier.isStatic(field.getModifiers()) || Modifier.isFinal(field.getModifiers())) {
                 continue;
@@ -113,68 +121,68 @@ public class PropertyUtil {
                     if (type.isPrimitive()) { //基础数据类型
                         if (type.isAssignableFrom(float.class)) {
                             field.set(t, Float.parseFloat(value.toString()));
-                        }else if (type.isAssignableFrom(int.class)) {
+                        } else if (type.isAssignableFrom(int.class)) {
                             field.set(t, Integer.parseInt(value.toString()));
-                        }else if (type.isAssignableFrom(boolean.class)) {
+                        } else if (type.isAssignableFrom(boolean.class)) {
                             field.set(t, Boolean.parseBoolean(value.toString()));
-                        }else if (type.isAssignableFrom(long.class)) {
+                        } else if (type.isAssignableFrom(long.class)) {
                             field.set(t, Long.parseLong(value.toString()));
-                        }else if (type.isAssignableFrom(short.class)) {
+                        } else if (type.isAssignableFrom(short.class)) {
                             field.set(t, Short.parseShort(value.toString()));
-                        }else if (type.isAssignableFrom(char.class)) {
+                        } else if (type.isAssignableFrom(char.class)) {
                             field.set(t, value.toString().charAt(0));
-                        }else if (type.isAssignableFrom(double.class)) {
+                        } else if (type.isAssignableFrom(double.class)) {
                             field.set(t, Double.parseDouble(value.toString()));
-                        }else if (type.isAssignableFrom(byte.class)) {
+                        } else if (type.isAssignableFrom(byte.class)) {
                             field.set(t, Byte.parseByte(value.toString()));
                         }
                         continue;
                     }
 
-                    if(hasField(type,"TYPE")){//包装类获取基础数据类型
-                        if(Character.class.isAssignableFrom(type)){
+                    if (hasField(type, "TYPE")) {//包装类获取基础数据类型
+                        if (Character.class.isAssignableFrom(type)) {
                             Method m = type.getDeclaredMethod("valueOf", Character.class);
                             Object invoke = m.invoke(null, value.toString().charAt(0));
                             field.set(t, invoke);
-                        }else{
-                            Method  m = type.getDeclaredMethod("valueOf", String.class);
+                        } else {
+                            Method m = type.getDeclaredMethod("valueOf", String.class);
                             Object invoke = m.invoke(null, value.toString());
                             field.set(t, invoke);
                         }
                         continue;
                     }
 
-                    if(type.isEnum()){//枚举类型
+                    if (type.isEnum()) {//枚举类型
                         Object[] enumConstants = type.getEnumConstants();
                         Method getValue = type.getMethod("getValue");//需要定义getValue方法
                         for (Object enumConstant : enumConstants) {
                             Object invoke = getValue.invoke(enumConstant);
-                            if(null!=invoke&&String.valueOf(invoke).equals(value.toString())){
+                            if (null != invoke && String.valueOf(invoke).equals(value.toString())) {
                                 field.set(t, enumConstant);
                             }
                         }
                         continue;
                     }
 
-                    if(String.class.isAssignableFrom(type)){
+                    if (String.class.isAssignableFrom(type)) {
                         field.set(t, String.valueOf(value));
                         continue;
                     }
                 } catch (Exception e) {
-                    log.error("反射异常",e);
+                    log.error("反射异常", e);
                     continue;
                 }
-            }else{//转换对象中的自定义对象属性
-                if(excludeType(type)){
+            } else {//转换对象中的自定义对象属性
+                if (excludeType(type)) {
                     continue;
                 }
                 Field[] declaredFields = type.getDeclaredFields();
                 try {
                     Object o = type.newInstance();
                     field.setAccessible(true);
-                    field.set(t,o);
-                    handleField(declaredFields,o,jsonObject);
-                }catch (Exception e){
+                    field.set(t, o);
+                    handleField(declaredFields, o, jsonObject);
+                } catch (Exception e) {
                     continue;
                 }
             }
@@ -183,9 +191,9 @@ public class PropertyUtil {
 
     /**
      * 排除非自定义类型
-     * */
-    private static boolean excludeType( Class<?> type){
-        if(null==type.getClassLoader()){//核心加载器为空则为自定义类型
+     */
+    private static boolean excludeType(Class<?> type) {
+        if (null == type.getClassLoader()) {//核心加载器为空则为自定义类型
             return true;
         }
         return false;
@@ -193,11 +201,11 @@ public class PropertyUtil {
 
     /**
      * TYPE,判断是否是包装类，只有包装类才有TYPE字段
-     * */
-    private static boolean hasField(Class clazz,String name){
+     */
+    private static boolean hasField(Class clazz, String name) {
         try {
             clazz.getField(name);
-        }catch (NoSuchFieldException e){
+        } catch (NoSuchFieldException e) {
             return false;
         }
         return true;
@@ -206,7 +214,7 @@ public class PropertyUtil {
 
     /**
      * 判断json中是否有指定键
-     * */
+     */
     private static Object containKey(JSONObject jsonObject, String containKey) {
         if (jsonObject.containsKey(containKey)) {
             return jsonObject.get(containKey);
@@ -220,5 +228,42 @@ public class PropertyUtil {
             }
         }
         return null;
+    }
+
+    /**
+     * 加载属性文件
+     */
+    public static Properties loadProperties(String path) {
+        Properties properties = new Properties();
+        try {
+            properties.load(Thread.currentThread().getContextClassLoader().getResourceAsStream(path));
+        } catch (IOException e) {
+            log.error("属性文件路径不存在!", e);
+        }
+        return properties;
+    }
+
+    /**
+     * 保存属性文件
+     */
+    public static void storeProperties(Properties properties, String path) {
+        URL url = Thread.currentThread().getContextClassLoader().getResource(".");
+        try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(url.getPath() + path), StandardCharsets.UTF_8)) {
+            properties.store(out, "Global Config");
+        } catch (IOException e) {
+            log.error("属性文件写入异常!", e);
+        }
+    }
+
+    public static void main(String[] args) {
+        Properties properties = PropertyUtil.loadProperties("properties/data.properties");
+        Enumeration<?> names = properties.propertyNames();
+        while (names.hasMoreElements()) {
+            System.out.println(names.nextElement());
+        }
+        properties.setProperty("name", "tcl");
+        properties.setProperty("name1", "tcl");
+        properties.setProperty("name2", "tcl");
+        PropertyUtil.storeProperties(properties, "properties/data.properties");
     }
 }

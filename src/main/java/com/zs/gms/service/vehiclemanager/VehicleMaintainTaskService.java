@@ -15,6 +15,8 @@ public interface VehicleMaintainTaskService {
      * */
     void addMaintainTask(VehicleMaintainTask vehicleMaintainTask);
 
+    boolean isExist(String maintainTaskName);
+
     /**
      * 修改维修任务
      * */

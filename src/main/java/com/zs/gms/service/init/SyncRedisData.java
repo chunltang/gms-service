@@ -8,7 +8,7 @@ import com.zs.gms.common.service.RedisService;
 import com.zs.gms.entity.vehiclemanager.Excavator;
 import com.zs.gms.entity.terminalmanager.Gps;
 import com.zs.gms.entity.vehiclemanager.Barney;
-import com.zs.gms.service.client.ExcavatorService;
+import com.zs.gms.service.vehiclemanager.ExcavatorService;
 import com.zs.gms.service.terminalmanager.GpsService;
 import com.zs.gms.service.vehiclemanager.BarneyService;
 import lombok.extern.slf4j.Slf4j;
@@ -59,9 +59,9 @@ public class SyncRedisData implements MarkInterface {
         List<Excavator> excavators = excavatorService.getExcavators();
         Map<String, Object> valueMap = new HashMap<>();
         for (Excavator excavator : excavators) {
-            valueMap.put(excavator.getExcavatorNo().toString(),excavator.getIp1());
+            valueMap.put(excavator.getExcavatorNo().toString(),excavator.getIp1()+"/"+excavator.getIp2());
         }
-        execute(valueMap, RedisKeyPool.VEH_ID_IP);
+        execute(valueMap, RedisKeyPool.EXC_ID_IP);
     }
 
     /**
@@ -78,6 +78,7 @@ public class SyncRedisData implements MarkInterface {
 
     private static void execute(Map<String, Object> valueMap,String key){
         RedisTemplate<String, Object>  template = RedisService.getTemplate(StaticConfig.KEEP_DB);
+        template.delete(key);
         HashOperations<String, String, Object> hashOperations = template.opsForHash();
         hashOperations.putAll(key,valueMap);
     }

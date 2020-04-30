@@ -1,0 +1,8 @@
+FROM gms-ubuntu:16.04
+RUN echo "Asia/Shanghai" > /etc/timezone
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+#RUN /bin/cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+#RUN echo "Asia/Shanghai" > /etc/timezone
+#ADD libstdc++.so.6.0.21 libstdc++.so.6.0.21
+#RUN mv libstdc++.so.6.0.21 /lib64
+#RUN cd /lib64 && rm -rf libstdc++.so.6 && ln -s libstdc++.so.6.0.21 libstdc++.so.6

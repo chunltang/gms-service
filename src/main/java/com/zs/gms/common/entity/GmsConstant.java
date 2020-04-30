@@ -2,8 +2,17 @@ package com.zs.gms.common.entity;
 
 public class GmsConstant {
 
+    /**
+     * 排序类型
+     * */
     public static final String SORT_DESC="desc";
     public static final String SORT_ASC="asc";
+
+
+    /**
+     * 地图全局配置
+     * */
+    public static final String MAP_GLOBAL_CONFIG="map_global_config";
 
     /**
      * 服务描述
@@ -22,6 +31,8 @@ public class GmsConstant {
      * shiro用于rememberMe的加密
      * */
     public static final String GMS_SHIRO_KEY="gms_shiro_key";
+
+    public static final  String SHIRO_SESSION_PREFIX="shiro-session_";
 
     /**
      * MQ等待响应时间

@@ -7,10 +7,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.zs.gms.common.interfaces.Desc;
 import com.zs.gms.enums.vehiclemanager.DateEnum;
 import lombok.Data;
-import org.apache.ibatis.type.JdbcType;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.Date;
 
 /**
@@ -18,7 +18,7 @@ import java.util.Date;
  * */
 @Data
 @TableName("t_maintain_task")
-public class VehicleMaintainTask {
+public class VehicleMaintainTask implements Serializable {
 
     public final static String TASK_PREFIX="maintain_task_";
 
@@ -31,6 +31,13 @@ public class VehicleMaintainTask {
     @TableField(value = "VEHICLEID")
     @NotNull
     private Integer vehicleId;
+
+    /**
+     * 维护任务名称
+     * */
+    @TableField(value = "MAINTAINTASKNAME")
+    private String maintainTaskName;
+
 
     /**
      * 数量，几个小时，几天

@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@PropertySource(value = {"classpath:properties/role.properties"},encoding = "gbk")
+@PropertySource(value = {"classpath:properties/role.properties"},encoding = "utf8")
 @ConfigurationProperties(prefix = "system")
 @Data
 public class RoleProperties {

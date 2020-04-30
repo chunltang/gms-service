@@ -1,4 +1,4 @@
-package com.zs.gms.service.client;
+package com.zs.gms.service.vehiclemanager;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.zs.gms.common.entity.QueryRequest;

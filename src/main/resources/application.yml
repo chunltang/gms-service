@@ -28,17 +28,17 @@ spring:
           username: root
           password: ${SERVER_PWD}
           driver-class-name: com.mysql.cj.jdbc.Driver  #192.168.42.11
-          url: jdbc:mysql://${SERVER_HOST}:3306/gms_base?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2b8
+          url: jdbc:mysql://${MYSQL_SERVER_HOST}:3306/gms_base?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2b8
         quartz:
           username: root
           password: ${SERVER_PWD}
           driver-class-name: com.mysql.cj.jdbc.Driver
-          url: jdbc:mysql://${SERVER_HOST}:3306/gms_quartz?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2b8
+          url: jdbc:mysql://${MYSQL_SERVER_HOST}:3306/gms_quartz?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2b8
 
   rabbitmq:
     virtual-host: /
-    host: ${SERVER_HOST}
-    username: gms_busi
+    host: ${RABBITMQ_SERVER_HOST}
+    username: gms
     password: ${SERVER_PWD}
     port: 5672
     requested-heartbeat: 60
@@ -52,8 +52,8 @@ spring:
         default-requeue-rejected: true  #重试超过设置次数后是否丢弃
 
   redis:
-    database: 0
-    host: ${SERVER_HOST}
+    database: 3
+    host: ${REDIS_SERVER_HOST}
     port: 6379
     password:
     timeout: 5000
@@ -88,6 +88,7 @@ mybatis-plus:
   configuration:
     default-enum-type-handler: com.baomidou.mybatisplus.extension.handlers.MybatisEnumTypeHandler     #枚举类型指定转换器
     jdbc-type-for-null: null
+    call-setters-on-nulls: true   #解决map不映射null的字段
 
     #map-underscore-to-camel-case: false   #驼峰转下划线
   global-config:
@@ -95,6 +96,9 @@ mybatis-plus:
     db-config:
       logic-delete-value: 1 # 逻辑已删除值(默认为 1)
       logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
+
+
+
 
 #actuator
 management:

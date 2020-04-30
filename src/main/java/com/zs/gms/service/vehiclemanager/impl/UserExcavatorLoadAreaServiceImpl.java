@@ -1,11 +1,11 @@
-package com.zs.gms.service.client.impl;
+package com.zs.gms.service.vehiclemanager.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zs.gms.entity.client.UserExcavatorLoadArea;
 import com.zs.gms.mapper.client.UserExcavatorLoadAreaMapper;
-import com.zs.gms.service.client.UserExcavatorLoadAreaService;
+import com.zs.gms.service.vehiclemanager.UserExcavatorLoadAreaService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;

@@ -1,6 +1,7 @@
 package com.zs.gms.entity.system;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
@@ -19,80 +20,98 @@ import java.util.Date;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class User implements Serializable {
 
-    private static  long serialVersionUID = -8627815897867748563L;
+    private static long serialVersionUID = -8627815897867748563L;
 
-    public static  String THEAM_WHITE="white";
+    public static String THEAM_WHITE = "white";
 
-    public static  String DEFAULT_ICON="";
+    public static String DEFAULT_ICON = "";
 
-    public static String DEFAULT_PWD="123456";
+    public static String DEFAULT_PWD = "123456";
 
     /**
      * 加盐字符串
-     * */
-    public static final String DEAFULT_PASSWORD="1234qwer";
+     */
+    public static final String DEAFULT_PASSWORD = "1234qwer";
 
     /**
      * 用户id
-     * */
+     */
     //@ApiModelProperty(hidden = true)
-    @TableId(value = "USERID",type = IdType.AUTO)
+    @TableId(value = "USERID", type = IdType.AUTO)
     private Integer userId;
 
     /**
      * 用户名称
-     * */
+     */
     @TableField(value = "USERNAME")
-    @Size(min = 6,max = 16,message = "用户名称长度在6-16之间")
+    @Size(min = 1, max = 16, message = "用户名称长度在1-16之间")
     private String userName;
 
     /**
      * 密码
-     * */
+     */
     @TableField(value = "PASSWORD")
     @NotBlank(message = "密码不能为空")
     private String password;
 
     /**
+     * 联系电话
+     */
+    @TableField("PHONE")
+    private String phone;
+
+    /**
      * 主题
-     * */
+     */
     @TableField("THEME")
     private String theme;
 
     /**
      * 头像
-     * */
+     */
     @TableField("AVATAR")
     private String avatar;
 
     /**
-     * 角色id
+     * 创建时间
+     */
+    @TableField("CREATETIME")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GTM+8")
+    private Date createTime;
+
+    /**
+     * 最后登录时间
      * */
+    @TableField("LASTLOGINTIME")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GTM+8")
+    private Date lastLoginTime;
+
+    /**
+     * 角色id
+     */
     @TableField(exist = false)
     private String roleId;
 
     /**
      * 角色名称
-     * */
+     */
     @TableField(exist = false)
     private String roleName;
 
     /**
      * 角色英文标识
-     * */
+     */
     @TableField(exist = false)
     private String roleSign;
 
     @TableLogic
     @JsonIgnore
-    @TableField(value = "ISDEL",select = false)
+    @TableField(value = "ISDEL", select = false)
     private Integer isDel;
 
-    @JsonIgnore
+    @TableField(exist = false)
+    private boolean activate = false;
+
     @TableField(exist = false)
     private String sessionId;
-
-    @JsonIgnore
-    @TableField(exist = false)
-    private Date lastLoginTime;
 }

@@ -63,7 +63,7 @@ public class DispatchTaskServiceImpl extends ServiceImpl<DispatchTaskMapper, Dis
 
     @Override
     @Transactional
-    public List<DispatchTask> getDispatchTaskList(Integer userId, String dispatchTaskType,Integer mapId) {
+    public List<DispatchTask> getDispatchTaskList(Integer userId, UnitTypeEnum dispatchTaskType,Integer mapId) {
         LambdaQueryWrapper<DispatchTask> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DispatchTask::getUserId, userId);
         queryWrapper.eq(DispatchTask::getMapId, mapId);

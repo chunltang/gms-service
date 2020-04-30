@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data
-@PropertySource(value = {"classpath:properties/state.properties"},encoding = "gbk")
+@PropertySource(value = {"classpath:properties/state.properties"},encoding = "utf8")
 @ConfigurationProperties(prefix = "state")
 @SpringBootConfiguration
 public class StateProperties {

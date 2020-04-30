@@ -21,10 +21,16 @@ public class AreaMineral implements Serializable {
     private Integer id;
 
     /**
-     * 卸载区id
+     * 装载区id
      * */
     @TableField(value = "AREAID")
     private Integer areaId;
+
+    /**
+     * 地图id
+     * */
+    @TableField(value = "MAPID")
+    private Integer mapId;
 
     /**
      * 矿物id

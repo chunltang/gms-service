@@ -1,9 +1,7 @@
 package com.zs.gms.entity.vehiclemanager;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
@@ -61,6 +59,12 @@ public class BarneyType implements Serializable {
     private  String vehicleTon;
 
     /**
+     * 自重
+     * */
+    @TableField(value = "SELFDIGNIFIED")
+    private  String selfDignified;
+
+    /**
      * 轴距
      * */
     @TableField(value = "VEHICLEWHEEL")
@@ -101,4 +105,9 @@ public class BarneyType implements Serializable {
      * */
     @TableField(value = "CENTERHEIGHT")
     private String centerHeight;
+
+    @TableLogic
+    @JsonIgnore
+    @TableField(value = "ISDEL",select = false)
+    private Integer isDel;
 }

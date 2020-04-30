@@ -29,7 +29,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
 
     @Override
     @Transactional
-    public void deleteMenu(long menuId) {
+    public void deleteMenu(Integer menuId) {
         this.removeById(menuId);
     }
 
@@ -44,7 +44,16 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu> implements Me
     public boolean isExists(String name) {
         LambdaQueryWrapper<Menu> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Menu::getPowerLabel,name);
-        Integer count = this.count(queryWrapper);
-        return count!=null && count>0;
+        int count = this.count(queryWrapper);
+        return count > 0;
+    }
+
+    @Override
+    public boolean isExists(Integer menuId, String name) {
+        LambdaQueryWrapper<Menu> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.ne(Menu::getMenuId,menuId);
+        queryWrapper.eq(Menu::getPowerLabel,name);
+        int count = this.count(queryWrapper);
+        return count > 0;
     }
 }

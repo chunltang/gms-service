@@ -7,13 +7,15 @@ import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.common.exception.GmsException;
+import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.vehiclemanager.Excavator;
 import com.zs.gms.entity.client.UserExcavatorLoadArea;
 import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
-import com.zs.gms.service.client.ExcavatorService;
-import com.zs.gms.service.client.UserExcavatorLoadAreaService;
+import com.zs.gms.service.vehiclemanager.ExcavatorService;
+import com.zs.gms.service.vehiclemanager.ExcavatorTypeService;
+import com.zs.gms.service.vehiclemanager.UserExcavatorLoadAreaService;
 import com.zs.gms.service.init.SyncRedisData;
 import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.system.UserService;
@@ -25,6 +27,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 @Slf4j
@@ -43,6 +46,8 @@ public class ExcavatorController extends BaseController {
     @Autowired
     private UserExcavatorLoadAreaService bindExcavatorService;
 
+    @Autowired
+    private ExcavatorTypeService excavatorTypeService;
 
     @Log("新增挖掘机")
     @Mark(value = "新增挖掘机",markImpl = SyncRedisData.class)
@@ -53,6 +58,10 @@ public class ExcavatorController extends BaseController {
             boolean exist = this.excavatorService.isExistNo(excavator.getExcavatorNo());
             if (exist) {
                 return new GmsResponse().message("该挖掘机编号已添加").badRequest();
+            }
+            boolean existTypeId = this.excavatorTypeService.isExistTypeId(excavator.getExcavatorTypeId());
+            if(!existTypeId){
+                return new GmsResponse().message("不存在的挖掘机类型").badRequest();
             }
             this.excavatorService.addExcavator(excavator);
             return new GmsResponse().message("新增挖掘机成功").success();
@@ -66,10 +75,11 @@ public class ExcavatorController extends BaseController {
     @Log("获取挖掘机列表")
     @GetMapping("/excavators")
     @ApiOperation(value = "获取挖掘机列表", httpMethod = "GET")
-    public GmsResponse getExcavatorList(Excavator excavator, QueryRequest queryRequest) throws GmsException {
+    @ResponseBody
+    public String getExcavatorList(Excavator excavator, QueryRequest queryRequest) throws GmsException {
         try {
             Map<String, Object> dataTable = this.getDataTable(this.excavatorService.getExcavatorList(excavator,queryRequest));
-            return new GmsResponse().data(dataTable).message("获取挖掘机列表成功").success();
+            return GmsUtil.toJsonIEnumDesc(new GmsResponse().data(dataTable).message("获取挖掘机列表成功").success());
         } catch (Exception e) {
             String message = "获取挖掘机列表失败";
             log.error(message, e);
@@ -96,12 +106,19 @@ public class ExcavatorController extends BaseController {
     @Mark(value = "修改挖掘机参数",markImpl = SyncRedisData.class)
     @PutMapping(value = "/excavators")
     @ApiOperation(value = "修改挖掘机参数", httpMethod = "PUT")
-    public GmsResponse updateExcavator(@MultiRequestBody @Valid Excavator excavator) throws GmsException {
+    public GmsResponse updateExcavator(@MultiRequestBody Excavator excavator) throws GmsException {
         try {
             excavator.setExcavatorNo(null);
             boolean exist = this.excavatorService.isExistId(excavator.getExcavatorId());
             if (!exist) {
                 return new GmsResponse().message("该挖掘机id不存在").badRequest();
+            }
+            Integer excavatorTypeId = excavator.getExcavatorTypeId();
+            if(null!=excavatorTypeId){
+                boolean existTypeId = excavatorTypeService.isExistTypeId(excavatorTypeId);
+                if(!existTypeId){
+                    return new GmsResponse().message("改挖掘机类型不存在").badRequest();
+                }
             }
             this.excavatorService.updateExcavator(excavator);
             return new GmsResponse().message("修改挖掘机参数成功").success();

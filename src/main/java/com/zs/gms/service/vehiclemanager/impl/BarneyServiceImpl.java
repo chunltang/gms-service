@@ -1,6 +1,7 @@
 package com.zs.gms.service.vehiclemanager.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
@@ -12,6 +13,7 @@ import com.zs.gms.common.interfaces.MarkInterface;
 import com.zs.gms.entity.vehiclemanager.Barney;
 import com.zs.gms.entity.vehiclemanager.UserVehicle;
 import com.zs.gms.entity.vehiclemanager.BarneyVehicleType;
+import com.zs.gms.enums.vehiclemanager.ActivateStatusEnum;
 import com.zs.gms.mapper.vehiclemanager.BarneyMapper;
 import com.zs.gms.service.vehiclemanager.UserBarneyService;
 import com.zs.gms.service.vehiclemanager.BarneyService;
@@ -118,6 +120,15 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
     }
 
     @Override
+    @Transactional
+    public boolean isExistVehicleNo(Integer vehicleNo) {
+        LambdaQueryWrapper<Barney> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Barney::getVehicleNo, vehicleNo);
+        return this.list(queryWrapper).size()>0;
+    }
+
+    @Override
+    @Transactional
     public boolean isVehicleAllot(String vehicleIds) {
         return userBarneyService.isVehiclesAllot(vehicleIds);
     }
@@ -144,6 +155,15 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
         barneyVehicleTypeService.deleteByVehicleId(vehicleId);
     }
 
+    @Override
+    public void updateStatus(Integer vehicleId, ActivateStatusEnum status) {
+        LambdaUpdateWrapper<Barney> queryWrapper = new LambdaUpdateWrapper<>();
+        queryWrapper.eq(Barney::getVehicleId, vehicleId);
+        queryWrapper.eq(Barney::getVehicleStatus, status);
+        this.update(queryWrapper);
+    }
+
+
     /**
      * 分页获取车辆列表
      *
@@ -160,7 +180,7 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
     @Override
     public List<Barney> getAllVehicles() {
         LambdaQueryWrapper<Barney> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.eq(Barney::getVehicleStatus, "1");
+        queryWrapper.eq(Barney::getVehicleStatus, ActivateStatusEnum.ACTIVATED);
         return this.list(queryWrapper);
     }
 
@@ -174,7 +194,7 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
         barney.setUserId(userId);
         List<Barney> barneyList = this.baseMapper.findVehicleList(barney);
         return barneyList.stream().filter(v -> {
-            return v.getVehicleStatus().equals("1");//0停用，1再用
+            return v.getVehicleStatus().equals(ActivateStatusEnum.ACTIVATED);
         }).collect(Collectors.toList());
     }
 
@@ -193,9 +213,15 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
      */
     @Override
     @Transactional
-    public boolean queryVehicleExist(Integer vehicleNo) {
+    public boolean queryVehicleExistNo(Integer vehicleNo) {
         Integer count = this.baseMapper.selectCount(new LambdaQueryWrapper<Barney>().eq(Barney::getVehicleNo, vehicleNo));
-        return count > 0 ? true : false;
+        return count > 0;
+    }
+
+    @Override
+    public boolean queryVehicleExistId(Integer vehicleId) {
+        Integer count = this.baseMapper.selectCount(new LambdaQueryWrapper<Barney>().eq(Barney::getVehicleId, vehicleId));
+        return count > 0;
     }
 
     @Override

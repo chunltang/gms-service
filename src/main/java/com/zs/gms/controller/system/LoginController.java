@@ -15,14 +15,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authz.AuthorizationInfo;
-import org.apache.shiro.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -88,7 +86,8 @@ public class LoginController extends BaseController {
     @RequestMapping(value = "/regist")
     @ApiOperation(value = "用户注册", httpMethod = "POST")
     public GmsResponse regist(@MultiRequestBody("userName") String userName,
-                              @MultiRequestBody("password") String password) throws GmsException {
+                              @MultiRequestBody("password") String password,
+                              @MultiRequestBody("phone") String phone) throws GmsException {
         if (StringUtils.isAnyBlank(userName, password)) {
             throw new GmsException("用户名或密码为空");
         }
@@ -97,7 +96,7 @@ public class LoginController extends BaseController {
             throw new GmsException("用户名已存在");
         }
         try {
-            this.userService.regist(userName, password);
+            this.userService.register(userName, password,phone);
             return new GmsResponse().message("用户注册成功").success();
         } catch (Exception e) {
             String message = "用户注册失败";

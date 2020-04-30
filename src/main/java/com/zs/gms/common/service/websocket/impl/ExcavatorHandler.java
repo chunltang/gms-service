@@ -2,9 +2,11 @@ package com.zs.gms.common.service.websocket.impl;
 
 import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.websocket.WsFunction;
+import com.zs.gms.common.utils.Assert;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.client.UserExcavatorLoadArea;
-import com.zs.gms.service.client.UserExcavatorLoadAreaService;
+import com.zs.gms.entity.system.User;
+import com.zs.gms.service.vehiclemanager.UserExcavatorLoadAreaService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -66,8 +68,9 @@ public class ExcavatorHandler extends SetHandler {
      * */
     public void afterAdd(Session session){
         try {
-            Object key = getLoginUser(session);
-            UserExcavatorLoadArea bind = bindService.getBindByUser(GmsUtil.typeTransform(key, Integer.class));
+            User user = getLoginUser(session);
+            Assert.notNull(user,"websocket获取登录用户异常");
+            UserExcavatorLoadArea bind = bindService.getBindByUser(user.getUserId());
             if(null!=bind){
                 areaSessionMap.put(bind.getLoadAreaId(),session);
             }else{

@@ -2,14 +2,14 @@ package com.zs.gms.common.utils;
 
 public class ThreadLocalUtil {
 
-    private static final ThreadLocal<Integer> inLocal = new InheritableThreadLocal<>();
-    private static final ThreadLocal<Integer> local = new ThreadLocal<>();
+    private static final ThreadLocal<Object> inLocal = new InheritableThreadLocal<>();
+    private static final ThreadLocal<Object> local = new ThreadLocal<>();
 
-    public static void setInLocal(Integer integer) {
-        inLocal.set(integer);
+    public static void setInLocal(Object obj) {
+        inLocal.set(obj);
     }
 
-    public static Integer getInLocal() {
+    public static Object getInLocal() {
         return inLocal.get();
     }
 
@@ -17,11 +17,11 @@ public class ThreadLocalUtil {
         inLocal.remove();
     }
 
-    public static void set(Integer integer) {
-        local.set(integer);
+    public static void set(Object obj) {
+        local.set(obj);
     }
 
-    public static Integer get() {
+    public static Object get() {
         return local.get();
     }
 

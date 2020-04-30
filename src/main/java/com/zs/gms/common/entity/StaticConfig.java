@@ -19,6 +19,8 @@ public class StaticConfig {
 
     public static int KEEP_DB;
 
+    public static int CACHE_DB;
+
     public static String bMRequest;
 
     public static String bDRequest;
@@ -34,6 +36,11 @@ public class StaticConfig {
     @Value("${gms.listener.redisMonitorDB}")
     public void setMonitorDB(int monitorDB){
         MONITOR_DB=monitorDB;
+    }
+
+    @Value("${gms.cache.redisDB}")
+    public void setCacheDB(int cacheDB){
+        CACHE_DB=cacheDB;
     }
 
     @Value("${gms.keep.redisDB}")

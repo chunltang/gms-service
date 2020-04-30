@@ -35,7 +35,7 @@ import java.util.List;
      * 查询指定类型调度单元
      * @param dispatchTaskType 调度单元类型
      * */
-     List<DispatchTask> getDispatchTaskList(Integer userId,String dispatchTaskType,Integer mapId);
+     List<DispatchTask> getDispatchTaskList(Integer userId,UnitTypeEnum dispatchTaskType,Integer mapId);
 
     /**
      * 删除调度单元,将状态置位删除状态

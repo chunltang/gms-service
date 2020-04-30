@@ -4,6 +4,7 @@ import com.zs.gms.common.annotation.Log;
 import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.exception.GmsException;
+import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.system.Menu;
 import com.zs.gms.service.system.MenuService;
 import io.swagger.annotations.Api;
@@ -62,7 +63,7 @@ public class MenuController {
     @Log(value = "删除权限菜单")
     @DeleteMapping(value = "/{menuId}")
     @ApiOperation(value = "删除权限菜单",httpMethod ="DELETE")
-    public GmsResponse deleteMenu(@PathVariable Long menuId) throws GmsException {
+    public GmsResponse deleteMenu(@PathVariable Integer menuId) throws GmsException {
         try{
             if(menuId==null)
                 throw new GmsException("菜单ID为空");
@@ -80,8 +81,11 @@ public class MenuController {
     @ApiOperation(value = "修改权限菜单",httpMethod ="PUT")
     public GmsResponse updateMenu(@MultiRequestBody Menu menu) throws GmsException {
         try{
-            if(menu.getMenuId()==null)
-                throw new GmsException("菜单ID为空");
+            if(!GmsUtil.objNotNull(menu.getMenuId()))
+                throw new GmsException("权限ID为空");
+            if(menuService.isExists(menu.getMenuId(),menu.getPowerLabel())){
+                return new GmsResponse().badRequest().message("权限名称已存在");
+            }
             menuService.updateMenu(menu);
             return new GmsResponse().message("修改权限菜单成功").success();
         }catch (Exception e){

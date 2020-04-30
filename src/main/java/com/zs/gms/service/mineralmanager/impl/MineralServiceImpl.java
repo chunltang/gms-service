@@ -1,10 +1,19 @@
 package com.zs.gms.service.mineralmanager.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zs.gms.common.entity.GmsConstant;
+import com.zs.gms.common.entity.QueryRequest;
+import com.zs.gms.common.utils.GmsUtil;
+import com.zs.gms.common.utils.SortUtil;
+import com.zs.gms.entity.mapmanager.SemiStatic;
 import com.zs.gms.entity.mineralmanager.Mineral;
+import com.zs.gms.enums.vehiclemanager.ActivateStatusEnum;
 import com.zs.gms.mapper.mineralmanager.MineralMapper;
+import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.mineralmanager.MineralService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -24,6 +33,7 @@ public class MineralServiceImpl extends ServiceImpl<MineralMapper, Mineral> impl
     @Transactional
     public void addMineral(Mineral mineral) {
         mineral.setAddTime(new Date());
+        mineral.setActivate(ActivateStatusEnum.UNACTIVATED);
         this.save(mineral);
     }
 
@@ -57,9 +67,18 @@ public class MineralServiceImpl extends ServiceImpl<MineralMapper, Mineral> impl
      * */
     @Override
     @Transactional
-    public List<Mineral> getMineralList() {
-        List<Mineral> minerals = this.list(new LambdaQueryWrapper<Mineral>().orderByDesc(Mineral::getMineralId));
-        return minerals;
+    public IPage<Mineral> getMineralList(QueryRequest queryRequest) {
+        Page<Mineral> page=new Page<>();
+        SortUtil.handlePageSort(queryRequest,page, GmsConstant.SORT_DESC,"mineralId");
+        IPage<Mineral> listPage = this.baseMapper.getMineralListPage(page);
+        List<Mineral> records = listPage.getRecords();
+        for (Mineral record : records) {
+            if(GmsUtil.allObjNotNull(record.getMapId(),record.getLoadId())){
+                SemiStatic areaInfo = MapDataUtil.getAreaInfo(record.getMapId(), record.getLoadId());
+                record.setLoadIdName(areaInfo.getName());
+            }
+        }
+        return listPage;
     }
 
     /**

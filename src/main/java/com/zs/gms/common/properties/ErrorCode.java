@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-@PropertySource(value = {"classpath:properties/errorCode.properties"},encoding = "gbk")
+@PropertySource(value = {"classpath:properties/errorCode.properties"},encoding = "utf8")
 @ConfigurationProperties(prefix = "errorcode")
 @Data
 public class ErrorCode {

@@ -4,11 +4,13 @@ import com.zs.gms.common.annotation.Log;
 import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsResponse;
+import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.mineralmanager.AreaMineral;
 import com.zs.gms.entity.mineralmanager.Mineral;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
+import com.zs.gms.enums.vehiclemanager.ActivateStatusEnum;
 import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.mineralmanager.AreaMineralService;
 import com.zs.gms.service.mineralmanager.MineralService;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @Slf4j
@@ -59,10 +62,11 @@ public class MineralController extends BaseController {
     @Log("获取矿物列表")
     @GetMapping
     @ApiOperation(value = "获取矿物列表",httpMethod = "GET")
-    public GmsResponse getMineralList() throws GmsException {
+    @ResponseBody
+    public String getMineralList(QueryRequest queryRequest) throws GmsException {
         try {
-            List<Mineral> minerals = mineralService.getMineralList();
-            return new GmsResponse().data(minerals).message("获取矿物列表成功").success();
+            Map<String, Object> dataTable = super.getDataTable(mineralService.getMineralList(queryRequest));
+            return GmsUtil.toJsonIEnumDesc(new GmsResponse().data(dataTable).message("获取矿物列表成功").success());
         }catch (Exception e){
             String message="获取矿物列表失败";
             log.error(message,e);
@@ -106,13 +110,13 @@ public class MineralController extends BaseController {
         }
     }
 
-    @Log("新增卸矿区和矿种对应关系")
+    @Log("新增装载区和矿种对应关系")
     @PostMapping(value = "/areaMinerals")
-    @ApiOperation(value = "新增卸矿区和矿种对应关系",httpMethod = "POST")
+    @ApiOperation(value = "新增装载区和矿种对应关系",httpMethod = "POST")
     public GmsResponse addAreaMineral(@MultiRequestBody(required = false,value = "mapId",parseAllFields = false) Integer mapId,
                                       @MultiRequestBody(value = "mineralId")Integer mineralId,
-                                      @MultiRequestBody(value = "unloadAreaId")Integer unloadAreaId) throws GmsException {
-        if(!GmsUtil.allObjNotNull(mineralId,unloadAreaId)){
+                                      @MultiRequestBody(value = "loadAreaId")Integer loadAreaId) throws GmsException {
+        if(!GmsUtil.allObjNotNull(mineralId,loadAreaId)){
             throw new GmsException("参数不能为空");
         }
         Mineral mineral = mineralService.getMineral(mineralId);
@@ -125,19 +129,36 @@ public class MineralController extends BaseController {
         if(null==mapId){
             throw new GmsException("当前地图不存在，不能新增");
         }
-        boolean areaExist = MapDataUtil.isAreaExist(mapId, unloadAreaId, AreaTypeEnum.UNLOAD_MINERAL_AREA);
+        boolean areaExist = MapDataUtil.isAreaExist(mapId, loadAreaId, AreaTypeEnum.LOAD_AREA);
         if(!areaExist){
-            throw new GmsException("当前地图不存在该卸矿区，不能新增");
+            throw new GmsException("当前地图不存在该装载区，不能新增");
         }
         try {
             AreaMineral areaMineral = new AreaMineral();
             areaMineral.setUserId(super.getCurrentUser().getUserId());
             areaMineral.setMineralId(mineralId);
-            areaMineral.setAreaId(unloadAreaId);
+            areaMineral.setAreaId(loadAreaId);
+            areaMineral.setMapId(mapId);
             areaMineralService.addAreaMineral(areaMineral);
-            return new GmsResponse().message("新增卸矿区和矿种对应关系成功").success();
+            mineral.setActivate(ActivateStatusEnum.ACTIVATED);
+            mineralService.updateMineral(mineral);
+            return new GmsResponse().message("新增装载区和矿种对应关系成功").success();
         }catch (Exception e){
-            String message="新增卸矿区和矿种对应关系失败";
+            String message="新增装载区和矿种对应关系失败";
+            log.error(message,e);
+            throw new GmsException(message);
+        }
+    }
+
+    @Log("删除矿物和装载区的关联关系")
+    @DeleteMapping(value = "/areaMinerals/{mineralId}")
+    @ApiOperation(value = "删除矿物和装载区的关联关系",httpMethod = "DELETE")
+    public GmsResponse deleteAreaMineral(@PathVariable("mineralId") Integer mineralId) throws GmsException {
+        try {
+            areaMineralService.deleteAreaMineral(mineralId);
+            return new GmsResponse().message("删除矿物和装载区的关联关系成功").success();
+        }catch (Exception e){
+            String message="删除矿物和装载区的关联关系失败";
             log.error(message,e);
             throw new GmsException(message);
         }

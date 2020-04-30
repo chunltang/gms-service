@@ -1,4 +1,4 @@
-package com.zs.gms.service.client;
+package com.zs.gms.service.vehiclemanager;
 
 import com.zs.gms.entity.client.UserExcavatorLoadArea;
 

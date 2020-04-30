@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @Transactional(propagation = Propagation.SUPPORTS,readOnly = true,rollbackFor = Exception.class)
 public class BarneyVehicleTypeServiceImpl extends ServiceImpl<BarneyVehicleTypeMapper, BarneyVehicleType> implements BarneyVehicleTypeService {
@@ -23,5 +25,17 @@ public class BarneyVehicleTypeServiceImpl extends ServiceImpl<BarneyVehicleTypeM
     @Transactional
     public void deleteByVehicleId(Integer vehicleId) {
         this.remove(new LambdaQueryWrapper<BarneyVehicleType>().eq(BarneyVehicleType::getVehicleId,vehicleId));
+    }
+
+    @Override
+    public void deleteByVehicleTypeId(Integer vehicleTypeId) {
+        this.remove(new LambdaQueryWrapper<BarneyVehicleType>().eq(BarneyVehicleType::getVehicleTypeId,vehicleTypeId));
+    }
+
+    @Override
+    public List<BarneyVehicleType> getBarneyVehicleTypes(Integer vehicleTypeId) {
+        LambdaQueryWrapper<BarneyVehicleType> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(BarneyVehicleType::getVehicleTypeId,vehicleTypeId);
+        return this.list(queryWrapper);
     }
 }

@@ -2,6 +2,8 @@ package com.zs.gms.entity.vehiclemanager;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.zs.gms.enums.vehiclemanager.ActivateStatusEnum;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -11,6 +13,7 @@ import java.util.Date;
 
 @Data
 @TableName(value = "t_excavator")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Excavator implements Serializable {
 
     /**
@@ -20,11 +23,24 @@ public class Excavator implements Serializable {
     private Integer excavatorId;
 
     /**
+     * 电铲类型id
+     * */
+    @NotNull(message = "电铲类型不能为空")
+    @TableField(value = "EXCAVATORTYPEID")
+    private Integer excavatorTypeId;
+
+    /**
      * 电铲编号
      * */
     @TableField(value = "EXCAVATORNO")
     @NotNull(message = "电铲编号不能为空")
     private Integer excavatorNo;
+
+    /**
+     * 车辆状态，0停用，1启用(默认)
+     */
+    @TableField(value = "VEHICLESTATUS")
+    private ActivateStatusEnum vehicleStatus;
 
     /**
      * ip1
@@ -41,32 +57,19 @@ public class Excavator implements Serializable {
     private String ip2;
 
     /**
-     * 容量
-     * */
-    @TableField(value = "CAPACITY")
-    @NotNull(message = "容量不能为空")
-    private float capacity;
-
-    /**
      * GPS安装位置
      * */
     @TableField(value = "X1")
-    private float x1;
+    private Float x1;
 
     @TableField(value = "Y1")
-    private float y1;
+    private Float y1;
 
     @TableField(value = "X2")
-    private float x2;
+    private Float x2;
 
     @TableField(value = "Y2")
-    private float y2;
-
-    /**
-     * 臂长
-     * */
-    @TableField(value = "BRANCHLENGTH")
-    private float branchLength;
+    private Float y2;
 
     @TableField(value = "CREATETIME")
     private Date createTime;
@@ -96,5 +99,17 @@ public class Excavator implements Serializable {
 
     @TableField(exist = false)
     private Integer mapId;
+
+    /**
+     * 容量
+     * */
+    @TableField(exist = false)
+    private Float capacity;
+
+    /**
+     * 臂长
+     * */
+    @TableField(exist = false)
+    private Float branchLength;
 
 }

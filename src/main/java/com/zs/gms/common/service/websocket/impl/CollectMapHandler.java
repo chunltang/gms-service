@@ -21,7 +21,7 @@ public class CollectMapHandler extends MapHandler {
 
     @Override
     public void addFunction(Map<String, Object> params) {
-        if(GmsUtil.mapContains(params,SESSION_FIELD,VEHICLE_FIELD)){
+        if (GmsUtil.mapContains(params, SESSION_FIELD, VEHICLE_FIELD)) {
             Session session = (Session) params.get(SESSION_FIELD);
             Integer integer = Integer.valueOf(params.get(VEHICLE_FIELD).toString());
             sessionMap.computeIfAbsent(session, s -> new HashSet<>()).add(integer);
@@ -39,10 +39,22 @@ public class CollectMapHandler extends MapHandler {
 
     @Override
     public void sendMessage(Session session, String message) {
+        if (null != session) {
+            send(session, message);
+        } else {
+            for (Session s : sessionMap.keySet()) {
+                send(s, getResult(message, FunctionEnum.collectMap.name()));
+            }
+        }
+    }
+
+    private void send(Session session, String message) {
         synchronized (session) {
             try {
                 if (session.isOpen()) {
                     session.getBasicRemote().sendText(message);
+                } else {
+                    sessionMap.remove(session);
                 }
             } catch (IOException e) {
                 log.error("ws-collectMap发送数据失败", e);

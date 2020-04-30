@@ -1,126 +1,187 @@
 package com.zs.gms.controller.monitor;
 
-import com.zs.gms.common.utils.GmsUtil;
-import com.zs.gms.entity.vehiclemanager.Barney;
-import com.zs.gms.service.mapmanager.MapDataUtil;
-import com.zs.gms.service.vehiclemanager.BarneyService;
+import com.alibaba.fastjson.JSONObject;
 import com.zs.gms.common.annotation.Log;
+import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.controller.BaseController;
+import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.GmsResponse;
+import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.common.exception.GmsException;
-import com.zs.gms.entity.monitor.DispatchTask;
-import com.zs.gms.entity.monitor.TaskRule;
-import com.zs.gms.service.monitor.DispatchTaskService;
-import com.zs.gms.service.monitor.TaskRuleService;
+import com.zs.gms.common.message.MessageEntry;
+import com.zs.gms.common.message.MessageFactory;
+import com.zs.gms.common.message.MessageResult;
+import com.zs.gms.common.service.GmsService;
+import com.zs.gms.common.utils.GmsUtil;
+import com.zs.gms.entity.mapmanager.SemiStatic;
+import com.zs.gms.entity.monitor.Unit;
+import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
+import com.zs.gms.service.mapmanager.MapDataUtil;
+import com.zs.gms.service.monitor.UnitService;
+import com.zs.gms.service.monitor.UnitVehicleService;
+import com.zs.gms.service.system.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
 @RequestMapping(value = "/units")
 @Slf4j
-@Api(tags = "运营监控",description = "Dispatch Controller")
+@Validated
+@Api(tags = "运营监控", description = "Unit Controller")
 public class UnitController extends BaseController {
 
     @Autowired
-    @Lazy
-    private DispatchTaskService dispatchTaskService;
+    private UnitService unitService;
 
     @Autowired
-    @Lazy
-    private TaskRuleService taskRuleService;
+    private UserService userService;
 
     @Autowired
-    @Lazy
-    private BarneyService barneyService;
+    private UnitVehicleService unitVehicleService;
 
+    @Log("添加调度单元")
+    @PostMapping
+    @ApiOperation(value = "添加调度单元", httpMethod = "POST")
+    public void addUnit(@Valid @MultiRequestBody Unit unit, HttpServletResponse response) throws GmsException {
+        try {
+            User currentUser = super.getCurrentUser();
+            GmsResponse gmsResponse=null;
+            if (!currentUser.getRoleSign().equals(Role.RoleSign.CHIEFDESPATCHER_ROLE.getValue())) {
+                gmsResponse = new GmsResponse().message("非调度长不能管理调度单元!").badRequest();
+            }
+            boolean existName = unitService.isExistName(unit.getUnitName());
+            if (existName) {
+                gmsResponse =  new GmsResponse().message("调度单元名称已存在").badRequest();
+            }
+            User user = userService.findUserById(unit.getUserId());
+            if (user == null || !user.getRoleSign().equals(Role.RoleSign.DESPATCHER_ROLE.getValue())) {
+                gmsResponse =  new GmsResponse().message("选择的调度员不存在").badRequest();
+            }
+            Integer activeMap = MapDataUtil.getActiveMap();
+            if (null == activeMap) {
+                gmsResponse =  new GmsResponse().message("没有处于活动中的地图!").badRequest();
+            }
+            SemiStatic loadAreaInfo = MapDataUtil.getAreaInfo(activeMap, unit.getLoadAreaId());
+            if (null == loadAreaInfo) {
+                gmsResponse =  new GmsResponse().message("选择的装载区不存在!").badRequest();
+            }
+            SemiStatic unloadAreaInfo = MapDataUtil.getAreaInfo(activeMap, unit.getUnLoadAreaId());
+            if (null == unloadAreaInfo) {
+                gmsResponse =  new GmsResponse().message("选择的卸载区不存在!").badRequest();
+            }
+            if(null!=gmsResponse){
+                GmsService.callResponse(gmsResponse,response);
+                return;
+            }
+            unit.setMapId(activeMap);
+            unit.setCreateUserId(currentUser.getUserId());
+            unitService.addUnit(unit);
+
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put("unitId", unit.getUnitId());
+            paramMap.put("loaderAreaId", unit.getLoadAreaId());
+            paramMap.put("unLoaderAreaId", unit.getUnLoadAreaId());
+            paramMap.put("cycleTimes", unit.getCycleTimes());
+            paramMap.put("endTime", unit.getEndTime());
+            MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
+            entry.setAfterHandle(() -> {
+                if (!entry.getHandleResult().equals(MessageResult.SUCCESS)) {//操作失败
+                    unitService.deleteUnit(unit.getUnitId());
+                }
+            });
+            MessageFactory.getDispatchMessage().sendMessageWithID(entry.getMessageId(), "CreateLoaderAIUnit", JSONObject.toJSONString(paramMap), "添加调度单元成功");
+        } catch (Exception e) {
+            String message = "添加调度单元失败";
+            log.error(message, e);
+            throw new GmsException(message);
+        }
+    }
 
     @Log("获取调度单元列表")
     @GetMapping
-    @ApiOperation(value = "获取调度单元列表",httpMethod = "GET")
+    @ApiOperation(value = "获取调度单元列表", httpMethod = "GET")
     @ResponseBody
-    public String getDispatchTaskList() throws GmsException {
-        User currentUser = this.getCurrentUser();
+    public String getDispatchTaskList(QueryRequest queryRequest) throws GmsException {
         try {
-            List<DispatchTask> list = dispatchTaskService.getDispatchTaskList(currentUser.getUserId(), MapDataUtil.getActiveMap());
-            return GmsUtil.toJsonIEnumDesc(new GmsResponse().data(list).message("获取调度单元列表成功").success());
-        }catch ( Exception e){
-            String message="获取调度单元列表失败";
-            log.error(message,e);
+            Map<String, Object> dataTable = super.getDataTable(unitService.getUnitList(queryRequest));
+            return GmsUtil.toJsonIEnumDesc(new GmsResponse().data(dataTable).message("获取调度单元列表成功").success());
+        } catch (Exception e) {
+            String message = "获取调度单元列表失败";
+            log.error(message, e);
             throw new GmsException(message);
         }
     }
 
-
-    @Log("获取指定调度单元车辆")
-    @GetMapping(value = "/{unitId}/vehicles")
-    @ApiOperation(value = "获取指定调度单元车辆",httpMethod = "GET")
-    public GmsResponse getUnitVehicleList(@PathVariable Integer unitId) throws GmsException {
-        if(null==unitId){
-            throw  new GmsException("参数异常");
-        }
+    @Log("修改调度单元列表")
+    @PutMapping
+    @ApiOperation(value = "修改调度单元列表", httpMethod = "PUT")
+    @ResponseBody
+    public GmsResponse updateUnit(@MultiRequestBody Unit unit) throws GmsException {
         try {
-            List<Barney> barneys = taskRuleService.getUnitVehicleList(unitId);
-            return new GmsResponse().data(barneys).message("获取指定调度单元车辆成功").success();
-        }catch (Exception e){
-            String message="获取指定调度单元车辆失败";
-            log.error(message,e);
+            boolean existId = unitService.isExistId(unit.getUnitId());
+            if (!existId) {
+                return new GmsResponse().message("调度单元不存在").badRequest();
+            }
+            String unitName = unit.getUnitName();
+            if (GmsUtil.StringNotNull(unitName)) {
+                boolean existName = unitService.isExistName(unitName, unit.getUnitId());
+                if (existName) {
+                    return new GmsResponse().message("调度单元名称已存在").badRequest();
+                }
+            }
+            unitService.updateUnit(unit);
+            return new GmsResponse().message("修改调度单元列表成功").success();
+        } catch (Exception e) {
+            String message = "修改调度单元列表失败";
+            log.error(message, e);
             throw new GmsException(message);
         }
     }
 
-    @Log("获取指定调度员所有车辆")
-    @GetMapping(value = "/vehicles/all")
-    @ApiOperation(value = "获取指定调度员所有车辆",httpMethod = "GET")
-    public GmsResponse getVehiclesByUserId(Integer  userId) throws GmsException {
-        if(null==userId){
-            throw  new GmsException("参数异常");
-        }
+    @Log("删除调度单元")
+    @DeleteMapping("/{unitId}")
+    @ApiOperation(value = "删除调度单元", httpMethod = "DELETE")
+    public GmsResponse deleteUnit(@PathVariable("unitId") Integer unitId) throws GmsException {
         try {
-            List<Barney> barneys = barneyService.getVehicleListByUserId(userId);
-            return new GmsResponse().data(barneys).message("获取指定调度员所有车辆成功").success();
-        }catch (Exception e){
-            String message="获取指定调度员所有车辆失败";
-            log.error(message,e);
+            boolean existId = unitService.isExistId(unitId);
+            if (!existId) {
+                return new GmsResponse().message("调度单元不存在").badRequest();
+            }
+            unitService.deleteUnit(unitId);
+            unitVehicleService.clearVehiclesByUnitId(unitId);
+            return new GmsResponse().message("删除调度单元成功").success();
+        } catch (Exception e) {
+            String message = "删除调度单元失败";
+            log.error(message, e);
             throw new GmsException(message);
         }
     }
 
-    @Log("获取指定调度员所有空闲车辆")
-    @GetMapping(value = "/vehicles/leisure")
-    @ApiOperation(value = "获取指定调度员所有空闲车辆",httpMethod = "GET")
-    public GmsResponse getLeisureVehiclesByUserId(Integer  userId) throws GmsException {
-        if(null==userId){
-            throw  new GmsException("参数异常");
-        }
-        try {
-            List<Barney> barneys = taskRuleService.getVehiclesByUserId(userId);
-            return new GmsResponse().data(barneys).message("获取指定调度员所有空闲车辆成功").success();
-        }catch (Exception e){
-            String message="获取指定调度员所有空闲车辆失败";
-            log.error(message,e);
-            throw new GmsException(message);
-        }
-    }
-
-    @Log("获取指定车辆调度任务")
-    @GetMapping(value = "/vehicles/{vehicleId}")
-    @ApiOperation(value = "获取指定车辆调度任务",httpMethod = "GET")
-    public GmsResponse getTaskRule(@PathVariable Integer vehicleId) throws GmsException {
+    @Log("获取调度员管理的调度单元")
+    @GetMapping(value = "/dispatcher")
+    @ApiOperation(value = "获取调度员管理的调度单元", httpMethod = "GET")
+    @ResponseBody
+    public String getUnits() throws GmsException {
         try {
             User currentUser = this.getCurrentUser();
-            TaskRule taskRule = taskRuleService.getTaskRuleByVehicleId(currentUser.getUserId(), vehicleId);
-            return new GmsResponse().data(taskRule).message("获取指定车辆调度任务成功").success();
-        }catch (Exception e){
-            String message="获取指定车辆调度任务失败";
-            log.error(message,e);
+            List<Unit> units = unitService.getUnitListByUserId(currentUser.getUserId());
+            return GmsUtil.toJsonIEnumDesc(new GmsResponse().data(units).message("获取调度员管理的调度单元成功").success());
+        } catch (Exception e) {
+            String message = "获取调度员管理的调度单元失败";
+            log.error(message, e);
             throw new GmsException(message);
         }
     }

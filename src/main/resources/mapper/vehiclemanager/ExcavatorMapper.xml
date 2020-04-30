@@ -5,8 +5,10 @@
     <select id="findExcavatorListPage" parameterType="com.zs.gms.entity.vehiclemanager.Excavator"
             resultType="com.zs.gms.entity.vehiclemanager.Excavator">
         select te.EXCAVATORID,
-        te.BRANCHLENGTH,
-        te.CAPACITY,
+        te.EXCAVATORTYPEID,
+        te.VEHICLESTATUS,
+        tet.CAPACITY,
+        tet.BRANCHLENGTH,
         te.CREATETIME,
         te.EXCAVATORNO,
         te.IP1,
@@ -20,7 +22,8 @@
         tbe.MAPID,
         su.USERNAME
         from t_excavator te
-        left join t_bind_excavator tbe on tbe.EXCAVATORID = te.EXCAVATORID
+        left join t_excavator_type tet on tet.EXCAVATORTYPEID=te.EXCAVATORTYPEID
+        left join t_bind_excavator tbe on tbe.EXCAVATORID = te.EXCAVATORNO
         left join sys_user su on su.USERID=tbe.USERID
         where 1=1 and te.ISDEL=false
         <if test="excavator.userId!=null">

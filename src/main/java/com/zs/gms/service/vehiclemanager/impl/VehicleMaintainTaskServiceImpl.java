@@ -20,6 +20,8 @@ import com.zs.gms.entity.vehiclemanager.VehicleMaintainTask;
 import com.zs.gms.enums.vehiclemanager.DateEnum;
 import com.zs.gms.mapper.vehiclemanager.VehicleMaintainTaskMapper;
 import com.zs.gms.service.vehiclemanager.VehicleMaintainTaskService;
+import org.apache.ibatis.session.SqlSession;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED, readOnly = true, rollbackFor = Exception.class)
@@ -40,6 +43,13 @@ public class VehicleMaintainTaskServiceImpl extends ServiceImpl<VehicleMaintainT
         vehicleMaintainTask.setAddTime(new Date());
         vehicleMaintainTask.setStatus(VehicleMaintainTask.Status.PROCESSED);
         this.save(vehicleMaintainTask);
+    }
+
+    @Override
+    public boolean isExist(String maintainTaskName) {
+        LambdaQueryWrapper<VehicleMaintainTask> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(VehicleMaintainTask::getMaintainTaskName, maintainTaskName);
+        return this.list(queryWrapper).size()>0;
     }
 
     @Override
@@ -81,6 +91,7 @@ public class VehicleMaintainTaskServiceImpl extends ServiceImpl<VehicleMaintainT
     }
 
     @Override
+    @Transactional
     public List<VehicleMaintainTask> getMaintainTasks() {
         return this.list();
     }

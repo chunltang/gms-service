@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zs.gms.mapper.monitor.UnitVehicleMapper">
+
+    <select id="getUnitByVehicleId" parameterType="integer" resultType="com.zs.gms.entity.monitor.Unit">
+        select tu.*,su.userName
+        from t_unit_vehicle tuv
+                 left join t_unit tu on tuv.UNITID = tu.UNITID
+                 left join sys_user su on su.USERID = tu.USERID
+        where tuv.ISDEL = false
+          and tu.ISDEL = false
+          and tuv.VEHICLEID = #{vehicleId}
+    </select>
+
+    <select id="getAllVehicles" resultType="map">
+        select tv.VEHICLENO vehicleId, tuv.UNITID unitId
+        from t_vehicle tv
+                 left join (select t.VEHICLEID, t.UNITID from t_unit_vehicle t where t.ISDEL = false) tuv
+                           on tv.VEHICLENO = tuv.VEHICLEID
+        where tv.ISDEL = false
+          and tv.VEHICLESTATUS = '1'
+    </select>
+</mapper>

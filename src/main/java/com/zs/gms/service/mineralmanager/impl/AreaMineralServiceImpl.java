@@ -1,7 +1,6 @@
 package com.zs.gms.service.mineralmanager.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zs.gms.common.message.MessageEntry;
@@ -67,8 +66,16 @@ public class AreaMineralServiceImpl extends ServiceImpl<AreaMineralMapper, AreaM
 
     @Override
     @Transactional
-    public void deleteAreaMineral(Integer id) {
+    public void deleteAreaMineralById(Integer id) {
         this.baseMapper.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public void deleteAreaMineral(Integer mineralId) {
+        LambdaQueryWrapper<AreaMineral> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(AreaMineral::getMineralId,mineralId);
+        this.remove(queryWrapper);
     }
 
     /**
@@ -76,7 +83,7 @@ public class AreaMineralServiceImpl extends ServiceImpl<AreaMineralMapper, AreaM
      * */
     @Override
     @Transactional
-    public List<AreaMineral> getUnAreaIds(Integer mineralId) {
+    public List<AreaMineral> getAreaIds(Integer mineralId) {
         LambdaQueryWrapper<AreaMineral> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(AreaMineral::getMineralId,mineralId);
         return this.list(queryWrapper);
@@ -119,7 +126,7 @@ public class AreaMineralServiceImpl extends ServiceImpl<AreaMineralMapper, AreaM
         MessageEntry entry = MessageFactory.getApproveEntry(approve.getApproveId());
         entry.setAfterHandle(() -> {
             if (!entry.getHandleResult().equals(MessageResult.SUCCESS)) {
-                areaMineralService.deleteAreaMineral(id);
+                areaMineralService.deleteAreaMineralById(id);
                 ApproveUtil.addError(approve.getApproveId(),"远程调用失败");
             }else{
                 //修改装卸调度单元的卸载区id

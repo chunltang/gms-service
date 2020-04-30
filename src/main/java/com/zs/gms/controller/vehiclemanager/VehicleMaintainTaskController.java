@@ -46,6 +46,9 @@ public class VehicleMaintainTaskController extends BaseController {
     @ApiOperation(value = "添加矿车维护任务", httpMethod = "POST")
     public GmsResponse barneyMaintainTask(@MultiRequestBody @Valid VehicleMaintainTask maintainTask) throws GmsException {
         try {
+            if (maintainTaskService.isExist(maintainTask.getMaintainTaskName())) {
+                return new GmsResponse().message("维护任务名称已存在").badRequest();
+            }
             User user = super.getCurrentUser();
             maintainTask.setUserId(user.getUserId());
             maintainTask.setUserName(user.getUserName());

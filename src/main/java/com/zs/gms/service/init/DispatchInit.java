@@ -64,7 +64,7 @@ public class DispatchInit {
             List<User> users = userService.getUsersByRoleId(role.getRoleId());
             if (!CollectionUtils.isEmpty(users)) {
                 for (User user : users) {
-                    List<DispatchTask> dispatchTasks = dispatchTaskService.getDispatchTaskList(user.getUserId(), UnitTypeEnum.INTERACTIVE_DISPATCHTASK.getValue(),mapId);
+                    List<DispatchTask> dispatchTasks = dispatchTaskService.getDispatchTaskList(user.getUserId(), UnitTypeEnum.INTERACTIVE_DISPATCHTASK,mapId);
                     if (CollectionUtils.isEmpty(dispatchTasks)) {
                         DispatchTask dispatchTask = new DispatchTask();
                         dispatchTask.setDispatchTaskType(UnitTypeEnum.INTERACTIVE_DISPATCHTASK);

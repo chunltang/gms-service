@@ -1,9 +1,9 @@
 package com.zs.gms.controller.vehiclemanager;
 
 import com.zs.gms.common.annotation.Mark;
-import com.zs.gms.common.service.DelayedService;
+import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.vehiclemanager.Barney;
-import com.zs.gms.enums.vehiclemanager.DateEnum;
+import com.zs.gms.enums.vehiclemanager.ActivateStatusEnum;
 import com.zs.gms.service.init.SyncRedisData;
 import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.common.annotation.Log;
@@ -18,11 +18,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.util.Map;
-import java.util.zip.ZipEntry;
 
 @Slf4j
 @RestController
@@ -40,7 +38,7 @@ public class BarneyController extends BaseController {
     @ApiOperation(value = "新增矿车", httpMethod = "POST")
     public GmsResponse addVehicle(@Valid @MultiRequestBody Barney barney) throws GmsException {
         try {
-            if (this.barneyService.queryVehicleExist(barney.getVehicleNo())) {
+            if (this.barneyService.queryVehicleExistNo(barney.getVehicleNo())) {
                 throw new GmsException("该车辆编号已添加");
             }
             this.barneyService.addVehicle(barney);
@@ -55,10 +53,11 @@ public class BarneyController extends BaseController {
     @Log("获取矿车列表")
     @GetMapping("/barneys")
     @ApiOperation(value = "获取矿车列表", httpMethod = "GET")
-    public GmsResponse getVehicleList(Barney barney, QueryRequest queryRequest) throws GmsException {
+    @ResponseBody
+    public String getVehicleList(Barney barney, QueryRequest queryRequest) throws GmsException {
         try {
             Map<String, Object> dataTable = this.getDataTable(this.barneyService.getVehicleList(barney, queryRequest));
-            return new GmsResponse().data(dataTable).message("获取矿车列表成功").success();
+            return GmsUtil.toJsonIEnumDesc(new GmsResponse().data(dataTable).message("获取矿车列表成功").success());
         } catch (Exception e) {
             String message = "获取矿车列表失败";
             log.error(message, e);
@@ -110,6 +109,40 @@ public class BarneyController extends BaseController {
             return new GmsResponse().message("批量矿车分配成功").success();
         } catch (Exception e) {
             String message = "批量矿车分配失败";
+            log.error(message, e);
+            throw new GmsException(message);
+        }
+    }
+
+    @Log("启用矿车")
+    @PutMapping(value = "/barneys/start/{vehicleId}")
+    @ApiOperation(value = "启用矿车", httpMethod = "PUT")
+    public GmsResponse startVehicle(@PathVariable(value = "vehicleId") Integer vehicleId) throws GmsException {
+        try {
+            if(!this.barneyService.queryVehicleExistId(vehicleId)){
+                return new GmsResponse().message("矿车id不存在").badRequest();
+            }
+            this.barneyService.updateStatus(vehicleId, ActivateStatusEnum.ACTIVATED);
+            return new GmsResponse().message("启用矿车成功").success();
+        } catch (Exception e) {
+            String message = "启用矿车失败";
+            log.error(message, e);
+            throw new GmsException(message);
+        }
+    }
+
+    @Log("停用矿车")
+    @PutMapping(value = "/barneys/stop/{vehicleId}")
+    @ApiOperation(value = "停用矿车", httpMethod = "PUT")
+    public GmsResponse stopVehicle(@PathVariable(value = "vehicleId") Integer vehicleId) throws GmsException {
+        try {
+            if(!this.barneyService.queryVehicleExistId(vehicleId)){
+                return new GmsResponse().message("矿车id不存在").badRequest();
+            }
+            this.barneyService.updateStatus(vehicleId,ActivateStatusEnum.UNACTIVATED);
+            return new GmsResponse().message("停用矿车成功").success();
+        } catch (Exception e) {
+            String message = "停用矿车失败";
             log.error(message, e);
             throw new GmsException(message);
         }

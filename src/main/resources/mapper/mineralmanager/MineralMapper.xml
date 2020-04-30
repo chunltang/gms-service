@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zs.gms.mapper.mineralmanager.MineralMapper">
+
+    <select id="getMineralListPage" resultType="com.zs.gms.entity.mineralmanager.Mineral">
+        select tm.*, tbe.EXCAVATORID excavatorNo, tam.AREAID loadId,tam.MAPID mapId
+        from t_mineral tm
+                 left join (select t.MINERALID,t.MAPID, t.AREAID from t_area_mineral t where t.ISDEL = false) tam
+                           on tm.MINERALID = tam.MINERALID
+                 left join (select LOADAREAID, EXCAVATORID from t_bind_excavator t where t.ISDEL = false) tbe
+                           on tam.AREAID = tbe.LOADAREAID
+        where tm.ISDEL = false
+    </select>
+</mapper>

@@ -79,7 +79,8 @@ public class Role implements Serializable {
         DESPATCHER_ROLE("despatcher","调度员"),
         MAPMAKER_ROLE("mapmaker","地图编辑员"),
         EXCAVATORPERSON_ROLE("excavatorPerson","挖掘机操作员"),
-        DBULLDOZERPERSON_ROLE("bulldozerPerson","推土机操作员");
+        DBULLDOZERPERSON_ROLE("bulldozerPerson","推土机操作员"),
+        MANAGER_ROLE("manager","管理员");
 
         private String value;
 

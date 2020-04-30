@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zs.gms.entity.vehiclemanager.Barney;
 import com.zs.gms.common.entity.QueryRequest;
+import com.zs.gms.enums.vehiclemanager.ActivateStatusEnum;
 
 import java.util.List;
 
@@ -16,10 +17,17 @@ public interface BarneyService extends IService<Barney> {
 
     void deleteVehicle(Integer vehicleId);
 
+    void updateStatus(Integer vehicleId, ActivateStatusEnum status);
+
     /**
      * 批量添加用户车辆关系
      */
     void addUserVehicles(Integer userId, String vehicleIds);
+
+    /**
+     * 查询车辆编号是否存在
+     * */
+    boolean isExistVehicleNo(Integer vehicleNo);
 
     /**
      * 查询车辆是否已分配
@@ -46,7 +54,9 @@ public interface BarneyService extends IService<Barney> {
     /**
      * 查询车辆是否已添加
      */
-    boolean queryVehicleExist(Integer vehicleNo);
+    boolean queryVehicleExistNo(Integer vehicleNo);
+
+    boolean queryVehicleExistId(Integer vehicleId);
 
     /**
      * 查询所有车辆编号

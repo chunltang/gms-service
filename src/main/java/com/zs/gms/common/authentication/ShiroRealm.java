@@ -1,5 +1,7 @@
 package com.zs.gms.common.authentication;
 
+import com.zs.gms.common.entity.GmsConstant;
+import com.zs.gms.common.utils.ThreadLocalUtil;
 import com.zs.gms.entity.system.Menu;
 import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
@@ -18,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,10 +40,6 @@ public class ShiroRealm extends AuthorizingRealm {
     @Autowired
     @Lazy
     private MenuService menuService;
-
-    @Autowired
-    @Lazy
-    private ShiroHelper shiroHelper;
 
 
     /**
@@ -83,6 +82,13 @@ public class ShiroRealm extends AuthorizingRealm {
         if (!StringUtils.equals(password, user.getPassword())) {
             throw new IncorrectCredentialsException("账号或密码不存在!");
         }
+        //获取sessionId
+        String sessionId = ThreadLocalUtil.get().toString();
+        user.setSessionId(GmsConstant.SHIRO_SESSION_PREFIX+sessionId);
+        Date lastLoginTime = new Date();
+        user.setLastLoginTime(lastLoginTime);
+        ShiroHelper.put(user);
+        this.userService.updateLastLoginTime(user.getUserId(),lastLoginTime);
         return new SimpleAuthenticationInfo(user, password, getName());
     }
 

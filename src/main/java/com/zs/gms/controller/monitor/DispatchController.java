@@ -124,48 +124,6 @@ public class DispatchController extends BaseController {
         }
     }
 
-    @Log("创建特殊调度单元")
-    @PostMapping(value = "/specialDispatchTasks")
-    @ApiOperation(value = "创建特殊调度单元", httpMethod = "POST")
-    public void createSpecialDispatchTask(@MultiRequestBody("name") String name,
-                                          @MultiRequestBody("taskType") TaskTypeEnum taskType,
-                                          @MultiRequestBody("taskAreaId") Integer taskAreaId) throws GmsException {
-        if (!ObjectUtils.allNotNull(taskType, taskAreaId)) {
-            throw new GmsException("参数异常");
-        }
-        Integer mapId = MapDataUtil.getActiveMap();
-        User currentUser = getCurrentUser();
-        DispatchTask dispatchTask = new DispatchTask();
-        dispatchTask.setTaskAreaId(taskAreaId);
-        dispatchTask.setMapId(mapId);
-        dispatchTask.setDispatchTaskType(UnitTypeEnum.SPECIAL_DISPATCHTASK);
-        dispatchTask.setUserId(currentUser.getUserId());
-        dispatchTask.setStatus(DispatchTask.Status.UNUSED);
-        dispatchTask.setTaskType(taskType);
-        dispatchTask.setName(name);
-        Integer unitId = dispatchTaskService.addDispatchTask(dispatchTask);
-        if (null == unitId) {
-            throw new GmsException("创建特殊调度单元失败");
-        }
-        try {
-            Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put("unitId", GmsUtil.typeTransform(unitId, Integer.class));
-            paramMap.put("taskType", Integer.valueOf(taskType.getValue()));
-            paramMap.put("taskAreaId", taskAreaId);
-            MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
-            entry.setAfterHandle(() -> {
-                if (!entry.getHandleResult().equals(MessageResult.SUCCESS)) {//操作失败
-                    dispatchTaskService.deleteByUnitId(GmsUtil.typeTransform(unitId, Integer.class));
-                }
-            });
-            MessageFactory.getDispatchMessage().sendMessageWithID(entry.getMessageId(), "CreateSpecialAIUnit", JSONObject.toJSONString(paramMap), "创建特殊调度单元成功");
-        } catch (Exception e) {
-            String message = "创建特殊调度单元失败";
-            log.error(message, e);
-            throw new GmsException(message);
-        }
-    }
-
     @Log("创建装卸调度单元")
     @PostMapping(value = "/loadDispatchTasks")
     @ApiOperation(value = "创建装卸调度单元", httpMethod = "POST")
@@ -327,39 +285,6 @@ public class DispatchController extends BaseController {
             MessageFactory.getDispatchMessage().sendMessageWithID(entry.getMessageId(), "AddLoadAIVeh", JSONObject.toJSONString(paramMap), "装卸单元添加车辆成功");
         } catch (Exception e) {
             String message = "装卸单元添加车辆失败";
-            log.error(message, e);
-            throw new GmsException(message);
-        }
-    }
-
-    @Log("特殊调度单元增加车辆")
-    @PostMapping(value = "/specialDispatchTasks/vehicles")
-    @ApiOperation(value = "特殊调度单元增加车辆", httpMethod = "POST")
-    public void addSpecialDispatchVehicle(@MultiRequestBody("unitId") Integer unitId,
-                                          @MultiRequestBody("vehicleId") Integer vehicleId) throws GmsException {
-
-        if (!ObjectUtils.allNotNull(unitId, vehicleId)) {
-            throw new GmsException("参数异常");
-        }
-        User currentUser = getCurrentUser();
-        Map<String, Object> paramMap = new HashMap<>();
-        paramMap.put("unitId", unitId);
-        paramMap.put("vehicleId", vehicleId);
-        try {
-            MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
-            entry.setAfterHandle(() -> {
-                if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {//操作成功
-                    TaskRule taskRule = new TaskRule();
-                    taskRule.setUserId(currentUser.getUserId());
-                    taskRule.setStatus(TaskRule.Status.RUNING);
-                    taskRule.setVehicleId(vehicleId);
-                    taskRule.setUnitId(unitId);
-                    taskRuleService.addTaskRule(taskRule);
-                }
-            });
-            MessageFactory.getDispatchMessage().sendMessageWithID(entry.getMessageId(), "AddSpecialAIVeh", JSONObject.toJSONString(paramMap), "特殊调度单元增加车辆成功");
-        } catch (Exception e) {
-            String message = "特殊调度单元增加车辆失败";
             log.error(message, e);
             throw new GmsException(message);
         }

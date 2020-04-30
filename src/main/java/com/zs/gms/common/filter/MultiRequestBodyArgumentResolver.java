@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.common.utils.DateUtil;
+import com.zs.gms.common.utils.GmsUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.URL;
@@ -109,7 +110,7 @@ public class MultiRequestBodyArgumentResolver implements HandlerMethodArgumentRe
         // 解析不到则将整个json串解析为当前参数类型
         if (isBasicDataTypes(parameterType)) {
             if (parameterAnnotation.required()) {
-                throw new IllegalArgumentException(String.format("必要参数不存在:%s", key));
+                throw new IllegalArgumentException(GmsUtil.format("必要参数不存在:{}", key));
             } else {
                 return null;
             }
@@ -119,17 +120,17 @@ public class MultiRequestBodyArgumentResolver implements HandlerMethodArgumentRe
         if (!parameterAnnotation.parseAllFields()) {
 
             if (parameterAnnotation.required()) {// 如果是必传参数抛异常
-                throw new IllegalArgumentException(String.format("必要参数不存在:%s", key));
+                throw new IllegalArgumentException(GmsUtil.format("必要参数不存在:{}", key));
             }
             return null;
         }
-
         Object result;// 非基本类型，允许解析，将外层属性解析
         try {
             ObjectMapper mapper = new ObjectMapper();
             result = mapper.readValue(jsonObject.toString(), parameterType);
-        } catch (JSONException jsonException) {
+        } catch (Exception e) {
             result = null;
+            throw new GmsException("必要参数解析异常",e);
         }
 
         if (!parameterAnnotation.required()) {//如果非必要参数直接返回，否则如果没有一个属性有值则报错
@@ -147,7 +148,7 @@ public class MultiRequestBodyArgumentResolver implements HandlerMethodArgumentRe
                 }
             }
             if (!haveValue) {
-                throw new IllegalArgumentException(String.format("必要参数不存在:%s", key));
+                throw new IllegalArgumentException(GmsUtil.format("必要参数不存在:{}", key));
             }
             return result;
         }
