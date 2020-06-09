@@ -4,7 +4,7 @@ import com.baomidou.mybatisplus.annotation.*;
 import com.baomidou.mybatisplus.core.enums.IEnum;
 import com.fasterxml.jackson.annotation.*;
 import com.zs.gms.common.interfaces.Desc;
-import com.zs.gms.enums.vehiclemanager.ActivateStatusEnum;
+import com.zs.gms.common.entity.WhetherEnum;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -44,7 +44,7 @@ public class Mineral implements Serializable {
      * 是否激活
      */
     @TableField(value = "ACTIVATE")
-    private ActivateStatusEnum activate;
+    private WhetherEnum activate;
 
     /**
      * 备注
@@ -71,16 +71,30 @@ public class Mineral implements Serializable {
     private Integer loadId;
 
     /**
-     * 地图id
+     * 装载区
      * */
     @TableField(exist = false)
-    private Integer mapId;
+    private String loadIdName;
 
     /**
      * 装载区
      * */
     @TableField(exist = false)
-    private String loadIdName;
+    private Integer unLoadId;
+
+    /**
+     * 装载区
+     * */
+    @TableField(exist = false)
+    private String unlLoadIdName;
+
+    /**
+     * 地图id
+     * */
+    @TableField(exist = false)
+    private Integer mapId;
+
+
 
     /**
      * 挖掘机编号

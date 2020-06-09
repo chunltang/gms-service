@@ -9,11 +9,11 @@ import javax.annotation.PostConstruct;
 
 /**
  * 静态属性配置
- * */
+ */
 @Component
 public class StaticConfig {
 
-    public  static String SERVICE_NAME;//当前实列服务名称
+    public static String SERVICE_NAME;//当前实列服务名称
 
     public static int MONITOR_DB;//redis监听库号
 
@@ -27,39 +27,49 @@ public class StaticConfig {
 
     public static String bVRequest;
 
+    public static boolean isStartMapCollection = false;//地图采集
+
+
+    public static String NETTY_HOST;
+
+    @Value("${NETTY_SERVER}")
+    private void setNettyHost(String nettyHost){
+        NETTY_HOST=nettyHost;
+    }
+
 
     @Value("${gms.server.name}")
-    public void setService(String service){
-        SERVICE_NAME=service;
+    public void setService(String service) {
+        SERVICE_NAME = service;
     }
 
     @Value("${gms.listener.redisMonitorDB}")
-    public void setMonitorDB(int monitorDB){
-        MONITOR_DB=monitorDB;
+    public void setMonitorDB(int monitorDB) {
+        MONITOR_DB = monitorDB;
     }
 
     @Value("${gms.cache.redisDB}")
-    public void setCacheDB(int cacheDB){
-        CACHE_DB=cacheDB;
+    public void setCacheDB(int cacheDB) {
+        CACHE_DB = cacheDB;
     }
 
     @Value("${gms.keep.redisDB}")
-    public void setKeepDB(int keepDB){
-        KEEP_DB=keepDB;
+    public void setKeepDB(int keepDB) {
+        KEEP_DB = keepDB;
     }
 
     @Value("${gms.exchanges.bMRequest}")
-    public void setBMRequest(String exchangeName){
-        bMRequest=exchangeName;
+    public void setBMRequest(String exchangeName) {
+        bMRequest = exchangeName;
     }
 
     @Value("${gms.exchanges.bDRequest}")
-    public void setbDRequest(String exchangeName){
-        bDRequest=exchangeName;
+    public void setbDRequest(String exchangeName) {
+        bDRequest = exchangeName;
     }
 
     @Value("${gms.exchanges.bVRequest}")
-    public void setbVRequest(String exchangeName){
-        bVRequest=exchangeName;
+    public void setbVRequest(String exchangeName) {
+        bVRequest = exchangeName;
     }
 }

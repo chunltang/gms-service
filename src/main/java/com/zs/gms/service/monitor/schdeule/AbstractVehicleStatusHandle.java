@@ -1,7 +1,6 @@
 package com.zs.gms.service.monitor.schdeule;
 
 import com.zs.gms.entity.monitor.VehicleStatus;
-import com.zs.gms.service.monitor.schdeule.VehicleStatusHandle;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +28,7 @@ public abstract class AbstractVehicleStatusHandle implements VehicleStatusHandle
 
     @Override
     public void handleStatus(VehicleStatus vehicleStatus) {
-        Object status = vehicleStatus.getStatus();
+        Object status = vehicleStatus.getObj();
         if(status!=null){
             if(status.equals(get(vehicleStatus.getVehicleId())[0])){
                 //状态没有改变
@@ -64,7 +63,7 @@ public abstract class AbstractVehicleStatusHandle implements VehicleStatusHandle
     @Override
     public void changed(VehicleStatus vehicleStatus){
         //状态改变
-        this.put(vehicleStatus.getVehicleId(),vehicleStatus.getStatus());
+        this.put(vehicleStatus.getVehicleId(),vehicleStatus.getObj());
         save(vehicleStatus);
     };
 

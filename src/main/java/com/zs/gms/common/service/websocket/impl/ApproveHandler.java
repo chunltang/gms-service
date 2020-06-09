@@ -18,16 +18,6 @@ public class ApproveHandler extends SetHandler {
 
     @Override
     public void sendMessage(Session session, String message) {
-        synchronized (session) {
-            try {
-                if (session.isOpen()) {
-                    session.getBasicRemote().sendText(message);
-                } else {
-                    sessions.remove(session);
-                }
-            } catch (IOException e) {
-                log.error("ws-approve发送数据失败", e);
-            }
-        }
+        super.sendMessage(session,message);
     }
 }

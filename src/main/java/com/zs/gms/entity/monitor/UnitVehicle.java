@@ -3,6 +3,7 @@ package com.zs.gms.entity.monitor;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.zs.gms.common.entity.WhetherEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -45,6 +46,12 @@ public class UnitVehicle implements Serializable {
      * */
     @TableField(value = "CREATEUSERID")
     private Integer createUserId;
+
+    /**
+     * 车辆在调度单元中的状态,停止还是运行
+     * */
+    @TableField(value = "STATUS")
+    private WhetherEnum status;
 
 
     @TableLogic

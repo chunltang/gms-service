@@ -7,11 +7,17 @@ import com.zs.gms.common.authentication.ShiroHelper;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.entity.QueryRequest;
+import com.zs.gms.common.entity.RedisKeyPool;
+import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.exception.GmsException;
+import com.zs.gms.common.service.RedisService;
+import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.MD5Util;
+import com.zs.gms.entity.monitor.Unit;
 import com.zs.gms.entity.system.Menu;
 import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
+import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.system.MenuService;
 import com.zs.gms.service.system.RoleService;
 import com.zs.gms.service.system.UserService;
@@ -30,6 +36,7 @@ import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -59,10 +66,29 @@ public class UserController extends BaseController {
     @ApiOperation(value = "新增用户",httpMethod = "POST")
     public GmsResponse addUser(@Valid @MultiRequestBody User user) throws GmsException {
         try{
-            User byName = userService.findByName(user.getUserName());
+            Role role = roleService.getRole(user.getRoleId());
+            if(null==role){
+                return new GmsResponse().message("角色不存在").badRequest();
+            }
+            String roleSignDesc = role.getRoleSign();
+            Role.RoleSign roleSign = Role.getEnum(roleSignDesc);
+            /*if(Role.RoleSign.CHIEFDESPATCHER_ROLE.equals(roleSign)||
+                    Role.RoleSign.MANAGER_ROLE.equals(roleSign)||
+                    Role.RoleSign.MAPMAKER_ROLE.equals(roleSign)){
+                List<User> users = userService.getUsersByRoleSign(roleSignDesc);
+                if(users.size()>0){
+                    return new GmsResponse().message("选定角色只能存在一个账号!").badRequest();
+                }
+            }*/
+
+            /*User byName = userService.findByName(user.getUserName());
             if(null!=byName){
                 return new GmsResponse().message("该用户已注册").badRequest();
-            }
+            }*/
+            Integer maxId = userService.getMaxId()+1;
+            user.setUserId(maxId);
+            String str = String.format("%03d", maxId);
+            user.setUserName(roleSign.getSign()+str);
             userService.addUser(user);
             return new GmsResponse().message("新增用户成功").success();
         }catch (Exception e){
@@ -176,7 +202,7 @@ public class UserController extends BaseController {
             }
             if(!ObjectUtils.allNotNull(userId,roleId))
                 throw new GmsException("参数异常");
-            userService.updateUserRole(userId,String.valueOf(roleId));
+            userService.updateUserRole(userId,roleId);
             return new GmsResponse().message("修改用户成功").success();
         }catch (Exception e){
             String message="修改用户失败";
@@ -203,7 +229,6 @@ public class UserController extends BaseController {
         encrypt = MD5Util.encrypt(userName, newPwd);
         if(encrypt.equals(userById.getPassword()))
             throw new GmsException("新密码和旧密码相同");
-
         try {
             userService.updatePassword(userName,newPwd);
             return new GmsResponse().message("修改用户密码成功").success();
@@ -223,6 +248,45 @@ public class UserController extends BaseController {
             return new GmsResponse().data(users).message("获取用户列表成功").success();
         }catch (Exception e){
             String message="根据角色获取用户列表失败";
+            log.error(message,e);
+            throw new GmsException(message);
+        }
+    }
+
+    @Log("获取在线用户，调度员是否分配作业")
+    @GetMapping(value = "/online")
+    @ApiOperation(value = "获取在线用户", httpMethod = "GET")
+    public GmsResponse getOnlineUsers() throws GmsException {
+        try {
+            List<Map<String,Object>> userList = userService.findUnitUserList();
+            List<Map<String,Object>> collect = userList.stream().filter(obj -> {
+                Integer userId = GmsUtil.typeTransform(obj.get("userId"), Integer.class);
+                if (shiroHelper.isOnline(userId)) {
+                    return true;
+                }
+                return false;
+            }).collect(Collectors.toList());
+            return new GmsResponse().data(collect).message("获取在线用户成功").success();
+        } catch (Exception e) {
+            String message = "获取在线用户成功失败";
+            log.error(message, e);
+            throw new GmsException(message);
+        }
+    }
+
+    @Log(value = "清除密码锁定")
+    @PutMapping("/lock")
+    @ApiOperation(value = "清除密码锁定",httpMethod = "PUT")
+    public GmsResponse clearUserLock( Integer userId) throws GmsException {
+        try {
+            User user = userService.findUserById(userId);
+            if(null==user){
+                return new GmsResponse().message("用户不存在!").badRequest();
+            }
+            userService.clearLock(userId);
+            return new GmsResponse().message("清除密码锁定成功").success();
+        }catch (Exception e){
+            String message="清除密码锁定失败";
             log.error(message,e);
             throw new GmsException(message);
         }

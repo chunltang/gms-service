@@ -102,67 +102,81 @@ public class Monitor implements Serializable {
      * 经度
      * */
     @TableField(value = "LONGITUDE")
-    private double longitude;
+    private Double longitude;
 
     /**
      * 纬度
      * */
     @TableField(value = "LATITUDE")
-    private double latitude;
+    private Double latitude;
 
     /**
      * 大地坐标系x坐标 单位米
      * */
     @TableField(value = "XWORLD")
-    private double xworld;
+    private Double xworld;
 
     /**
      * 大地坐标系y坐标 单位米
      * */
     @TableField(value = "YWORLD")
-    private double yworld;
+    private Double yworld;
+
+    private Double x;
+
+    private Double y;
+
+    /**
+     * 宽
+     * */
+    private Double w;
+
+    /**
+     * 长
+     * */
+    private Double l;
 
     /**
      * 局部坐标系x坐标 单位米
      * */
     @TableField(value = "XLOCALITY")
-    private double xLocality;
+    private Double xLocality;
 
     /**
      * 局部坐标系y坐标 单位米
      * */
     @TableField(value = "YLOCALITY")
-    private double yLocality;
+    private Double yLocality;
 
     /**
      * 横摆角  单位度
      * */
     @TableField(value = "YAWANGLE")
-    private double yawAngle;
+    private Double yawAngle;
 
     /**
      * 航向角  单位度
      * */
     @TableField(value = "NAVANGLE")
-    private double navAngle;
+    private Double navAngle;
 
     /**
      * 前轮转向角  单位度
      * */
     @TableField(value = "WHEELANGLE")
-    private double wheelAngle;
+    private Double wheelAngle;
 
     /**
      * 车辆速度  单位度
      * */
     @TableField(value = "CURSPEED")
-    private double curSpeed;
+    private Double curSpeed;
 
     /**
      * 车辆加速度  单位度
      * */
     @TableField(value = "ADDSPEED")
-    private double addSpeed;
+    private Double addSpeed;
 
     /**
      * 故障数量
@@ -180,31 +194,31 @@ public class Monitor implements Serializable {
      * 实际方向盘转角  deg
      * */
     @TableField(value = "STEERANGLE")
-    private double realSteerAngle;
+    private Double realSteerAngle;
 
     /**
      * 实际方向盘转速  deg/s
      * */
     @TableField(value = "STEERROTSPEED")
-    private double realSteerRotSpeed;
+    private Double realSteerRotSpeed;
 
     /**
      * 实际油门开度 %
      * */
     @TableField(value = "ACCELERATORRATE")
-    private double realAcceleratorRate;
+    private Double realAcceleratorRate;
 
     /**
      * 液压制动器主缸实际制动压力比例	%
      * */
     @TableField(value = "HYDBRAKERATE")
-    private double realHydBrakeRate;
+    private Double realHydBrakeRate;
 
     /**
      * 电磁涡流制动器实际激磁电流比例	%
      * */
     @TableField(value = "ELECTRICFLOWBRAKERATE")
-    private double realElectricFlowBrakeRate;
+    private Double realElectricFlowBrakeRate;
 
     /**
      * 发动机状态

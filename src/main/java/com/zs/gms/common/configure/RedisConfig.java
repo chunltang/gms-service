@@ -27,6 +27,7 @@ import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.Topic;
 import org.springframework.data.redis.serializer.*;
+import org.springframework.util.ErrorHandler;
 
 import javax.annotation.PostConstruct;
 import java.time.Duration;
@@ -50,13 +51,13 @@ public class RedisConfig extends CachingConfigurerSupport {
     @PostConstruct
     public void init(){
         instance=this;
-        instance.properties = this.properties;
+        properties = this.properties;
     }
 
     /**
      * @param index 数据库
      */
-    public RedisTemplate getRedisTemplate(int index) {
+    public RedisTemplate<String,Object> getRedisTemplate(int index) {
         return redisTemplate(instance.properties,index);
     }
 
@@ -172,6 +173,7 @@ public class RedisConfig extends CachingConfigurerSupport {
             //处理业务逻辑
             MessageUtil.handeListenerResult(message);
         }, topics);
+        listenerContainer.setErrorHandler(t -> log.error("redis监听异常处理",t));
         return listenerContainer;
     }
 }

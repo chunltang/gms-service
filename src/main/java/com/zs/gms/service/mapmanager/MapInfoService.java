@@ -5,12 +5,28 @@ import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.entity.mapmanager.MapInfo;
 import com.zs.gms.entity.system.User;
 
+import java.util.Date;
+
 public interface MapInfoService {
 
     /**
      * 保存地图信息
      */
     void addMapInfo(MapInfo Info);
+
+    MapInfo.MapVersion getVersion();
+
+    void setVersion(MapInfo.MapVersion version);
+
+    /**
+     * 重置地图修改时间
+     * */
+    void updateLastTime(Integer mapId,Date lastTime);
+
+    /**
+     * 将激活地图设置为未激活
+     * */
+    boolean updateInactive();
 
     /**
      * 查询地图id是否已存在

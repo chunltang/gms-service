@@ -2,6 +2,7 @@ package com.zs.gms.service.init;
 
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.service.RedisService;
+import com.zs.gms.common.service.nettyclient.NettyClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
@@ -15,5 +16,6 @@ public class GmsClosedRunner implements ApplicationListener<ContextClosedEvent> 
     @Override
     public void onApplicationEvent(ContextClosedEvent event) {
         log.info("service closed");
+        NettyClient.close();
     }
 }

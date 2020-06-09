@@ -64,16 +64,6 @@ public class DispatchProcessHandler extends AbstractFunctionHandler {
 
     @Override
     public void sendMessage(Session session, String message) {
-        synchronized (session) {
-            try {
-                if (session.isOpen()) {
-                    session.getBasicRemote().sendText(message);
-                } else {
-                    sessionMap.remove(session);
-                }
-            } catch (IOException e) {
-                log.error("ws-dispatchProcess发送数据失败", e);
-            }
-        }
+        super.sendMessage(session,message);
     }
 }

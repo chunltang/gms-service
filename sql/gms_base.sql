@@ -2,15 +2,15 @@
 DROP TABLE IF EXISTS `t_config`;
 CREATE TABLE `t_config`
 (
-    `CONFIGID`     int(5) NOT NULL AUTO_INCREMENT COMMENT '配置id',
-    `CONFIGKEY`    varchar(50)  COMMENT '配置键名',
-    `CONFIGVALUE`  text COMMENT '键值',
-        primary key (`CONFIGID`) using BTREE
-)ENGINE = InnoDB
- AUTO_INCREMENT = 0
- CHARACTER SET = utf8
- COLLATE = utf8_general_ci COMMENT = '配置信息表'
- ROW_FORMAT = Dynamic;
+    `CONFIGID`    int(5) NOT NULL AUTO_INCREMENT COMMENT '配置id',
+    `CONFIGKEY`   varchar(50) COMMENT '配置键名',
+    `CONFIGVALUE` text COMMENT '键值',
+    primary key (`CONFIGID`) using BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 0
+  CHARACTER SET = utf8
+  COLLATE = utf8_general_ci COMMENT = '配置信息表'
+  ROW_FORMAT = Dynamic;
 
 
 DROP TABLE IF EXISTS `sys_user_log`;
@@ -33,28 +33,34 @@ CREATE TABLE `sys_user_log`
   ROW_FORMAT = Dynamic;
 
 
+
 DROP TABLE IF EXISTS `sys_user`;
 CREATE TABLE `sys_user`
 (
-    `USERID`   int(5)             NOT NULL AUTO_INCREMENT COMMENT '用户ID',
-    `USERNAME` varchar(50) binary NOT NULL COMMENT '用户名',
-    `PASSWORD` varchar(128)       NOT NULL COMMENT '密码',
-    `PHONE`    varchar(15) COMMENT '联系电话',
-    `THEME`    varchar(10)        NULL DEFAULT NULL COMMENT '主题',
-    `AVATAR`   varchar(100)       NULL DEFAULT NULL COMMENT '头像',
-    `CREATETIME`     datetime(0)   COMMENT '创建时间',
-    `LASTLOGINTIME`     datetime(0)   COMMENT '最后登录时间',
-    `ISDEL`    boolean                 default false COMMENT '逻辑删除：1删除，0保留',
+    `USERID`        int(5)             NOT NULL  COMMENT '用户ID',
+    `USERNAME`      varchar(50)  NOT NULL COMMENT '用户编号',
+    `NAME`      varchar(50) binary NOT NULL COMMENT '用户姓名',
+    `PASSWORD`      varchar(128)       NOT NULL COMMENT '密码',
+    `PHONE`         varchar(15) COMMENT '联系电话',
+    `THEME`         varchar(10)        NULL DEFAULT NULL COMMENT '主题',
+    `AVATAR`        varchar(100)       NULL DEFAULT NULL COMMENT '头像',
+    `USERLOCK`        int(1)    default 0   COMMENT '是否被锁定',
+    `RETRY`        int(2)   default 0   COMMENT '密码已重试次数',
+    `CREATETIME`    datetime(0) COMMENT '创建时间',
+    `LASTLOGINTIME` datetime(0) COMMENT '最后登录时间',
+    `ISDEL`         boolean                 default false COMMENT '逻辑删除：1删除，0保留',
     PRIMARY KEY (`USERID`) USING BTREE,
     UNIQUE KEY username (USERNAME)
 ) ENGINE = InnoDB
-  AUTO_INCREMENT = 100
   CHARACTER SET = utf8
   COLLATE = utf8_general_ci COMMENT = '用户表'
   ROW_FORMAT = Dynamic;
 
+#alter table `sys_user` drop column `ISLOCK`;
 
-#ALTER  TABLE sys_user add column `PHONE` varchar(15);
+alter table sys_user drop primary key ;
+ALTER  TABLE sys_user add column `USERLOCK` int(1) default 0;
+ALTER  TABLE sys_user add column `RETRY` int(2) default 0;
 #ALTER  TABLE sys_user add column `CREATETIME` datetime(0);
 #ALTER  TABLE sys_user add column `LASTLOGINTIME` datetime(0);
 -- -------------------------------------------------------------------------------------------------------------------------
@@ -172,21 +178,33 @@ DROP TABLE IF EXISTS `t_vehicle_type`;
 CREATE TABLE `t_vehicle_type`
 (
     `VEHICLETYPEID`        int(5)      NOT NULL AUTO_INCREMENT COMMENT '车辆类型id',
-    `VEHICLETYPE`          varchar(30) NOT NULL COMMENT '车辆类型',
-    `VEHICLESPECIFICATION` varchar(50) NOT NULL COMMENT '车辆规格',
-    `SELFDIGNIFIED`        varchar(6) COMMENT '自重',
-    `VEHICLEICON`          varchar(50) COMMENT '车辆图标',
-    `VEHICLEWIDTH`         varchar(10) COMMENT '车辆宽度',
-    `VEHICLEHEIGHT`        varchar(10) COMMENT '车辆高度',
-    `VEHICLELENGHT`        varchar(10) COMMENT '车辆长度',
-    `VEHICLETON`           varchar(10) COMMENT '车辆吨位',
-    `VEHICLEWHEEL`         varchar(10) COMMENT '轴距',
-    `VEHICLEANGLE`         varchar(10) COMMENT '车轮转角',
-    `LIMITSPEED`           varchar(10) COMMENT '车辆限速',
-    `TURNRADIAL`           varchar(10) COMMENT '最小转弯半径',
-    `CENTERWIDTH`          varchar(10) COMMENT '计算中心宽度',
-    `CENTERLENGHT`         varchar(10) COMMENT '计算中长度',
-    `CENTERHEIGHT`         varchar(10) COMMENT '计算中高度',
+    `VEHICLETYPENAME`          varchar(50) NOT NULL COMMENT '车辆类型名称',
+    `MANUFACTURERS` varchar(50) NOT NULL COMMENT '厂家',
+    `SELFDIGNIFIED`       float(5,2) COMMENT '自重',
+    `LOADDIGNIFIED`       float(5,2) COMMENT '载重',
+    `TOTALDIGNIFIED`       float(6,2) COMMENT '总重',
+    `LOADHEIGHT`       float(4,2) COMMENT '装载高度',
+    `VEHICLEWIDTH`       float(4,2) COMMENT '宽',
+    `VEHICLEHEIGHT`       float(4,2) COMMENT '高',
+    `VEHICLELENGHT`       float(4,2) COMMENT '长',
+    `VEHICLETAILWHEEL`       float(4,2) COMMENT '后轮边缘到车尾的距离',
+    `VEHICLETAILAXLE`       float(4,2) COMMENT '后轴到车尾的距离',
+    `VEHICLEWHEEL`       float(4,2) COMMENT '轴距',
+    `FRONTGAUGE`       float(4,2) COMMENT '前轮距',
+    `TRACKREAR`       float(4,2) COMMENT '后轮距',
+    `MINGAP`       float(4,2) COMMENT '最小离地间隙',
+    `TIRESIZE`       float(4,2) COMMENT '轮胎尺寸',
+    `MINTURNINGRADIUS`       float(4,2) COMMENT '最小转弯半径',
+    `LIMITSPEED`       float(4,2) COMMENT '限速',
+    `BUCKETTIM`       int(3) COMMENT '车厢举升时间',
+    `FALLTIME`       int(3) COMMENT '车厢降落时间',
+    `OLICAPACITY`       float(6,2) COMMENT '机油容量',
+    `REDUCERTANKCAPACITY`       float(6,2) COMMENT '轮边减速器油箱容量',
+    `FUELCAPACITY`       float(7,2) COMMENT '燃油箱容量',
+    `HYDRAULICTANCAPACITY`       float(6,2) COMMENT '液压油容量',
+    `COOLANTTANKCAPACITY`       float(6,2) COMMENT '冷却水箱容量',
+    `VEHICLEICON`   varchar(100) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '车辆图标',
+    `ACTIVE`   char(1)  default '0' COMMENT '是否激活',
     `ISDEL`                boolean default false COMMENT '逻辑删除：1删除，0保留',
     primary key (`VEHICLETYPEID`) USING BTREE
 ) ENGINE = InnoDB
@@ -195,8 +213,8 @@ CREATE TABLE `t_vehicle_type`
   COLLATE = utf8_general_ci COMMENT = '车辆类型表'
   ROW_FORMAT = Dynamic;
 
-alter table t_vehicle_type
-    add column ISDEL boolean default false;
+/*alter table t_vehicle_type
+    modify column `FUELCAPACITY`   float(7,2) COMMENT '燃油箱容量';*/
 -- -----------------------------------------------------------------------------------------------------------------------
 
 DROP TABLE IF EXISTS `t_vehicle`;
@@ -210,6 +228,7 @@ CREATE TABLE `t_vehicle`
     `ADDTIME`       datetime(0) NOT NULL COMMENT '车辆添加时间',
     `NETINTIME`     datetime(0) COMMENT '车辆入网时间',
     `VEHICLESTATUS` char(2)     NOT NULL COMMENT '车辆状态，0停用，1启动',
+    `VAP` char(1)      COMMENT '是否装载vap',
     `REMARK`        varchar(200) COMMENT '车辆备注',
     `ISDEL`         boolean default false COMMENT '逻辑删除：1删除，0保留',
     primary key (`VEHICLEID`) USING BTREE
@@ -219,9 +238,77 @@ CREATE TABLE `t_vehicle`
   COLLATE = utf8_general_ci COMMENT = '车辆表'
   ROW_FORMAT = Dynamic;
 
+##t_excavator_type
+DROP TABLE IF EXISTS `t_excavator_type`;
+CREATE TABLE `t_excavator_type`
+(
+    `EXCAVATORTYPEID`   int(5)                                                 NOT NULL AUTO_INCREMENT COMMENT '挖掘机类型id',
+    `EXCAVATORTYPENAME` varchar(50) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT '类型名称',
+    `MANUFACTURERS` varchar(50) CHARACTER SET UTF8 COLLATE utf8_general_ci  COMMENT '厂家',
+    `RATEDBUCKETVOLUME` FLOAT(5,2)  COMMENT '额定斗容',
+    `MAXDUMPINGRADIU` FLOAT(4,2)  COMMENT '最大卸载半径',
+    `UNLOADINGHEIGHTATMAXRADIUS` FLOAT(4,2)  COMMENT '最大半径时的卸载高度',
+    `MAXIMUMUNLOADINGHEIGHT` FLOAT(4,2)  COMMENT '最大卸载高度',
+    `UNLOADINGRADIUSATMAXHEIGHT` FLOAT(4,2)  COMMENT '最大高度时的卸载半径',
+    `TRAILINGCYCLOTRONRADIUS` FLOAT(4,2)  COMMENT '尾部回旋半径',
+    `ARMEFFECTIVELYLENGTH` FLOAT(4,2)  COMMENT '斗杆有效长度',
+    `ARMLENGTH` FLOAT(4,2)  COMMENT '大臂长度',
+    `LARGEARMANGLE` FLOAT(4,2)  COMMENT '大臂倾角',
+    `TURNINGRADIUSWHEEL` FLOAT(4,2)  COMMENT '大臂天轮回转半径',
+    `CREATETIME`        datetime(0) COMMENT '创建时间',
+    `ACTIVE`   char(1)  default '0' COMMENT '是否激活',
+    `ISDEL`             boolean default false COMMENT '逻辑删除：1删除，0保留',
+    PRIMARY KEY (`EXCAVATORTYPEID`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 100
+  CHARACTER SET = UTF8
+  COLLATE = utf8_general_ci COMMENT '挖掘机类型表'
+  ROW_FORMAT = DYNAMIC;
+
+##excavator
+DROP TABLE IF EXISTS `t_excavator`;
+CREATE TABLE `t_excavator`
+(
+    `EXCAVATORID`     int(5)                                                 NOT NULL AUTO_INCREMENT COMMENT '挖掘机id',
+    `EXCAVATORTYPEID` int(5)                                                 NOT NULL COMMENT '挖掘机类型id',
+    `EXCAVATORNO`     int(6)                                                 NOT NULL COMMENT '电铲编号' unique,
+    `IP1`             varchar(15) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT 'GPS1的ip1',
+    `PORT`            varchar(6) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT '端口',
+    `REMARK`          varchar(200) CHARACTER SET UTF8 COLLATE utf8_general_ci  COMMENT '备注',
+    `X1`              float(4, 2) COMMENT 'GPS安装位置x1',
+    `Y1`              float(4, 2) COMMENT 'GPS安装位置y1',
+    `VAP` char(1)      COMMENT '是否装载vap',
+    `CREATETIME`      datetime(0) COMMENT '创建时间',
+    `VEHICLESTATUS`   CHAR(1) CHARACTER SET UTF8 COLLATE utf8_general_ci     NOT NULL COMMENT '车辆状态，0停用，1启用(默认)',
+    `ISDEL`           boolean default false COMMENT '逻辑删除：1删除，0保留',
+    PRIMARY KEY (`EXCAVATORID`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 100
+  CHARACTER SET = UTF8
+  COLLATE = utf8_general_ci COMMENT '挖掘机参数表'
+  ROW_FORMAT = DYNAMIC;
+
+
+##gps
+DROP TABLE IF EXISTS `t_gps`;
+CREATE TABLE `t_gps`
+(
+    `GPSID`      int(4)                                                 NOT NULL AUTO_INCREMENT COMMENT 'id',
+    `GPSNO`      int(6)                                                 NOT NULL COMMENT 'gps编号' unique,
+    `USERID`     int(5)                                                 NOT NULL COMMENT '用户id',
+    `IP`         varchar(15) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT 'GPS的ip',
+    `CREATETIME` datetime(0) COMMENT '创建时间',
+    `ISDEL`      boolean default false COMMENT '逻辑删除：1删除，0保留',
+    PRIMARY KEY (`GPSID`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 0
+  CHARACTER SET = UTF8
+  COLLATE = utf8_general_ci COMMENT 'gps参数表'
+  ROW_FORMAT = DYNAMIC;
+
 -- -----------------------------------------------------------------------------------------------------------------------
 
-DROP TABLE IF EXISTS `t_user_vehicle`;
+/*DROP TABLE IF EXISTS `t_user_vehicle`;
 CREATE TABLE `t_user_vehicle`
 (
     `ID`        int(5) NOT NULL AUTO_INCREMENT COMMENT 'ID',
@@ -233,7 +320,7 @@ CREATE TABLE `t_user_vehicle`
   AUTO_INCREMENT = 0
   CHARACTER SET = utf8
   COLLATE = utf8_general_ci COMMENT = '用户车辆关联表'
-  ROW_FORMAT = Dynamic;
+  ROW_FORMAT = Dynamic;*/
 
 #alter table `t_user_vehicle` add column `ISDEL` boolean default false;
 -- -----------------------------------------------------------------------------------------------------------------------
@@ -357,7 +444,7 @@ DROP TABLE IF EXISTS `t_area_mineral`;
 CREATE TABLE `t_area_mineral`
 (
     `ID`          int(4)                                                 NOT NULL AUTO_INCREMENT COMMENT '数据id',
-    `AREAID`      int(5)                                                 NOT NULL COMMENT '装载区id',
+    `LOADAREAID`      int(5)                                                 NOT NULL COMMENT '卸载区id',
     `MAPID`       int(5)                                                 NOT NULL COMMENT '地图id',
     `MINERALID`   int(5)                                                 NOT NULL COMMENT '矿物id',
     `USERID`      int(5) COMMENT '添加用户',
@@ -370,6 +457,8 @@ CREATE TABLE `t_area_mineral`
   CHARACTER SET = UTF8
   COLLATE = utf8_general_ci COMMENT '卸载区和矿物对应表'
   ROW_FORMAT = DYNAMIC;
+
+#alter table `t_area_mineral` change `UNLOADAREAID`  `LOADAREAID` int(5) ;
 -- -----------------------------------------------------------------------------------------------------------------------
 ####地图管理
 DROP TABLE IF EXISTS `t_map_info`;
@@ -380,10 +469,11 @@ CREATE TABLE `t_map_info`
     `USERID`           int(4)                                                  NOT NULL COMMENT '用户id',
     `NAME`             varchar(20) CHARACTER SET UTF8 COLLATE utf8_general_ci  NOT NULL COMMENT '地图名称',
     `USERNAME`         varchar(20) CHARACTER SET UTF8 COLLATE utf8_general_ci  NOT NULL COMMENT '用户名',
-    `VERSION`          varchar(20) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '地图版本号',
+    `VERSION`          varchar(100) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '地图版本号',
+    `IMAGEPATH`          varchar(50) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '地图缩略图路径',
     `STATUS`           varchar(20) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '状态：0使用中，1未使用，2发布确认，3删除确认',
     `COORDINATEORIGIN` VARCHAR(200) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT '坐标原点',
-    `BASEMAPPATH`      VARCHAR(20) CHARACTER SET UTF8 COLLATE utf8_general_ci  NOT NULL COMMENT '底图文件绝对路径',
+    `BASEMAPPATH`      VARCHAR(50) CHARACTER SET UTF8 COLLATE utf8_general_ci  COMMENT '底图文件绝对路径',
     `SPEED`            FLOAT(10)                                               NOT NULL COMMENT '地图限速',
     `LEFTDRING`        BOOLEAN                                                 NOT NULL COMMENT '靠左/右行驶,true: left, false: right',
     `REMARK`           VARCHAR(200) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '备注',
@@ -397,6 +487,9 @@ CREATE TABLE `t_map_info`
   CHARACTER SET = UTF8
   COLLATE = utf8_general_ci COMMENT '地图信息表'
   ROW_FORMAT = DYNAMIC;
+
+alter table `t_map_info` modify column `VERSION`   VARCHAR(100) default null;
+#alter table `t_map_info` add column `IMAGEPATH`   VARCHAR(50) default null;
 
 
 -- -----------------------------------------------------------------------------------------------------------------------
@@ -429,7 +522,7 @@ CREATE TABLE `t_vehicleLive`
 alter table `t_vehicleLive`
     add unique `time_unique` (ADDTIME);
 
-DROP TABLE IF EXISTS `t_dispatch_task`;
+/*DROP TABLE IF EXISTS `t_dispatch_task`;
 CREATE TABLE `t_dispatch_task`
 (
     `UNITID`           int(4)                                                 NOT NULL AUTO_INCREMENT COMMENT '调度单元id',
@@ -467,7 +560,7 @@ CREATE TABLE `t_task_rule`
   AUTO_INCREMENT = 0
   CHARACTER SET = UTF8
   COLLATE = utf8_general_ci COMMENT '调度任务规则表'
-  ROW_FORMAT = DYNAMIC;
+  ROW_FORMAT = DYNAMIC;*/
 
 ####调度单元
 DROP TABLE IF EXISTS `t_unit`;
@@ -475,7 +568,7 @@ CREATE TABLE `t_unit`
 (
     `UNITID`       int(5)      NOT NULL AUTO_INCREMENT COMMENT '调度单元id',
     `MAPID`        int(5)      NOT NULL COMMENT '地图id',
-    `USERID`       int(5)      NOT NULL COMMENT '调度员id',
+    `USERID`       int(5)      COMMENT '调度员id',
     `CREATEUSERID` int(5)      NOT NULL COMMENT '创建人id',
     `LOADAREAID`   int(6)      NOT NULL COMMENT '装卸调度单元的装载区id',
     `UNLOADAREAID` int(6)      NOT NULL COMMENT '装卸调度单元的卸载区id',
@@ -492,6 +585,7 @@ CREATE TABLE `t_unit`
   COLLATE = utf8_general_ci COMMENT '调度单元表'
   ROW_FORMAT = DYNAMIC;
 
+#alter table `t_unit` modify column `USERID`  int(5) default null;
 
 ####调度单元和矿车关联表
 DROP TABLE IF EXISTS `t_unit_vehicle`;
@@ -502,6 +596,7 @@ CREATE TABLE `t_unit_vehicle`
     `VEHICLEID`    int(5)      NOT NULL COMMENT '矿车编号',
     `ADDTIME`      datetime(0) not null COMMENT '添加时间',
     `CREATEUSERID` int(5)      NOT NULL COMMENT '创建人id',
+    `STATUS`       varchar(1) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '车辆在调度单元中的状态',
     `ISDEL`        boolean default false COMMENT '逻辑删除：1删除，0保留',
     primary key (`UVID`) using btree
 ) ENGINE = InnoDB
@@ -528,8 +623,8 @@ CREATE TABLE `t_liveInfo`
   ROW_FORMAT = DYNAMIC;
 
 
-DROP TABLE IF EXISTS `t_dispatchStatus`;
-CREATE TABLE `t_dispatchStatus`
+DROP TABLE IF EXISTS `t_dispatch_status`;
+CREATE TABLE `t_dispatch_status`
 (
     `ID`              int(10) NOT NULL AUTO_INCREMENT COMMENT 'id',
     `VEHICLEID`       int(6)  NOT NULL COMMENT '车辆编号',
@@ -549,6 +644,7 @@ CREATE TABLE `t_dispatchStatus`
   CHARACTER SET = UTF8
   COLLATE = utf8_general_ci COMMENT '实时调度状态变更表'
   ROW_FORMAT = DYNAMIC;
+
 
 DROP TABLE IF EXISTS `t_vehicle_warn`;
 CREATE TABLE `t_vehicle_warn`
@@ -605,10 +701,10 @@ CREATE TABLE `t_approve`
     `APPROVETIME`      datetime(0) COMMENT '审批完成时间',
     `STATUS`           char(1) CHARACTER SET UTF8 COLLATE utf8_general_ci      NOT NULL COMMENT '审批状态',
     `APPROVEPROCESS`   varchar(500) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '审批过程',
-    `PARAMS`           varchar(200) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '审批提交的参数,json格式',
+    `PARAMS`           varchar(500) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '审批提交的参数,json格式',
     `APPROVEERRORDESC` varchar(100) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '审批异常描述',
     `RULE`             boolean COMMENT '审批规则：false只需要一个通过，true需要全部通过',
-    `APPROVEMARK`      boolean COMMENT '处理结果标记,true为提交对象查看了数据，false为未处理，需要下次再推送',
+    `APPROVEMARK`      boolean COMMENT '处理结果标记,true为提交对象查F看了数据，false为未处理，需要下次再推送',
     primary key (`APPROVEID`) using btree
 ) ENGINE = InnoDB
   AUTO_INCREMENT = 1000
@@ -616,65 +712,8 @@ CREATE TABLE `t_approve`
   COLLATE = utf8_general_ci COMMENT '审批表'
   ROW_FORMAT = DYNAMIC;
 
+#alter table `t_approve` modify column  `PARAMS` varchar(500);
 
-##t_excavator_type
-DROP TABLE IF EXISTS `t_excavator_type`;
-CREATE TABLE `t_excavator_type`
-(
-    `EXCAVATORTYPEID`   int(5)                                                 NOT NULL AUTO_INCREMENT COMMENT '挖掘机类型id',
-    `EXCAVATORTYPENAME` varchar(50) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT '类型名称',
-    `CAPACITY`          float(5, 2)                                            NOT NULL COMMENT '容量',
-    `BRANCHLENGTH`      float(4, 2) COMMENT '臂长',
-    `CREATETIME`        datetime(0) COMMENT '创建时间',
-    `ISDEL`             boolean default false COMMENT '逻辑删除：1删除，0保留',
-    PRIMARY KEY (`EXCAVATORTYPEID`) USING BTREE
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 100
-  CHARACTER SET = UTF8
-  COLLATE = utf8_general_ci COMMENT '挖掘机类型表'
-  ROW_FORMAT = DYNAMIC;
-
-
-##excavator
-DROP TABLE IF EXISTS `t_excavator`;
-CREATE TABLE `t_excavator`
-(
-    `EXCAVATORID`     int(5)                                                 NOT NULL AUTO_INCREMENT COMMENT '挖掘机id',
-    `EXCAVATORTYPEID` int(5)                                                 NOT NULL COMMENT '挖掘机类型id',
-    `EXCAVATORNO`     int(6)                                                 NOT NULL COMMENT '电铲编号' unique,
-    `IP1`             varchar(15) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT 'GPS1的ip1',
-    `IP2`             varchar(15) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT 'GPS2的ip2',
-    `X1`              float(4, 2) COMMENT 'GPS安装位置x1',
-    `X2`              float(4, 2) COMMENT 'GPS安装位置x2',
-    `Y1`              float(4, 2) COMMENT 'GPS安装位置y1',
-    `Y2`              float(4, 2) COMMENT 'GPS安装位置y2',
-    `CREATETIME`      datetime(0) COMMENT '创建时间',
-    `VEHICLESTATUS`   CHAR(1) CHARACTER SET UTF8 COLLATE utf8_general_ci     NOT NULL COMMENT '车辆状态，0停用，1启用(默认)',
-    `ISDEL`           boolean default false COMMENT '逻辑删除：1删除，0保留',
-    PRIMARY KEY (`EXCAVATORID`) USING BTREE
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 100
-  CHARACTER SET = UTF8
-  COLLATE = utf8_general_ci COMMENT '挖掘机参数表'
-  ROW_FORMAT = DYNAMIC;
-
-
-##gps
-DROP TABLE IF EXISTS `t_gps`;
-CREATE TABLE `t_gps`
-(
-    `GPSID`      int(4)                                                 NOT NULL AUTO_INCREMENT COMMENT 'id',
-    `GPSNO`      int(6)                                                 NOT NULL COMMENT 'gps编号' unique,
-    `USERID`     int(5)                                                 NOT NULL COMMENT '用户id',
-    `IP`         varchar(15) CHARACTER SET UTF8 COLLATE utf8_general_ci NOT NULL COMMENT 'GPS的ip',
-    `CREATETIME` datetime(0) COMMENT '创建时间',
-    `ISDEL`      boolean default false COMMENT '逻辑删除：1删除，0保留',
-    PRIMARY KEY (`GPSID`) USING BTREE
-) ENGINE = InnoDB
-  AUTO_INCREMENT = 0
-  CHARACTER SET = UTF8
-  COLLATE = utf8_general_ci COMMENT 'gps参数表'
-  ROW_FORMAT = DYNAMIC;
 
 
 /*DROP TABLE  IF EXISTS `t_monitor`;
@@ -744,5 +783,18 @@ alter table t_vehicle  add column  `ISDEL`   boolean default 0  COMMENT '逻辑�
 alter table t_user_vehicle  add column  `ISDEL`   boolean default 0  COMMENT '逻辑删除：1删除，0保留';
 alter table sys_user  add column  `ISDEL`   boolean default 0  COMMENT '逻辑删除：1删除，0保留';
 alter table t_bind_excavator  add column  `MAPID`  int(5)  COMMENT '地图id';*/
+
+alter table t_vehicle_type add  column `ACTIVE` char(1)  default '0' COMMENT '是否激活';
+
+
+##################################地图####################################
+##地图基本信息
+##装载区信息
+##卸矿区信息
+##可同行区域信息
+##不可同行区域信息
+##道路信息
+##区域边界点
+
 
 

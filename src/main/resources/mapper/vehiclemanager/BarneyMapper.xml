@@ -3,20 +3,22 @@
 <mapper namespace="com.zs.gms.mapper.vehiclemanager.BarneyMapper">
 
     <sql id="findVehicleList">
-        select tv.*, tvt.VEHICLETYPE, tvt.VEHICLESPECIFICATION, tvt.VEHICLETON,tvtvt.VEHICLETYPEID, tvt.VEHICLEICON,
+        select tv.*, tvt.VEHICLETYPENAME,tvt.loadDignified,tvtvt.VEHICLETYPEID, tvt.VEHICLEICON,
         su.USERNAME,su.USERID
         from t_vehicle tv
         left join t_vehicle_vehicleType tvtvt on (tv.VEHICLEID = tvtvt.VEHICLEID)
         left join t_vehicle_type tvt on (tvtvt.VEHICLETYPEID = tvt.VEHICLETYPEID)
-        left join t_user_vehicle tuv on (tv.VEHICLEID = tuv.VEHICLEID)
-        left join sys_user su on (tuv.USERID = su.USERID)
+        left join (select * from t_unit_vehicle where ISDEL=false) tuv on (tv.VEHICLENO = tuv.VEHICLEID)
+        left join (select * from t_unit where ISDEL=false) tn on tn.UNITID=tuv.UNITID
+        left join sys_user su on (tn.USERID = su.USERID)
         where 1=1 and tv.ISDEL=false
-        <if test="barney.userId!=null and barney.userId!=''">
+        <if test="barney!=null and barney.userId!=null and barney.userId!=''">
             and su.USERID=#{barney.userId}
         </if>
-        <if test="barney.vehicleTypeId!=null and barney.vehicleTypeId!=''">
+        <if test="barney!=null and barney.vehicleTypeId!=null and barney.vehicleTypeId!=''">
             and tvt.VEHICLETYPEID=#{barney.vehicleTypeId}
         </if>
+        order by tv.VEHICLESTATUS desc,tv.VAP desc
     </sql>
     <select id="findVehicleListPage" parameterType="com.zs.gms.entity.vehiclemanager.Barney"
             resultType="com.zs.gms.entity.vehiclemanager.Barney">
@@ -35,5 +37,12 @@
         <if test="vehicleNo!=null and vehicleNo!=''">
             and tv.VEHICLENO=#{vehicleNo}
         </if>
+    </select>
+
+    <select id="getBarneyBaseInfos" resultType="java.util.Map">
+        select tv.*, tvt.*
+        from (select * from t_vehicle where ISDEL = false) tv
+                 left join t_vehicle_vehicleType tvv on tv.VEHICLEID = tvv.VEHICLEID
+                 left join t_vehicle_type tvt on tvv.VEHICLETYPEID = tvt.VEHICLETYPEID
     </select>
 </mapper>

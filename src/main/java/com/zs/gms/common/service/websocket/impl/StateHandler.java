@@ -30,23 +30,12 @@ public class StateHandler extends SetHandler {
         Collection<String> likeKeys = RedisService.getLikeKey(StaticConfig.MONITOR_DB, RedisKeyPool.DISPATCH_AREA_PREFIX);
         for (String key : likeKeys) {
             TaskAreaState taskAreaState = GmsUtil.getMessage(key, TaskAreaState.class);
-            send(session, GmsUtil.toJsonIEnumDesc(taskAreaState));
+            send(session, getResult(GmsUtil.toJsonIEnumDesc(taskAreaState),FunctionEnum.taskAreaState.name()));
         }
     }
 
     private void send(Session session, String message){
-        String result = getResult(message,FunctionEnum.taskAreaState.name());
-        synchronized (session) {
-            try {
-                if (session.isOpen()) {
-                    session.getBasicRemote().sendText(result);
-                } else {
-                    sessions.remove(session);
-                }
-            } catch (IOException e) {
-                log.error("ws-taskAreaState发送数据失败", e);
-            }
-        }
+        super.sendMessage(session,message);
     }
 }
 

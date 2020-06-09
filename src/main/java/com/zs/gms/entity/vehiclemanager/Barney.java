@@ -1,11 +1,11 @@
 package com.zs.gms.entity.vehiclemanager;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.zs.gms.enums.vehiclemanager.ActivateStatusEnum;
+import com.zs.gms.common.entity.WhetherEnum;
 import lombok.Data;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -22,7 +22,7 @@ public class Barney implements Serializable {
 
     private static final long serialVersionUID = 1500977883215031608L;
 
-    public static ActivateStatusEnum DEFAULT_STATUS = ActivateStatusEnum.ACTIVATED;
+    public static WhetherEnum DEFAULT_STATUS = WhetherEnum.NO;
 
     @TableId(value = "VEHICLEID", type = IdType.AUTO)
     private Integer vehicleId;
@@ -34,15 +34,16 @@ public class Barney implements Serializable {
     private Integer vehicleNo;
 
     /**
-     * 是否自动驾驶 0自动，1手动
+     * 是否自动驾驶 1自动，0手动
      */
     @TableField(value = "SELFMOTION")
-    private String selfMotion = "0";
+    private WhetherEnum selfMotion = WhetherEnum.YES;
 
     /**
      * 添加时间
      */
     @TableField(value = "ADDTIME")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GTM+8")
     private Date addTime;
 
     /**
@@ -50,6 +51,12 @@ public class Barney implements Serializable {
      */
     @TableField(value = "IP")
     private String ip;
+
+    /**
+     * 是否装载VAP
+     */
+    @TableField(value = "VAP")
+    private WhetherEnum vap;
 
     /**
      * 车载系统port
@@ -61,14 +68,14 @@ public class Barney implements Serializable {
      * 入网时间
      */
     @TableField(value = "NETINTIME")
-    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GTM+8")
     private Date netInTime;
 
     /**
-     * 车辆状态，0停用，1启用(默认)
+     * 车辆激活状态
      */
     @TableField(value = "VEHICLESTATUS")
-    private ActivateStatusEnum vehicleStatus;
+    private WhetherEnum vehicleStatus;
 
     /**
      * 备注信息
@@ -103,22 +110,16 @@ public class Barney implements Serializable {
     private Integer vehicleTypeId;
 
     /**
-     * 车辆类型，矿车，电铲，推土机，加油车，加水车，其他
+     * 车辆类型名称
      */
     @TableField(exist = false)
-    private String vehicleType;
-
-    /**
-     * 车辆规格，小型矿车，中型矿车，电铲等
-     */
-    @TableField(exist = false)
-    private String vehicleSpecification;
+    private String vehicleTypeName;
 
     /**
      * 吨位
      */
     @TableField(exist = false)
-    private String vehicleTon;
+    private String loadDignified;
 
     /**
      * 图标

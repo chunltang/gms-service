@@ -213,7 +213,7 @@ public class MultiRequestBodyArgumentResolver implements HandlerMethodArgumentRe
                 return number.byteValue();
             }
         } else if (parameterType == Boolean.class) {
-            return value.toString();
+            return Boolean.parseBoolean(value.toString());
         } else if (parameterType == Character.class) {
             return value.toString().charAt(0);
         }

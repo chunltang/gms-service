@@ -42,7 +42,7 @@ public class TrailHandler extends MapHandler {
             send(session, message);
         } else {
             for (Session s : sessionMap.keySet()) {
-                send(s, getResult(message, FunctionEnum.trail.name()));
+                send(s, message);
             }
         }
     }
@@ -53,17 +53,7 @@ public class TrailHandler extends MapHandler {
             removeFunction(session);
             return;
         }
-        synchronized (session) {
-            try {
-                if (session.isOpen()) {
-                    session.getBasicRemote().sendText(message);
-                } else {
-                    sessionMap.remove(session);
-                }
-            } catch (IOException e) {
-                log.error("ws-trail发送数据失败", e);
-            }
-        }
+        super.sendMessage(session,message);
     }
     
 }

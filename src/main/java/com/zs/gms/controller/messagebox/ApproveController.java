@@ -58,7 +58,6 @@ public class ApproveController extends BaseController {
                     return new GmsResponse().message("更新审批结果失败").badRequest();
                 }
             }
-
         } catch (Exception e) {
             String message = "更新审批结果失败";
             log.error(message, e);

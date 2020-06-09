@@ -31,6 +31,12 @@ public abstract class AbstractFunctionHandler implements FunctionHandler {
 
     public final static String TYPE_FIELD = "type";
 
+    public final static String ADD_FUNCTION = "add";
+
+    public final static String REMOVE_FUNCTION = "remove";
+
+    public final static String FUNCTION_DADA = "data";
+
     @Override
     public void addFunction(Map<String, Object> params) {
         //do nothing
@@ -58,7 +64,19 @@ public abstract class AbstractFunctionHandler implements FunctionHandler {
 
     @Override
     public void sendMessage(Session session, String message) {
-        //do nothing
+        syncSend(session, message);
+    }
+
+    private void syncSend(Session session, String message) {
+        try {
+            if (session.isOpen()) {
+                session.getAsyncRemote().sendText(message);
+            } else {
+                removeSession(session);
+            }
+        } catch (Exception e) {
+            log.error("websocket发送数据失败", e);
+        }
     }
 
     @Override
@@ -72,8 +90,8 @@ public abstract class AbstractFunctionHandler implements FunctionHandler {
     public String getResult(String message, String name) {
         log.debug("websocket推送:{}", name);
         Map<String, String> map = new HashMap<>();
-        map.put("funcName", name);
-        map.put("data", message);
+        map.put(FUNCTION_FIELD, name);
+        map.put(FUNCTION_DADA, message);
         return GmsUtil.toJson(map);
     }
 
@@ -95,7 +113,7 @@ public abstract class AbstractFunctionHandler implements FunctionHandler {
 
     /**
      * 判断连接是否是指定角色列表
-     * */
+     */
     public boolean isRole(Session session, Role.RoleSign... signs) {
         User user = getLoginUser(session);
         String roleSign = user.getRoleSign();

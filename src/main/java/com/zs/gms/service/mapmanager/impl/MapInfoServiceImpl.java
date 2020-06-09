@@ -6,6 +6,8 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.zs.gms.common.annotation.Log;
+import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.common.entity.RedisKeyPool;
@@ -16,11 +18,14 @@ import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.message.MessageResult;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.service.websocket.FunctionEnum;
-import com.zs.gms.common.service.websocket.WsUtil;
+import com.zs.gms.common.service.nettyclient.WsUtil;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SortUtil;
+import com.zs.gms.entity.init.GmsGlobalConfig;
+import com.zs.gms.entity.mapmanager.MapConfig;
 import com.zs.gms.entity.mapmanager.MapInfo;
 import com.zs.gms.mapper.mapmanager.MapInfoMapper;
+import com.zs.gms.service.common.GmsConfigService;
 import com.zs.gms.service.mapmanager.MapInfoService;
 import com.zs.gms.entity.messagebox.Approve;
 import com.zs.gms.enums.messagebox.ApproveType;
@@ -28,12 +33,14 @@ import com.zs.gms.service.messagebox.ApproveInterface;
 import com.zs.gms.service.messagebox.ApproveService;
 import com.zs.gms.entity.system.User;
 import com.zs.gms.service.messagebox.ApproveUtil;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.Valid;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +53,9 @@ public class MapInfoServiceImpl extends ServiceImpl<MapInfoMapper, MapInfo> impl
     @Autowired
     private ApproveService approveService;
 
+    @Autowired
+    private GmsConfigService gmsConfigService;
+
 
     @Override
     @Transactional
@@ -55,6 +65,44 @@ public class MapInfoServiceImpl extends ServiceImpl<MapInfoMapper, MapInfo> impl
         Info.setUpdateTime(date);
         Info.setStatus(MapInfo.Status.UNUSED);
         this.save(Info);
+    }
+
+    @Override
+    @Transactional
+    public MapInfo.MapVersion getVersion() {
+        GmsGlobalConfig gmsConfig = gmsConfigService.getGmsConfig(GmsConstant.MAP_VERSION);
+        MapInfo.MapVersion mapVersion = new MapInfo.MapVersion();
+        if (null != gmsConfig) {
+            mapVersion = GmsUtil.toObj(gmsConfig.getConfigValue(), MapInfo.MapVersion.class);
+        }
+        return mapVersion;
+    }
+
+    @Override
+    @Transactional
+    public void setVersion(MapInfo.MapVersion version) {
+        GmsGlobalConfig gmsConfig = new GmsGlobalConfig();
+        gmsConfig.setConfigKey(GmsConstant.MAP_VERSION);
+        gmsConfig.setConfigValue(JSON.toJSONString(version));
+        gmsConfigService.addGmsConfig(gmsConfig);
+    }
+
+    @Override
+    @Transactional
+    public void updateLastTime(Integer mapId,Date lastTime) {
+        LambdaUpdateWrapper<MapInfo> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(MapInfo::getMapId,mapId);
+        updateWrapper.set(MapInfo::getUpdateTime, lastTime);
+        this.update(updateWrapper);
+    }
+
+    @Override
+    @Transactional
+    public boolean updateInactive() {
+        LambdaUpdateWrapper<MapInfo> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(MapInfo::getStatus, MapInfo.Status.USING);
+        updateWrapper.set(MapInfo::getStatus, MapInfo.Status.UNUSED);
+        return this.update(updateWrapper);
     }
 
     @Override
@@ -130,13 +178,13 @@ public class MapInfoServiceImpl extends ServiceImpl<MapInfoMapper, MapInfo> impl
         if (mapInfo == null) {
             return false;
         }
-        LambdaQueryWrapper<MapInfo> queryWrapper = new LambdaQueryWrapper<>();
+        /*LambdaQueryWrapper<MapInfo> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.in(MapInfo::getStatus, MapInfo.Status.USING, MapInfo.Status.PUBLISH);
         List<MapInfo> mapInfos = this.list(queryWrapper);
         if (CollectionUtils.isNotEmpty(mapInfos)) {
             log.debug("已存在处于使用或申请发布的地图");
             return false;
-        }
+        }*/
         return addApprove(mapInfo, userIds, user, ApproveType.MAPPUBLISH, MapInfo.Status.PUBLISH);
     }
 
@@ -207,7 +255,7 @@ public class MapInfoServiceImpl extends ServiceImpl<MapInfoMapper, MapInfo> impl
     @Transactional
     public boolean updateStatus(Approve approve) {
         MapInfo mapInfo = getMapInfoByApproveId(approve.getApproveId());
-        MapInfo.Status mapInfoStatus = mapInfo.getStatus();
+        MapInfo.Status mapInfoStatus = (mapInfo==null?null:mapInfo.getStatus());
         Approve.Status status = approve.getStatus();
         ApproveType approveType = approve.getApproveType();
         switch (approveType) {
@@ -222,7 +270,7 @@ public class MapInfoServiceImpl extends ServiceImpl<MapInfoMapper, MapInfo> impl
                         mapInfo.setStatus(MapInfo.Status.USING);
                         //设置活动地图地图id
                         boolean flag = RedisService.set(StaticConfig.MONITOR_DB, RedisKeyPool.ACTIVITY_MAP, String.valueOf(mapInfo.getMapId()));
-                        if (!flag) {
+                        if (updateInactive() && !flag) {
                             log.error("设置活动地图失败");
                             ApproveUtil.addError(approve.getApproveId(), "设置活动地图失败");
                             return false;
@@ -296,6 +344,15 @@ public class MapInfoServiceImpl extends ServiceImpl<MapInfoMapper, MapInfo> impl
                         return false;
                 }
                 break;
+            case OBSTACLEDELETE:
+                Map<String, Object> params = approve.getParams();
+                MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
+                entry.setHttp(false);
+                entry.setAfterHandle(()->{
+                    log.debug(GmsUtil.format("删除障碍物结果:{}",entry.getHandleResult().name()));
+                });
+                MessageFactory.getMapMessage().sendMessageNoResWithID(entry.getMessageId(),"removeObstacle", GmsUtil.toJson(params));
+                return true;
             default:
                 log.error("地图更新审批失败，无匹配事件");
                 ApproveUtil.addError(approve.getApproveId(), "地图更新审批失败，无匹配事件");

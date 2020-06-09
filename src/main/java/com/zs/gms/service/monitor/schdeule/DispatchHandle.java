@@ -5,17 +5,19 @@ import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.interfaces.RedisListener;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.service.websocket.FunctionEnum;
-import com.zs.gms.common.service.websocket.WsUtil;
+import com.zs.gms.common.service.nettyclient.WsUtil;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SpringContextUtil;
-import com.zs.gms.entity.monitor.DispatchTask;
 import com.zs.gms.entity.monitor.TaskAreaState;
+import com.zs.gms.entity.monitor.Unit;
 import com.zs.gms.service.init.DispatchInit;
-import com.zs.gms.service.monitor.DispatchTaskService;
+import com.zs.gms.service.monitor.UnitService;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 public class DispatchHandle implements RedisListener {
 
     private static DispatchHandle instance=new DispatchHandle();
@@ -35,23 +37,29 @@ public class DispatchHandle implements RedisListener {
             case RedisKeyPool.DISPATCH_AREA_PREFIX:
                 TaskAreaState taskState = GmsUtil.getMessage(key, TaskAreaState.class);
                 WsUtil.sendMessage(GmsUtil.toJsonIEnumDesc(taskState), FunctionEnum.taskAreaState);
+                log.debug("任务点状态变更: {}",taskState.getTaskSpots()[0].getState().getDesc());
                 break;
             case RedisKeyPool.DISPATCH_SERVER_INIT:
                 DispatchInit dispatchInit = SpringContextUtil.getBean(DispatchInit.class);
                 dispatchInit.init();
                 break;
             case RedisKeyPool.DISPATCH_UNIT:
-                DispatchTaskService dispatchTaskService = SpringContextUtil.getBean(DispatchTaskService.class);
+                UnitService unitService = SpringContextUtil.getBean(UnitService.class);
                 String unitId = GmsUtil.subLastStr(key, "_");
                 Object value = RedisService.get(StaticConfig.MONITOR_DB, key);
                 if(null!=value) {
-                    DispatchTask.Status status = DispatchTask.Status.getEnumTypeByValue((String) value);
-                    dispatchTaskService.updateUnitStatusByUnitId(Integer.valueOf(unitId),status);
-                    if(WsUtil.isNeed(FunctionEnum.unitStatus)) {
-                        Map<String,Object> result=new HashMap<>();
-                        result.put("unitId",unitId);
-                        result.put("status",status);
-                        WsUtil.sendMessage(GmsUtil.toJsonIEnumDesc(result),FunctionEnum.unitStatus);
+                    Unit.Status status = Unit.Status.getEnumTypeByValue((String) value);
+                    if(null!=status){
+                        log.debug("调度单元状态改变:{},{}",unitId,status.getDesc());
+                        unitService.updateStatus(Integer.valueOf(unitId),status);
+                        if(WsUtil.isNeed(FunctionEnum.unitStatus)) {
+                            Map<String,Object> result=new HashMap<>();
+                            result.put("unitId",unitId);
+                            result.put("status",status);
+                            WsUtil.sendMessage(GmsUtil.toJsonIEnumDesc(result),FunctionEnum.unitStatus);
+                        }
+                    }else{
+                        log.error("没有对应的调度枚举状态类型!");
                     }
                 }
                 break;

@@ -18,19 +18,9 @@ public class CheckServerHandler extends SetHandler {
         sendMessage(message);
     }
 
-    public void sendMessage(String message){
+    public void sendMessage(String message) {
         for (Session session : sessions) {
-            synchronized (session) {
-                try {
-                    if (session.isOpen()) {
-                        session.getBasicRemote().sendText(getResult(message,FunctionEnum.checkServer.name()));
-                    } else {
-                        sessions.remove(session);
-                    }
-                } catch (IOException e) {
-                    log.error("ws-checkServer发送数据失败", e);
-                }
-            }
+            super.sendMessage(session, message);
         }
     }
 }

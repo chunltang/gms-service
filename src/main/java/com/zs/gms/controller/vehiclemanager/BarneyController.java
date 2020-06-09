@@ -1,9 +1,10 @@
 package com.zs.gms.controller.vehiclemanager;
 
 import com.zs.gms.common.annotation.Mark;
+import com.zs.gms.common.entity.WhetherEnum;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.vehiclemanager.Barney;
-import com.zs.gms.enums.vehiclemanager.ActivateStatusEnum;
+import com.zs.gms.entity.vehiclemanager.BarneyType;
 import com.zs.gms.service.init.SyncRedisData;
 import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.common.annotation.Log;
@@ -12,6 +13,7 @@ import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.common.exception.GmsException;
+import com.zs.gms.service.vehiclemanager.BarneyTypeService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +33,9 @@ public class BarneyController extends BaseController {
 
     @Autowired
     private BarneyService barneyService;
+
+    @Autowired
+    private BarneyTypeService barneyTypeService;
 
     @Log("新增矿车")
     @Mark(value = "新增矿车",markImpl = SyncRedisData.class)
@@ -71,7 +76,13 @@ public class BarneyController extends BaseController {
     @ApiOperation(value = "修改矿车信息", httpMethod = "PUT")
     public GmsResponse updateVehicle(@MultiRequestBody Barney barney) throws GmsException {
         try {
-            barney.setVehicleNo(null);//编号不能修改
+            Barney ba = barneyService.getBarneyById(barney.getVehicleId());
+            if(null==ba){
+                return new GmsResponse().message("该车辆信息不存在!").badRequest();
+            }
+            if(WhetherEnum.YES.equals(ba.getVehicleStatus())){
+                return new GmsResponse().message("该车辆处于激活状态，不能修改!").badRequest();
+            }
             this.barneyService.updateVehicle(barney);
             return new GmsResponse().message("修改矿车信息成功").success();
         } catch (Exception e) {
@@ -96,25 +107,8 @@ public class BarneyController extends BaseController {
         }
     }
 
-    @Log("批量矿车分配")
-    @PutMapping(value = "/barneys/vehicleAllots/{userId}")
-    @ApiOperation(value = "批量矿车分配", httpMethod = "PUT")
-    public GmsResponse vehicleAllot(@MultiRequestBody("vehicleIds") String vehicleIds, @PathVariable Integer userId) throws GmsException {
-        try {
-            boolean vehicleAllot = this.barneyService.isVehicleAllot(vehicleIds);
-            if (vehicleAllot) {
-                return new GmsResponse().message("存在已分配矿车").badRequest();
-            }
-            this.barneyService.addUserVehicles(userId, vehicleIds);
-            return new GmsResponse().message("批量矿车分配成功").success();
-        } catch (Exception e) {
-            String message = "批量矿车分配失败";
-            log.error(message, e);
-            throw new GmsException(message);
-        }
-    }
 
-    @Log("启用矿车")
+    /*@Log("启用矿车")
     @PutMapping(value = "/barneys/start/{vehicleId}")
     @ApiOperation(value = "启用矿车", httpMethod = "PUT")
     public GmsResponse startVehicle(@PathVariable(value = "vehicleId") Integer vehicleId) throws GmsException {
@@ -122,7 +116,7 @@ public class BarneyController extends BaseController {
             if(!this.barneyService.queryVehicleExistId(vehicleId)){
                 return new GmsResponse().message("矿车id不存在").badRequest();
             }
-            this.barneyService.updateStatus(vehicleId, ActivateStatusEnum.ACTIVATED);
+            this.barneyService.updateStatusByNo(vehicleId, WhetherEnum.YES);
             return new GmsResponse().message("启用矿车成功").success();
         } catch (Exception e) {
             String message = "启用矿车失败";
@@ -139,10 +133,24 @@ public class BarneyController extends BaseController {
             if(!this.barneyService.queryVehicleExistId(vehicleId)){
                 return new GmsResponse().message("矿车id不存在").badRequest();
             }
-            this.barneyService.updateStatus(vehicleId,ActivateStatusEnum.UNACTIVATED);
+            this.barneyService.updateStatusByNo(vehicleId, WhetherEnum.NO);
             return new GmsResponse().message("停用矿车成功").success();
         } catch (Exception e) {
             String message = "停用矿车失败";
+            log.error(message, e);
+            throw new GmsException(message);
+        }
+    }*/
+
+    @Log("获取矿车类型")
+    @GetMapping("/barneys/types/{barneyTypeId}")
+    @ApiOperation(value = "获取矿车列表", httpMethod = "GET")
+    public GmsResponse getBarneyType(@PathVariable("barneyTypeId")Integer barneyTypeId) throws GmsException {
+        try {
+            BarneyType barneyType = barneyTypeService.getBarneyType(barneyTypeId);
+            return new GmsResponse().data(barneyType).message("获取矿车类型成功").success();
+        } catch (Exception e) {
+            String message = "获取矿车类型失败";
             log.error(message, e);
             throw new GmsException(message);
         }

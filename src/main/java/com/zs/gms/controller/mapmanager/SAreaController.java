@@ -16,14 +16,17 @@ import com.zs.gms.entity.mapmanager.AreaInfo;
 import com.zs.gms.entity.mapmanager.area.*;
 import com.zs.gms.entity.mapmanager.other.*;
 import com.zs.gms.entity.mapmanager.spot.*;
+import com.zs.gms.service.mapmanager.MapInfoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,6 +36,9 @@ import java.util.Map;
 @Slf4j
 @Api(tags = {"地图管理"}, description = "Map Controller")
 public class SAreaController extends BaseController {
+
+    @Autowired
+    private MapInfoService mapInfoService;
 
     @Log("创建地图单元")//可以设置不可通行区域
     @PostMapping(value = "/{mapId}/areas")
@@ -263,7 +269,7 @@ public class SAreaController extends BaseController {
     @PutMapping(value = "/{mapId}/areas/name")
     @ApiOperation(value = "设置名称", httpMethod = "PUT")
     public void setName(@PathVariable Long mapId,
-                        @MultiRequestBody("areaId") Long areaId,
+                        @MultiRequestBody("loadAreaId") Long areaId,
                         @MultiRequestBody("name") String name) throws GmsException {
         if (!ObjectUtils.allNotNull(mapId, areaId, name)) {
             throw new GmsException("参数异常");
@@ -286,7 +292,7 @@ public class SAreaController extends BaseController {
     @PutMapping(value = "/{mapId}/areas/speed")
     @ApiOperation(value = "设置区域速度", httpMethod = "PUT")
     public void setAreaSpeed(@PathVariable Long mapId,
-                             @MultiRequestBody("areaId") Long areaId,
+                             @MultiRequestBody("loadAreaId") Long areaId,
                              @MultiRequestBody("speed") Float speed) throws GmsException {
         if (!ObjectUtils.allNotNull(mapId, areaId, speed)) {
             throw new GmsException("参数异常");
@@ -420,7 +426,7 @@ public class SAreaController extends BaseController {
     @Log("设置排土最大次数")
     @PutMapping(value = "/{mapId}/areas/unloadMax")
     @ApiOperation(value = "设置排土最大次数", httpMethod = "PUT")
-    public void setUnloadMax(@PathVariable Long mapId, @MultiRequestBody("areaId") Long areaId,
+    public void setUnloadMax(@PathVariable Long mapId, @MultiRequestBody("loadAreaId") Long areaId,
                              @MultiRequestBody("attributeValue") Integer attributeValue) throws GmsException {
         if (!ObjectUtils.allNotNull(mapId, areaId, attributeValue)) {
             throw new GmsException("参数异常");
@@ -609,6 +615,10 @@ public class SAreaController extends BaseController {
     @ApiOperation(value = "地图开始编辑", httpMethod = "PUT")
     public GmsResponse mapStartEdit(@MultiRequestBody("mapId") Integer mapId) throws GmsException {
         try {
+            boolean existMapId = mapInfoService.existMapId(mapId);
+            if(!existMapId){
+                return new GmsResponse().message("地图id不存在").badRequest();
+            }
             return new GmsResponse().message("地图开始编辑设置成功").success();
         } catch (Exception e) {
             String message = "地图开始编辑设置失败";
@@ -622,7 +632,12 @@ public class SAreaController extends BaseController {
     @ApiOperation(value = "地图结束编辑", httpMethod = "PUT")
     public GmsResponse mapEndEdit(@MultiRequestBody("mapId") Integer mapId) throws GmsException {
         try {
+            boolean existMapId = mapInfoService.existMapId(mapId);
+            if(!existMapId){
+                return new GmsResponse().message("地图id不存在").badRequest();
+            }
             MapDataUtil.releaseLock(mapId,super.getCurrentUser().getUserId().toString());
+            mapInfoService.updateLastTime(mapId,new Date());
             return new GmsResponse().message("地图结束编辑设置成功").success();
         } catch (Exception e) {
             String message = "地图结束编辑设置失败";

@@ -1,5 +1,6 @@
 package com.zs.gms.common.utils;
 
+import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -12,14 +13,16 @@ import java.util.Objects;
  */
 public class HttpContextUtil {
 
-	private HttpContextUtil(){
+    private HttpContextUtil() {
 
-	}
-	public static HttpServletRequest getHttpServletRequest() {
-		return ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
-	}
+    }
 
-	public static HttpServletResponse getHttpServletResponse() {
-		return ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getResponse();
-	}
+    public static HttpServletRequest getHttpServletRequest() {
+        return ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+    }
+
+    public static HttpServletResponse getHttpServletResponse() {
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        return requestAttributes == null ? null : ((ServletRequestAttributes) requestAttributes).getResponse();
+    }
 }

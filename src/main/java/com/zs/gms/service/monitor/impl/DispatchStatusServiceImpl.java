@@ -3,6 +3,7 @@ package com.zs.gms.service.monitor.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zs.gms.common.annotation.RedisLock;
+import com.zs.gms.common.entity.RedisKeyPool;
 import com.zs.gms.entity.monitor.DispatchStatus;
 import com.zs.gms.mapper.monitor.DispatchStatusMapper;
 import com.zs.gms.service.monitor.DispatchStatusService;
@@ -20,7 +21,7 @@ public class DispatchStatusServiceImpl extends ServiceImpl<DispatchStatusMapper,
 
     @Override
     @Transactional
-    @RedisLock(key = "dispatchStatus")
+    @RedisLock(key = RedisKeyPool.DISPATCH_STATUS_LOCK)
     public void addDispatchStatus(DispatchStatus dispatchStatus) {
         LambdaQueryWrapper<DispatchStatus> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(DispatchStatus::getVehicleId,dispatchStatus.getVehicleId());

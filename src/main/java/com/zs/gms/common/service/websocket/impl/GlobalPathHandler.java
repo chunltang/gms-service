@@ -21,29 +21,15 @@ public class GlobalPathHandler extends SetHandler {
     @Override
     public void sendMessage(Session session, String message) {
         if (null != session) {
-            send(session, message);
+            super.sendMessage(session,message);
         } else {
             for (Session s : sessions) {
-                send(s, getResult(message, FunctionEnum.globalPath.name()));
-            }
-        }
-    }
-
-    private void send(Session session, String message) {
-        if(!isRole(session,Role.RoleSign.CHIEFDESPATCHER_ROLE,Role.RoleSign.DESPATCHER_ROLE)){
-            log.error("非调度长或调度员会话，关闭连接！");
-            removeFunction(session);
-            return;
-        }
-        synchronized (session) {
-            try {
-                if (session.isOpen()) {
-                    session.getBasicRemote().sendText(message);
-                } else {
-                    sessions.remove(session);
+                if(!isRole(s,Role.RoleSign.CHIEFDESPATCHER_ROLE,Role.RoleSign.DESPATCHER_ROLE)){
+                    log.error("非调度长或调度员会话，关闭连接！");
+                    removeFunction(s);
+                    return;
                 }
-            } catch (IOException e) {
-                log.error("ws-globalPath发送数据失败", e);
+                super.sendMessage(s,message);
             }
         }
     }

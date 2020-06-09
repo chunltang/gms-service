@@ -111,4 +111,4 @@ management:
 logging:
   level:
     #com.zs.gms.common.handler: debug   #设置全局异常的日志级别
-    com.zs.gms: debug
+    com.zs.gms: debug #com.zs.gms.common.service.websocket:debug

@@ -5,11 +5,14 @@ import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.entity.vehiclemanager.Excavator;
 import com.zs.gms.entity.vehiclemanager.ExcavatorType;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ExcavatorTypeService {
 
     void addExcavatorType(ExcavatorType excavatorType);
+
+    ExcavatorType getExcavatorType(Integer excavatorTypeId);
 
     IPage<ExcavatorType> getExcavatorTypeListPage(QueryRequest queryRequest);
 
@@ -22,4 +25,9 @@ public interface ExcavatorTypeService {
     boolean isExistName(Integer excavatorTypeId,String excavatorTypeName);
 
     boolean isExistTypeId(Integer excavatorTypeId);
+
+    /**
+     * 改变激活状态
+     * */
+    void updateActive(Collection<Integer> excavatorTypeIds);
 }

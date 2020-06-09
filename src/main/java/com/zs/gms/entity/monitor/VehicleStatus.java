@@ -11,7 +11,7 @@ public class VehicleStatus implements Serializable {
 
     public Integer vehicleId;
 
-    public Object status;
+    public Object obj;
 
     public Date createTime;
 }

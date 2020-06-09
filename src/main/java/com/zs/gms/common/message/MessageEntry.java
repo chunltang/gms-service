@@ -1,9 +1,11 @@
 package com.zs.gms.common.message;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zs.gms.common.entity.Message;
 import com.zs.gms.common.entity.MessageEvent;
 import com.zs.gms.common.interfaces.ResponseCallBack;
+import com.zs.gms.common.utils.GmsUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,8 +19,11 @@ import java.util.*;
 public class MessageEntry {
     private  String messageId;    //消息id
     private MessageResult handleResult; //处理结果
+    @JsonIgnore
     private Message message;     //保存前端HttpServletResponse和数据
+    @JsonIgnore
     private List<ResponseCallBack> handles = new ArrayList<>();
+    @JsonIgnore
     private String returnData;   //返回数据
     private boolean isHttp = true; //是否是http请求
     private final Set<EventType> eventTypes=new HashSet<>();//外部触发程序的类型
@@ -26,7 +31,7 @@ public class MessageEntry {
     private  boolean isEnd=false; //任务是否已结束
     private long bTime; //任务开始时间
     private String routeKey;
-
+    private Map<String,Object> params=new HashMap<>(2);//实体携带的数据
     public void setAfterHandle(ResponseCallBack callBack) {
         handles.add(callBack);
     }
@@ -35,6 +40,7 @@ public class MessageEntry {
      * 最后处理http响应
      * */
     private void execLastHttpHandle() {
+        //log.debug("最后处理http响应,routeKey={},messageId={}",routeKey,messageId);
         writeResult(this);
     }
 
@@ -43,13 +49,9 @@ public class MessageEntry {
      * */
     public void eventNotify(EventType eventType){
         eventTypes.add(eventType);
-        synchronized (eventTypes){
-            if(null!=handleResult &&
-                    !handleResult.equals(MessageResult.SUCCESS)){
-                exec();//执行失败
-                return;
-            }
+        synchronized (this){
             if(!isEnd && eventTypes.size()==collect){
+                //log.debug("实体事件完成通知,routeKey={},messageId={}",routeKey,messageId);
                 exec();
             }
         }
@@ -60,6 +62,7 @@ public class MessageEntry {
      * */
     public void exec() {
         if(callback()){
+            //log.debug("实体事件执行完成后置处理,routeKey={},messageId={},entry={}",routeKey,messageId, GmsUtil.toJson(this));
             if (isHttp) {
                 execLastHttpHandle();
             }
@@ -67,7 +70,7 @@ public class MessageEntry {
     }
 
     boolean callback(){
-        synchronized (messageId){
+        synchronized (this){
             if(!isEnd) {
                 isEnd = true;
                 for (ResponseCallBack handle : handles) {

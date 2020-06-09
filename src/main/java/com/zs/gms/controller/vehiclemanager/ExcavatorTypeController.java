@@ -6,10 +6,12 @@ import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.entity.QueryRequest;
+import com.zs.gms.common.entity.WhetherEnum;
 import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.entity.client.UserExcavatorLoadArea;
 import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
+import com.zs.gms.entity.vehiclemanager.BarneyType;
 import com.zs.gms.entity.vehiclemanager.Excavator;
 import com.zs.gms.entity.vehiclemanager.ExcavatorType;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
@@ -101,6 +103,10 @@ public class ExcavatorTypeController extends BaseController {
             boolean exist = this.excavatorTypeService.isExistTypeId(excavatorTypeId);
             if (!exist) {
                 return new GmsResponse().message("该挖掘机类型不存在").badRequest();
+            }
+            ExcavatorType excavatorType = this.excavatorTypeService.getExcavatorType(excavatorTypeId);
+            if(excavatorType.getActive().equals(WhetherEnum.YES)){
+                return new GmsResponse().message("激活的挖掘机类型不能删除!").badRequest();
             }
             this.excavatorTypeService.deleteExcavatorType(excavatorTypeId);
             return new GmsResponse().message("删除挖掘机类型成功").success();

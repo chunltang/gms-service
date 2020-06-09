@@ -6,12 +6,14 @@ import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.entity.QueryRequest;
+import com.zs.gms.common.entity.WhetherEnum;
 import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.vehiclemanager.Excavator;
 import com.zs.gms.entity.client.UserExcavatorLoadArea;
 import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
+import com.zs.gms.entity.vehiclemanager.ExcavatorType;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
 import com.zs.gms.service.vehiclemanager.ExcavatorService;
 import com.zs.gms.service.vehiclemanager.ExcavatorTypeService;
@@ -27,7 +29,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.Map;
 
 @Slf4j
@@ -108,11 +109,14 @@ public class ExcavatorController extends BaseController {
     @ApiOperation(value = "修改挖掘机参数", httpMethod = "PUT")
     public GmsResponse updateExcavator(@MultiRequestBody Excavator excavator) throws GmsException {
         try {
-            excavator.setExcavatorNo(null);
-            boolean exist = this.excavatorService.isExistId(excavator.getExcavatorId());
-            if (!exist) {
-                return new GmsResponse().message("该挖掘机id不存在").badRequest();
+            Excavator ex = excavatorService.getExcavatorById(excavator.getExcavatorId());
+            if(null==ex){
+                return new GmsResponse().message("该车辆信息不存在!").badRequest();
             }
+            if(WhetherEnum.YES.equals(ex.getVehicleStatus())){
+                return new GmsResponse().message("该车辆处于激活状态，不能修改!").badRequest();
+            }
+
             Integer excavatorTypeId = excavator.getExcavatorTypeId();
             if(null!=excavatorTypeId){
                 boolean existTypeId = excavatorTypeService.isExistTypeId(excavatorTypeId);
@@ -212,6 +216,20 @@ public class ExcavatorController extends BaseController {
             return new GmsResponse().message("修改挖掘机操作员成功").success();
         } catch (Exception e) {
             String message = "修改挖掘机操作员失败";
+            log.error(message, e);
+            throw new GmsException(message);
+        }
+    }
+
+    @Log("获取挖掘机类型")
+    @GetMapping("/excavators/types/{excavatorTypeId}")
+    @ApiOperation(value = "获取矿车列表", httpMethod = "GET")
+    public GmsResponse getExcavatorType(@PathVariable("excavatorTypeId")Integer excavatorTypeId) throws GmsException {
+        try {
+            ExcavatorType excavatorType = excavatorTypeService.getExcavatorType(excavatorTypeId);
+            return new GmsResponse().data(excavatorType).message("获取挖掘机类型成功").success();
+        } catch (Exception e) {
+            String message = "获取挖掘机类型失败";
             log.error(message, e);
             throw new GmsException(message);
         }

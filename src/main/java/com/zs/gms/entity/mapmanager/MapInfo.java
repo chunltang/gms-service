@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
+import com.zs.gms.common.handler.ObjectTypeHandler;
 import com.zs.gms.common.handler.PointTypeHandler;
 import lombok.Data;
 
@@ -16,9 +17,9 @@ import java.util.Date;
 
 /**
  * 地图信息
- * */
+ */
 @Data
-@TableName(value = "t_map_info",autoResultMap = true)
+@TableName(value = "t_map_info", autoResultMap = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MapInfo implements Serializable {
     private static final long serialVersionUID = 8001139130832445615L;
@@ -35,12 +36,12 @@ public class MapInfo implements Serializable {
     private Integer mapId;
 
     @JsonProperty("map_id")
-    public void setMapId(Integer mapId){
-        this.mapId=mapId;
+    public void setMapId(Integer mapId) {
+        this.mapId = mapId;
     }
 
     @JsonProperty("mapId")
-    public Integer getMapId(){
+    public Integer getMapId() {
         return mapId;
     }
 
@@ -64,6 +65,18 @@ public class MapInfo implements Serializable {
     @NotNull(message = "地图限速不能为空")
     @TableField(value = "SPEED")
     private Float speed;
+
+    /**
+     * 地图版本
+     */
+    @TableField(value = "VERSION", typeHandler = ObjectTypeHandler.class)
+    private MapVersion version;
+
+    /**
+     * 地图缩略图路径
+     */
+    @TableField(value = "IMAGEPATH")
+    private String imagePath;
 
     /**
      * 靠左/右行驶
@@ -112,12 +125,6 @@ public class MapInfo implements Serializable {
     private Integer userId;
 
     /**
-     * 地图版本号
-     */
-    @TableField(value = "VERSION")
-    private String version;
-
-    /**
      * 状态：0使用中，1未使用，2发布确认，3删除确认
      */
     @TableField(value = "STATUS")
@@ -131,35 +138,52 @@ public class MapInfo implements Serializable {
 
     @TableLogic
     @JsonIgnore
-    @TableField(value = "ISDEL",select = false)
+    @TableField(value = "ISDEL", select = false)
     private Integer isDel;
 
     public enum Status implements IEnum {
 
-        UNUSED("0","未发布"),
-        USING("1","使用中"),
-        PUBLISH("2","申请发布"),
-        DELETE("3","申请删除"),
-        ABANDON("4","废弃"),
-        INACTIVE("5","申请解除活跃状态");
+        UNUSED("0", "未发布"),
+        USING("1", "使用中"),
+        PUBLISH("2", "申请发布"),
+        DELETE("3", "申请删除"),
+        ABANDON("4", "废弃"),
+        INACTIVE("5", "申请解除活跃状态");
 
         private String value;
 
         private String desc;
 
-        private Status(String value, String desc){
-            this.value=value;
-            this.desc=desc;
-        };
+        private Status(String value, String desc) {
+            this.value = value;
+            this.desc = desc;
+        }
+
+        ;
 
         @JsonValue
-        public String getValue(){
+        public String getValue() {
             return value;
         }
 
 
-        public String getDesc(){
+        public String getDesc() {
             return desc;
+        }
+    }
+
+    @Data
+    public static class MapVersion {
+
+        private String prefix = "YM";
+
+        private Integer bigVersion = 1;
+
+        private Integer smallVersion = 1;
+
+        @JsonValue
+        public String toString() {
+            return prefix + "." + String.format("%03d", bigVersion) + "." + String.format("%03d", smallVersion);
         }
     }
 }

@@ -1,14 +1,21 @@
 package com.zs.gms.common.authentication;
 
+import com.alibaba.fastjson.JSON;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.properties.GmsProperties;
-import com.zs.gms.common.utils.ThreadLocalUtil;
+import com.zs.gms.common.utils.GmsUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.codec.Base64;
 import org.apache.shiro.mgt.SecurityManager;
+import org.apache.shiro.session.InvalidSessionException;
+import org.apache.shiro.session.Session;
 import org.apache.shiro.session.SessionListener;
+import org.apache.shiro.session.UnknownSessionException;
+import org.apache.shiro.session.mgt.SimpleSession;
+import org.apache.shiro.session.mgt.eis.AbstractSessionDAO;
 import org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.session.mgt.eis.SessionIdGenerator;
@@ -24,16 +31,26 @@ import org.apache.shiro.web.util.WebUtils;
 import org.crazycake.shiro.RedisCacheManager;
 import org.crazycake.shiro.RedisManager;
 import org.crazycake.shiro.RedisSessionDAO;
+import org.crazycake.shiro.SessionInMemory;
+import org.crazycake.shiro.exception.SerializationException;
+import org.crazycake.shiro.serializer.ObjectSerializer;
+import org.crazycake.shiro.serializer.RedisSerializer;
+import org.crazycake.shiro.serializer.StringSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.util.Base64Utils;
 
 import javax.servlet.Filter;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -105,6 +122,8 @@ public class ShiroConfig {
         return redisCacheManager;
     }
 
+
+
     private RedisManager redisManager() {
         RedisManager redisManager = new RedisManager();
         redisManager.setHost(host + ":" + port);
@@ -155,6 +174,7 @@ public class ShiroConfig {
         return redisSessionDAO;
     }
 
+
     @Bean
     public DefaultWebSessionManager sessionManager() {
         OverDefaultWebSessionManager sessionManager = new OverDefaultWebSessionManager();
@@ -164,7 +184,7 @@ public class ShiroConfig {
         sessionManager.setGlobalSessionTimeout(gmsProperties.getShiro().getSessionTimeout() * 1000L);
         sessionManager.setSessionListeners(listeners);
         sessionManager.setSessionDAO(sessionDAO());
-        sessionManager.setCacheManager(cacheManager());
+        //sessionManager.setCacheManager(cacheManager());
         //取消url 后面的 JSESSIONID
         sessionManager.setSessionIdUrlRewritingEnabled(false);
         return sessionManager;
@@ -209,7 +229,6 @@ public class ShiroConfig {
                 log.debug("非跨域请求连接");
                 id = super.getSessionId(request, response);
             }
-            ThreadLocalUtil.set(id);
             return id;
         }
     }

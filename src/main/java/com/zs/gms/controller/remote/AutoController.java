@@ -22,21 +22,6 @@ import java.util.Map;
 @Slf4j
 public class AutoController {
 
-    @Log("切换到自动模式")
-    @PutMapping(value = "/autoModel/{vehicleId}")
-    @ApiOperation(value = "切换到自动模式",httpMethod = "PUT")
-    public void switchToAutoModel(@PathVariable  Long vehicleId) throws GmsException {
-        try{
-            Map<String,Object> paramMap=new HashMap<>();
-            paramMap.put("vehicleId",vehicleId);
-            MessageFactory.getDispatchMessage().sendMessageNoID("VehModeAuto", JSONObject.toJSONString(paramMap),"切换到自动模式成功");
-        }catch (Exception e){
-            String message="切换到自动模式失败";
-            log.error(message,e);
-            throw new GmsException(message);
-        }
-    }
-
     @Log("自动模式:停机")
     @PutMapping(value = "/autoModel/{vehicleId}/vehicleStop")
     @ApiOperation(value = "自动模式:停机",httpMethod = "PUT")

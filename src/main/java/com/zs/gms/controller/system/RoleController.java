@@ -49,7 +49,7 @@ public class RoleController {
     @ApiOperation(value = "获取用户角色列表", httpMethod = "GET")
     public GmsResponse getRoleList() throws GmsException {
         try {
-            List<Role> list = roleService.list();
+            List<Role> list = roleService.getRoleList();
             return new GmsResponse().message("获取用户角色列表成功").data(list).success();
         } catch (Exception e) {
             String message = "获取用户角色列表失败";

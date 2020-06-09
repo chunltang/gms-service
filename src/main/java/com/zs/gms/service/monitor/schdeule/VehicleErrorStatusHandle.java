@@ -16,6 +16,6 @@ public class VehicleErrorStatusHandle extends AbstractVehicleStatusHandle {
 
     @Override
     public void handleStatus(VehicleStatus vehicleStatus) {
-        //log.debug("{}车辆异常状态:{}",vehicleStatus.getVehicleId(),vehicleStatus.getStatus());
+        //log.debug("{}车辆异常状态:{}",vehicleStatus.getVehicleId(),vehicleStatus.getObj());
     }
 }

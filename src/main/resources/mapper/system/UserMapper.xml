@@ -4,6 +4,7 @@
     <sql id="findUserListSql">
         select su.USERID,
         su.userName,
+        su.NAME,
         su.LASTLOGINTIME,
         su.CREATETIME,
         su.PHONE,
@@ -11,23 +12,32 @@
         su.theme,
         su.avatar,
         sr.roleId,
-        sr.roleName
+        sr.roleName,
+        sr.ROLESIGN,
+        su.USERLOCK
         from sys_user su
         left join sys_user_role sur on (su.USERID = sur.USERID)
         left join sys_role sr on (sr.ROLEID = sur.ROLEID)
         where 1=1
-          and su.ISDEL=false
-        <if test="user.userName!=null and user.userName!=''">
-            and  su.USERNAME=  #{user.userName}
+        and su.ISDEL=false
+        and sr.ROLESIGN!='admin'
+        <if test="user!=null and user.userName!=null and user.userName!=''">
+            and su.USERNAME= #{user.userName}
         </if>
-        <if test="user.userId!=null and user.userId!=''">
+        <if test="user!=null and user.userId!=null and user.userId!=''">
             and su.USERID=#{user.userId}
         </if>
+        order by su.USERNAME
     </sql>
+
+    <select id="findUserList" parameterType="com.zs.gms.entity.system.User" resultType="com.zs.gms.entity.system.User">
+        <include refid="findUserListSql"/>
+    </select>
 
     <select id="findUserByName" parameterType="string" resultType="com.zs.gms.entity.system.User">
         select su.USERID,
                su.userName,
+               su.NAME,
                su.password,
                su.LASTLOGINTIME,
                su.CREATETIME,
@@ -35,11 +45,15 @@
                su.theme,
                sr.roleId,
                sr.roleName,
-               sr.roleSign
+               sr.roleSign,
+               su.retry,
+               su.USERLOCK
         from sys_user su
                  left join sys_user_role sur on (su.USERID = sur.USERID)
                  left join sys_role sr on (sr.ROLEID = sur.ROLEID)
-        where 1=1 and  su.USERNAME = #{userName} and su.ISDEL=false
+        where 1 = 1
+          and su.USERNAME = #{userName}
+          and su.ISDEL = false
     </select>
 
     <select id="findUserListPage" parameterType="com.zs.gms.entity.system.User"
@@ -51,21 +65,26 @@
         select su.USERID,
                su.userName,
                su.password,
+               su.NAME,
                su.PHONE,
                su.LASTLOGINTIME,
                su.CREATETIME,
                su.theme,
                sr.roleId,
-               sr.roleName
-               from sys_user su
-        left join sys_user_role sur on su.USERID=sur.USERID
-        left join sys_role sr on sr.ROLEID=sur.ROLEID
-        where sr.ROLEID=#{roleId} and su.ISDEL=false
+               sr.roleName,
+               sr.roleSign,
+               su.USERLOCK
+        from sys_user su
+                 left join sys_user_role sur on su.USERID = sur.USERID
+                 left join sys_role sr on sr.ROLEID = sur.ROLEID
+        where sr.ROLEID = #{roleId}
+          and su.ISDEL = false
     </select>
 
     <select id="getUserById" parameterType="integer" resultType="com.zs.gms.entity.system.User">
         select su.USERID,
                su.userName,
+               su.NAME,
                su.password,
                su.PHONE,
                su.LASTLOGINTIME,
@@ -73,26 +92,51 @@
                su.theme,
                sr.roleSign,
                sr.roleId,
-               sr.roleName
-               from sys_user su
-        left join sys_user_role sur on su.USERID=sur.USERID
-        left join sys_role sr on sr.ROLEID=sur.ROLEID
-        where su.USERID=#{userId} and su.ISDEL=false
+               sr.roleName,
+               su.USERLOCK
+        from sys_user su
+                 left join sys_user_role sur on su.USERID = sur.USERID
+                 left join sys_role sr on sr.ROLEID = sur.ROLEID
+        where su.USERID = #{userId}
+          and su.ISDEL = false
 
     </select>
 
     <select id="getUsersByRoleSign" parameterType="string" resultType="com.zs.gms.entity.system.User">
         select su.USERID,
                su.userName,
+               su.NAME,
                su.LASTLOGINTIME,
                su.PHONE,
                su.CREATETIME,
                su.theme,
                sr.roleSign,
-			   sr.ROLEID
-               from sys_user su
-        INNER join sys_user_role sur on su.USERID=sur.USERID
-        INNER join sys_role sr on sr.ROLEID=sur.ROLEID
-        where  sr.roleSign= #{roleSign} and su.ISDEL=false
+               sr.ROLEID,
+               su.USERLOCK
+        from sys_user su
+                 INNER join sys_user_role sur on su.USERID = sur.USERID
+                 INNER join sys_role sr on sr.ROLEID = sur.ROLEID
+        where sr.roleSign = #{roleSign}
+          and su.ISDEL = false
+    </select>
+
+    <select id="findUnitUserList"
+            resultType="java.util.Map">
+        select su.userId                                      userId,
+               su.userName                                    userName,
+               su.name                                        name,
+               su.phone                                       phone,
+               tu.unitName                                    unitName,
+               sr.ROLENAME                                    roleName,
+               (case when unitName is NULL then 0 else 1 end) active
+        from sys_user su
+                 left join (select * from t_unit where ISDEL = false) tu on su.USERID = tu.USERID
+                 left join sys_user_role sur on su.USERID = sur.USERID
+                 left join sys_role sr on sr.ROLEID = sur.ROLEID
+    </select>
+
+    <select id="getMaxId" resultType="int">
+        select ifnull(max(userId), 0) maxId
+        from sys_user;
     </select>
 </mapper>

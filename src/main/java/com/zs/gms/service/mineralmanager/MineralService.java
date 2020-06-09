@@ -4,11 +4,14 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.entity.mineralmanager.Mineral;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface MineralService {
 
     public void addMineral(Mineral mineral);
+
+    void updateActive(Collection<Integer> mineralIds);
 
     /**
      * 判断矿物名称是否添加

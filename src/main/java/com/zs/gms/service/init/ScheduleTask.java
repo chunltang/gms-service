@@ -2,12 +2,10 @@ package com.zs.gms.service.init;
 
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.StaticConfig;
-import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.service.RedisService;
-import com.zs.gms.service.mapmanager.MapDataUtil;
+import com.zs.gms.common.service.nettyclient.WsUtil;
+import com.zs.gms.common.service.websocket.FunctionEnum;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.Random;
@@ -20,13 +18,17 @@ public class ScheduleTask {
 
     private static double y = 0L;
 
+    private static int step=0;
+
     /**
      * 检测消息无响应过期,大于过期时间
      * {@link GmsConstant#WAIT_TIME}
      * */
-    @Scheduled(cron = "0/40 * * * * *")
+    //@Scheduled(cron = "* * * * * *")
     public void checkOver(){
-        MessageFactory.checkOver();
+        for (int i = 0; i < 100; i++) {
+            WsUtil.sendMessage(""+(step++)+"这是一条很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长很长的消息", FunctionEnum.console);
+        }
     }
 
 

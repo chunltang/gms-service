@@ -1,22 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.zs.gms.mapper.vehiclemanager.ExcavatorMapper">
-
-    <select id="findExcavatorListPage" parameterType="com.zs.gms.entity.vehiclemanager.Excavator"
-            resultType="com.zs.gms.entity.vehiclemanager.Excavator">
+    <sql id="findExcavatorList">
         select te.EXCAVATORID,
         te.EXCAVATORTYPEID,
         te.VEHICLESTATUS,
-        tet.CAPACITY,
-        tet.BRANCHLENGTH,
         te.CREATETIME,
         te.EXCAVATORNO,
+        tet.ratedBucketVolume,
+        tet.excavatorTypeName,
+        te.REMARK,
+        te.vap,
         te.IP1,
-        te.IP2,
+        te.PORT,
         te.X1,
-        te.X2,
         te.Y1,
-        te.Y2,
         tbe.USERID,
         tbe.LOADAREAID LOADID,
         tbe.MAPID,
@@ -26,11 +24,22 @@
         left join t_bind_excavator tbe on tbe.EXCAVATORID = te.EXCAVATORNO
         left join sys_user su on su.USERID=tbe.USERID
         where 1=1 and te.ISDEL=false
-        <if test="excavator.userId!=null">
+        <if test="excavator!=null and excavator.userId!=null">
             and tbe.USERID=#{excavator.userId}
         </if>
-        <if test="excavator.loadId!=null">
+        <if test="excavator!=null and excavator.loadId!=null">
             and tbe.LOADAREAID=#{excavator.loadId}
         </if>
+        order by te.vehicleStatus desc,te.vap desc
+    </sql>
+
+    <select id="findExcavatorListPage" parameterType="com.zs.gms.entity.vehiclemanager.Excavator"
+            resultType="com.zs.gms.entity.vehiclemanager.Excavator">
+        <include refid="findExcavatorList"></include>
     </select>
+
+    <select id="findExcavatorList" resultType="com.zs.gms.entity.vehiclemanager.Excavator">
+        <include refid="findExcavatorList"></include>
+    </select>
+
 </mapper>

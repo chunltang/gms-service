@@ -2,7 +2,7 @@ package com.zs.gms.service.remote.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.zs.gms.common.service.websocket.FunctionEnum;
-import com.zs.gms.common.service.websocket.WsUtil;
+import com.zs.gms.common.service.nettyclient.WsUtil;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.messagebox.Approve;
 import com.zs.gms.entity.system.Role;

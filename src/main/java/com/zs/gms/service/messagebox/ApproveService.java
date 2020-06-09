@@ -31,6 +31,11 @@ public interface ApproveService {
      void sendApproveResult(Approve approve);
 
      /**
+      * 同一人、同类型审批，先提交的将被删除
+      * */
+     void deleteOtherApprove();
+
+     /**
       * 等待中的审批可以取消
       * */
      void cancel(Approve approve);

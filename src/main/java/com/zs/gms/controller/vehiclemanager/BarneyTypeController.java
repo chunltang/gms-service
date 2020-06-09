@@ -2,6 +2,7 @@ package com.zs.gms.controller.vehiclemanager;
 
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.QueryRequest;
+import com.zs.gms.common.entity.WhetherEnum;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.vehiclemanager.BarneyType;
 import com.zs.gms.service.vehiclemanager.BarneyTypeService;
@@ -86,6 +87,13 @@ public class BarneyTypeController extends BaseController {
             throw new GmsException("车辆类型ID为空");
         }
         try {
+            BarneyType barneyType = this.barneyTypeService.getBarneyType(vehicleTypeId);
+            if(null==barneyType){
+                return new GmsResponse().message("不存在的车辆类型!").badRequest();
+            }
+            if(barneyType.getActive().equals(WhetherEnum.YES)){
+                return new GmsResponse().message("激活的车辆类型不能删除!").badRequest();
+            }
             this.barneyTypeService.deleteVehicleType(vehicleTypeId);
             return new GmsResponse().message("删除车辆类型成功").success();
         }catch (Exception e){

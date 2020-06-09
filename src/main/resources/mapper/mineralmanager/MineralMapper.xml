@@ -3,12 +3,13 @@
 <mapper namespace="com.zs.gms.mapper.mineralmanager.MineralMapper">
 
     <select id="getMineralListPage" resultType="com.zs.gms.entity.mineralmanager.Mineral">
-        select tm.*, tbe.EXCAVATORID excavatorNo, tam.AREAID loadId,tam.MAPID mapId
+        select tm.*, tbe.EXCAVATORID excavatorNo, tam.LOADAREAID unLoadId,tu.LOADAREAID loadId,tam.MAPID mapId
         from t_mineral tm
-                 left join (select t.MINERALID,t.MAPID, t.AREAID from t_area_mineral t where t.ISDEL = false) tam
+                 left join (select t.MINERALID,t.MAPID, t.LOADAREAID from t_area_mineral t where t.ISDEL = false) tam
                            on tm.MINERALID = tam.MINERALID
+                 left join (select * from t_unit tu where tu.ISDEL=false) tu on tu.LOADAREAID=tam.LOADAREAID
                  left join (select LOADAREAID, EXCAVATORID from t_bind_excavator t where t.ISDEL = false) tbe
-                           on tam.AREAID = tbe.LOADAREAID
+                           on tu.LOADAREAID = tbe.LOADAREAID
         where tm.ISDEL = false
     </select>
 </mapper>

@@ -34,17 +34,7 @@ public class ConsoleHandler extends MapHandler {
 
     @Override
     public void sendMessage(Session session, String message) {
-        synchronized (session) {
-            try {
-                if (session.isOpen()) {
-                    session.getBasicRemote().sendText(message);
-                } else {
-                    sessionMap.remove(session);
-                }
-            } catch (IOException e) {
-                log.error("ws-console发送数据失败", e);
-            }
-        }
+        super.sendMessage(session,message);
     }
     
 }

@@ -32,17 +32,7 @@ public class ExcavatorHandler extends SetHandler {
 
     @Override
     public void sendMessage(Session session, String message) {
-        synchronized (session) {
-            try {
-                if (session.isOpen()) {
-                    session.getBasicRemote().sendText(message);
-                } else {
-                    sessions.remove(session);
-                }
-            } catch (IOException e) {
-                log.error("ws-excavator发送数据失败", e);
-            }
-        }
+        super.sendMessage(session,message);
     }
 
     @Override
@@ -74,7 +64,7 @@ public class ExcavatorHandler extends SetHandler {
             if(null!=bind){
                 areaSessionMap.put(bind.getLoadAreaId(),session);
             }else{
-                String message="挖掘机绑定数据获取失败";
+                String message="该用户未绑定挖掘机";
                 log.error(message);
                 sendError(session,message);
                 sessions.remove(session);

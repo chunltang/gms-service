@@ -15,4 +15,6 @@ public interface AreaMineralService {
      void deleteAreaMineral(Integer mineralId);
 
      List<AreaMineral> getAreaIds(Integer mineralId);
+
+     void updateMineralActive();
 }

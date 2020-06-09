@@ -2,9 +2,16 @@ package com.zs.gms.service.vehiclemanager;
 
 import com.zs.gms.entity.client.UserExcavatorLoadArea;
 
+import java.util.Collection;
+
 public interface UserExcavatorLoadAreaService {
 
     boolean isExistUser(Integer userId);
+
+    /**
+     * 获取所有已绑定挖掘机
+     * */
+    Collection<Integer> getAllExcavatorNos();
 
     void bindExcavator(UserExcavatorLoadArea bind);
 

@@ -6,7 +6,9 @@ import com.zs.gms.common.authentication.ShiroHelper;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.exception.GmsException;
+import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.MD5Util;
+import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
 import com.zs.gms.service.system.UserService;
 import io.swagger.annotations.Api;
@@ -42,8 +44,16 @@ public class LoginController extends BaseController {
     @ApiOperation(value = "用户登录", httpMethod = "POST")
     public GmsResponse login(@MultiRequestBody("userName") String userName, @MultiRequestBody("password") String password, Boolean rememberMe) throws GmsException {
         if (StringUtils.isAnyBlank(userName, password))
-            throw new GmsException("用户名或密码为空");
+            throw new GmsException("用户编号或密码为空");
         try {
+            User user = userService.findByName(userName);
+            if(null!=user && isSingleRole(user.getRoleSign())){
+                boolean isLogin = shiroHelper.roleIsLogin(user);
+                if(isLogin){
+                    Role.RoleSign roleSign = Role.getEnum(user.getRoleSign());
+                    return new GmsResponse().message(GmsUtil.format("存在[{}]角色在线，不能登录!",roleSign.getDesc())).badRequest();
+                }
+            }
             password = MD5Util.encrypt(userName, password);
             UsernamePasswordToken token = new UsernamePasswordToken(userName, password, false);
             super.login(token);
@@ -52,6 +62,19 @@ public class LoginController extends BaseController {
             log.error(e.getMessage(), e);
             throw new GmsException(e.getMessage());
         }
+    }
+
+    /**
+     * 判断角色是否只允许登录一个
+     * */
+    private boolean isSingleRole(String roleSignDesc){
+        Role.RoleSign roleSign = Role.getEnum(roleSignDesc);
+            if(Role.RoleSign.CHIEFDESPATCHER_ROLE.equals(roleSign)||
+                    Role.RoleSign.MANAGER_ROLE.equals(roleSign)||
+                    Role.RoleSign.MAPMAKER_ROLE.equals(roleSign)){
+                return true;
+            }
+            return false;
     }
 
     @Log("用户是否已登录")
@@ -82,10 +105,10 @@ public class LoginController extends BaseController {
         return dataMap;
     }
 
-    @Log("用户注册")
+    /*@Log("用户注册")
     @RequestMapping(value = "/regist")
     @ApiOperation(value = "用户注册", httpMethod = "POST")
-    public GmsResponse regist(@MultiRequestBody("userName") String userName,
+    public GmsResponse regist(@MultiRequestBody("name") String userName,
                               @MultiRequestBody("password") String password,
                               @MultiRequestBody("phone") String phone) throws GmsException {
         if (StringUtils.isAnyBlank(userName, password)) {
@@ -103,10 +126,10 @@ public class LoginController extends BaseController {
             log.error(message, e);
             throw new GmsException(message);
         }
-    }
+    }*/
 
     @Log("用户登出")
-    @RequestMapping(value = "/logout")
+    @PostMapping(value = "/goOut")
     @ApiOperation(value = "用户登出", httpMethod = "POST")
     public GmsResponse userLogout() throws GmsException {
         try {

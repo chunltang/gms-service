@@ -55,6 +55,7 @@ public class MessageHandler {
         if (entry == null) {
             return;
         }
+        log.debug("执行发布事件eventType={},routeKey={},messageId={}",eventType.name(),entry.getRouteKey(),entry.getMessageId());
         try {
             switch (eventType) {
                 case httpMq:

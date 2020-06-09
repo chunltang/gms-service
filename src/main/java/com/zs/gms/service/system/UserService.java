@@ -8,40 +8,65 @@ import com.zs.gms.entity.system.User;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
- public interface UserService extends IService<User> {
+public interface UserService extends IService<User> {
 
-     User findByName(String userName);
+    User findByName(String userName);
 
-     void updateLastLoginTime(Integer userId, Date lastLoginTime);
+    Integer getMaxId();
+
+    /**
+     * 修改密码重试次数
+     */
+    void updateRetry(Integer userId, int num);
+
+    /**
+     * 账号是否锁定，true锁定
+     */
+    void updateLock(Integer userId, boolean isLock);
+
+    void updateLastLoginTime(Integer userId, Date lastLoginTime);
+
+    /**
+     * 清除锁定
+     */
+    void clearLock(Integer userId);
 
     /**
      * 根据角色id获取所有用户
-     * */
-     List<User> getUsersByRoleId(Integer roleId);
+     */
+    List<User> getUsersByRoleId(Integer roleId);
 
-     User findUserById(Integer userId);
+    User findUserById(Integer userId);
 
-     List<User> getUsersByRoleSign(String roleSign);
+    List<User> getUsersByRoleSign(String roleSign);
 
-     void addUser(User user);
+    void addUser(User user);
 
-     IPage<User> findUserListPage(User user, QueryRequest request);
+    IPage<User> findUserListPage(User user, QueryRequest request);
 
-     void register(String userName, String password,String phone);
+    List<Map<String, Object>> findUnitUserList();
 
-     void deleteUser(Integer userId);
+    void register(String userName, String password, String phone);
 
-     void deleteUsers(String [] userIds);
+    void deleteUser(Integer userId);
 
-     boolean isExist(String [] userIds);
+    void deleteUsers(String[] userIds);
 
-     void updateUser(User user) throws GmsException;
+    boolean isExist(String[] userIds);
+
+    void updateUser(User user) throws GmsException;
+
+    /**
+     * 修改用户编号
+     */
+    void updateUserName(Integer userId, String userName);
 
     /**
      * 修改用户角色
-     * */
-     void updateUserRole(Integer userId,String roleIds);
+     */
+    void updateUserRole(Integer userId, Integer roleId);
 
-     void updatePassword(String userName,String password);
+    void updatePassword(String userName, String password);
 }

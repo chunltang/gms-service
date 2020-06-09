@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.zs.gms.enums.monitor.DispatchStateEnum;
 import com.zs.gms.enums.monitor.ModeStateEnum;
 import com.zs.gms.enums.monitor.TaskStateEnum;
+import com.zs.gms.enums.monitor.TaskTypeEnum;
 import lombok.Data;
 import java.io.Serializable;
 import java.util.Date;
@@ -57,6 +58,13 @@ public class VehicleLiveInfo extends LiveInfo implements Serializable {
     private Integer taskAreaId=0;
 
     /**
+     * 当前任务类型
+     * */
+    @TableField(value = "TASKTYPE")
+    private TaskTypeEnum taskType;
+
+
+    /**
      * 当前任务的任务点
      * */
     @TableField(value = "TASKSPOTID")
@@ -67,6 +75,30 @@ public class VehicleLiveInfo extends LiveInfo implements Serializable {
      * */
     @TableField(value = "RUNFLAG")
     private String runFlag;
+
+    /**
+     * 是否遇到障碍物
+     * */
+    @TableField(value = "OBSFLAG")
+    private Boolean obsFlag;
+
+
+    //路径最近点id
+    private Integer nowPathId;
+    //当前点到起点距离
+    private Double nowDistance;
+    //路径终点到起点距离
+    private Double endDistance;
+
+    /**
+     * 调度员id
+     * */
+    private Integer userId;
+
+    /**
+     * 调度员姓名
+     * */
+    private String userName;//12354566778_0  map000001_0
 
     /**
      * 产生时间

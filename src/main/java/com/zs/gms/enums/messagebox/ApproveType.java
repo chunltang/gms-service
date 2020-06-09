@@ -15,7 +15,8 @@ public enum ApproveType implements IEnum {
     MAPDELETE("1","申请地图删除", MapInfoServiceImpl.class),
     MAPINACTIVE("2","申请地图取消活跃状态", MapInfoServiceImpl.class),
     MINERALCHANGE("3","申请卸矿区矿种类型变更", AreaMineralServiceImpl.class),
-    REMOTEACCESS("4","申请进入控制台", RemoteServiceImpl.class);
+    REMOTEACCESS("4","申请进入控制台", RemoteServiceImpl.class),
+    OBSTACLEDELETE("5","申请删除障碍物", MapInfoServiceImpl.class);
 
     private String value;
 

@@ -1,6 +1,7 @@
 package com.zs.gms.service.mineralmanager.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -11,7 +12,8 @@ import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SortUtil;
 import com.zs.gms.entity.mapmanager.SemiStatic;
 import com.zs.gms.entity.mineralmanager.Mineral;
-import com.zs.gms.enums.vehiclemanager.ActivateStatusEnum;
+import com.zs.gms.common.entity.WhetherEnum;
+import com.zs.gms.entity.vehiclemanager.BarneyType;
 import com.zs.gms.mapper.mineralmanager.MineralMapper;
 import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.mineralmanager.MineralService;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -33,8 +36,22 @@ public class MineralServiceImpl extends ServiceImpl<MineralMapper, Mineral> impl
     @Transactional
     public void addMineral(Mineral mineral) {
         mineral.setAddTime(new Date());
-        mineral.setActivate(ActivateStatusEnum.UNACTIVATED);
+        mineral.setActivate(WhetherEnum.NO);
         this.save(mineral);
+    }
+
+    @Override
+    @Transactional
+    public void updateActive(Collection<Integer> mineralIds) {
+        LambdaUpdateWrapper<Mineral> updateWrapper1 = new LambdaUpdateWrapper<>();
+        updateWrapper1.set(Mineral::getActivate, WhetherEnum.NO);
+        this.update(updateWrapper1);
+        if(GmsUtil.CollectionNotNull(mineralIds)){
+            LambdaUpdateWrapper<Mineral> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.set(Mineral::getActivate, WhetherEnum.YES);
+            updateWrapper.in(Mineral::getMineralId,mineralIds);
+            this.update(updateWrapper);
+        }
     }
 
     @Override
@@ -76,6 +93,10 @@ public class MineralServiceImpl extends ServiceImpl<MineralMapper, Mineral> impl
             if(GmsUtil.allObjNotNull(record.getMapId(),record.getLoadId())){
                 SemiStatic areaInfo = MapDataUtil.getAreaInfo(record.getMapId(), record.getLoadId());
                 record.setLoadIdName(areaInfo.getName());
+            }
+            if(GmsUtil.allObjNotNull(record.getMapId(),record.getUnLoadId())){
+                SemiStatic areaInfo = MapDataUtil.getAreaInfo(record.getMapId(), record.getUnLoadId());
+                record.setUnlLoadIdName(areaInfo.getName());
             }
         }
         return listPage;

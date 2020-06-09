@@ -1,9 +1,7 @@
 package com.zs.gms.service.monitor.schdeule;
 
-import com.company.Interval;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.zs.gms.common.service.websocket.FunctionEnum;
-import com.zs.gms.common.service.websocket.WsUtil;
+import com.zs.gms.common.utils.Assert;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.mapmanager.SemiStatic;
 import com.zs.gms.entity.mapmanager.point.AnglePoint;
@@ -31,10 +29,8 @@ public class LivePosition {
      */
     private static Map<Integer, Position> lastPositionMap = new ConcurrentHashMap<>();
 
-    @Interval(interval = 2000,
-            before = "com.zs.gms.common.service.GmsService.preIntervalHandler",
-            isReturn = true)
-    public static void handleDelegate(LiveInfo liveInfo,Integer deviceId) {
+    public static void handleDelegate(LiveInfo liveInfo) {
+        Assert.notNull(liveInfo,"实时位置信息为空");
         switch (liveInfo.getType()){
             case GPS:
                 handle((GpsLiveInfo)liveInfo);
@@ -55,11 +51,18 @@ public class LivePosition {
             Integer vehicleId = vehicleLiveInfo.getVehicleId();
             Position position = GmsUtil.mapPutAndGet(lastPositionMap, vehicleId, new Position());
             AnglePoint point = new AnglePoint();
+            AnglePoint showPoint = new AnglePoint();
             Monitor monitor = vehicleLiveInfo.getMonitor();
             point.setX(monitor.getXworld());
             point.setY(monitor.getYworld());
             point.setYawAngle(monitor.getYawAngle());
             point.setZ(0);
+
+            showPoint.setX(monitor.getX());
+            showPoint.setY(monitor.getY());
+            showPoint.setYawAngle(monitor.getYawAngle());
+            showPoint.setZ(0);
+
             position.setPoint(point);
             position.setDispState(vehicleLiveInfo.getDispState());
             position.setVehicleId(vehicleId);
@@ -67,9 +70,7 @@ public class LivePosition {
             position.setMapId(mapId);
             position.setLastDate(System.currentTimeMillis());
             lastPositionMap.put(vehicleId, position);
-            if (WsUtil.isNeed(FunctionEnum.excavator)) {
-                MapDataUtil.getCoordinateArea(position);
-            }
+            MapDataUtil.getCoordinateArea(position,vehicleId);
         }
     }
 
@@ -120,6 +121,11 @@ public class LivePosition {
          * 车辆位置
          */
         private AnglePoint point;
+
+        /**
+         * 显示位置
+         * */
+        private AnglePoint showPoint;
 
         /**
          * 调度状态

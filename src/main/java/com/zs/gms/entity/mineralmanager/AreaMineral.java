@@ -23,8 +23,8 @@ public class AreaMineral implements Serializable {
     /**
      * 装载区id
      * */
-    @TableField(value = "AREAID")
-    private Integer areaId;
+    @TableField(value = "LOADAREAID")
+    private Integer loadAreaId;
 
     /**
      * 地图id

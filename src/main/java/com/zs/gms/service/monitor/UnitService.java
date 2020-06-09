@@ -18,12 +18,28 @@ public interface UnitService {
     /**
      * 根据调度员id获取调度单元
      * */
-    List<Unit> getUnitListByUserId(Integer userId);
+    List<Unit> getUnitListByUserId(Integer userId,Integer mapId);
+
+    List<Unit> getUnitListByLoadId(Integer loadId);
+
+    Unit getUnitByLoadId(Integer mapId,Integer loadId);
+
+    /**
+     * 清除非指定地图的调度单元和车辆，如传的mapId为活动地图id
+     * */
+    void clearUnitSAndVehicles(Integer mapId);
 
     /**
      * 判断名字是否存在
      * */
     boolean isExistName(String unitName);
+
+    /**
+     * 判断装载区是否已使用
+     * */
+    boolean isExistLoadId(Integer loadId,Integer mapId);
+
+    boolean isExistUnloadId(Integer unloadId,Integer mapId);
 
     boolean isExistName(String unitName,Integer unitId);
 
@@ -32,9 +48,16 @@ public interface UnitService {
      * */
     boolean isExistId(Integer unitId);
 
-    IPage<Unit> getUnitList(QueryRequest queryRequest);
+    IPage<Unit> getUnitList(QueryRequest queryRequest,Integer mapId);
+
+    List<Unit> getUnitListByMapId(Integer mapId);
 
     void updateUnit(Unit unit);
+
+    /**
+     * 修改调度单元卸载区id
+     * */
+    void updateUnitUnloadId(Integer unitId,Integer unloadId);
 
     void deleteUnit(Integer unitId);
 

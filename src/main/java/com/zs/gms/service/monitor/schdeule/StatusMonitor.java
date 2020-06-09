@@ -45,7 +45,7 @@ public class StatusMonitor extends AbstractVehicleStatusHandle {
      * 任务委派
      */
     public static void delegateStatus(VehicleLiveInfo vehicleLiveInfo) {
-        LivePosition.handleDelegate(vehicleLiveInfo,vehicleLiveInfo.getVehicleId());
+        LivePosition.handleDelegate(vehicleLiveInfo);
         Integer vehicleId = vehicleLiveInfo.getVehicleId();
         delegateStatus(vehicleLiveInfo.getTaskState(), vehicleId, VehicleTaskStatusHandle.class, vehicleLiveInfo.getUpdateTime());
         //delegateStatus(vehicleLiveInfo.getTaskState(),vehicleId,VehicleErrorStatusHandle.class);
@@ -63,7 +63,7 @@ public class StatusMonitor extends AbstractVehicleStatusHandle {
                     VehicleStatus vehicleStatus = new VehicleStatus();
                     vehicleStatus.setCreateTime(time);
                     vehicleStatus.setVehicleId(vehicleId);
-                    vehicleStatus.setStatus(obj);
+                    vehicleStatus.setObj(obj);
                     handleMap.get(clazz).handleStatus(vehicleStatus);
                 } catch (Exception e) {
                     log.error("状态监控任务执行失败", e);

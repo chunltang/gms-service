@@ -6,6 +6,8 @@ import com.zs.gms.common.service.DelayedService;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SpringContextUtil;
+import com.zs.gms.service.mapmanager.MapDataUtil;
+import com.zs.gms.service.monitor.UnitService;
 import io.lettuce.core.resource.Delay;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,10 @@ public class RedisScript implements RedisListener {
     public void listener(String key) {
         String s = GmsUtil.subLastStr(key, "_");
         switch (s) {
+            case "0"://修改活动地图后删除调度数据
+                UnitService unitService = SpringContextUtil.getBean(UnitService.class);
+                unitService.clearUnitSAndVehicles(MapDataUtil.getActiveMap());
+                break;
             case "1"://同步车辆数据到redis
                 syncRedisData.execute();
                 break;
@@ -41,6 +47,15 @@ public class RedisScript implements RedisListener {
                 if (GmsUtil.objNotNull(likeKey) && GmsUtil.StringNotNull(String.valueOf(likeKey))) {
                     RedisService.deleteLikeKey(StaticConfig.KEEP_DB, String.valueOf(likeKey));
                 }
+            case "10"://开始地图采集
+                Object obj = RedisService.get(StaticConfig.MONITOR_DB, key);
+                if (null != obj) {
+                    Integer vehicleId = GmsUtil.typeTransform(obj, Integer.class);
+                    StaticConfig.isStartMapCollection = true;
+                }
+                break;
+            case "11"://关闭地图采集
+                StaticConfig.isStartMapCollection = false;
                 break;
             default:
                 log.debug("没有匹配脚本命令");

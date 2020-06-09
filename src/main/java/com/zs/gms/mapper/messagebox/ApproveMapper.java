@@ -5,4 +5,5 @@ import com.zs.gms.entity.messagebox.Approve;
 
 public interface ApproveMapper extends BaseMapper<Approve> {
 
+    void deleteOtherApprove();
 }

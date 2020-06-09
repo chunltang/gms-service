@@ -3,7 +3,7 @@ package com.zs.gms.entity.vehiclemanager;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.zs.gms.enums.vehiclemanager.ActivateStatusEnum;
+import com.zs.gms.common.entity.WhetherEnum;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -40,7 +40,7 @@ public class Excavator implements Serializable {
      * 车辆状态，0停用，1启用(默认)
      */
     @TableField(value = "VEHICLESTATUS")
-    private ActivateStatusEnum vehicleStatus;
+    private WhetherEnum vehicleStatus;
 
     /**
      * ip1
@@ -52,9 +52,16 @@ public class Excavator implements Serializable {
     /**
      * ip2
      * */
-    @TableField(value = "IP2")
+    /*@TableField(value = "IP2")
     @NotBlank(message = "ip设置不能为空")
-    private String ip2;
+    private String ip2;*/
+
+    /**
+     * 是否装载VAP
+     */
+    @TableField(value = "VAP")
+    private WhetherEnum vap;
+
 
     /**
      * GPS安装位置
@@ -65,14 +72,20 @@ public class Excavator implements Serializable {
     @TableField(value = "Y1")
     private Float y1;
 
-    @TableField(value = "X2")
+    @TableField(value = "PORT")
+    private String port;
+
+    /*@TableField(value = "X2")
     private Float x2;
 
     @TableField(value = "Y2")
-    private Float y2;
+    private Float y2;*/
 
     @TableField(value = "CREATETIME")
     private Date createTime;
+
+    @TableField(value = "REMARK")
+    private String remark;
 
     @TableLogic
     @TableField(value = "ISDEL",select = false)
@@ -104,12 +117,11 @@ public class Excavator implements Serializable {
      * 容量
      * */
     @TableField(exist = false)
-    private Float capacity;
+    private Float ratedBucketVolume;
 
     /**
-     * 臂长
+     * 类型名称
      * */
     @TableField(exist = false)
-    private Float branchLength;
-
+    private String excavatorTypeName;
 }

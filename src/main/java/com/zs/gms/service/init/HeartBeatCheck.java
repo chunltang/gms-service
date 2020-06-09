@@ -5,7 +5,7 @@ import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.service.DelayedService;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.service.websocket.FunctionEnum;
-import com.zs.gms.common.service.websocket.WsUtil;
+import com.zs.gms.common.service.nettyclient.WsUtil;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SpringContextUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ import java.util.Set;
 @Slf4j
 public class HeartBeatCheck {
 
-    private final static long INTERVAL = 30 * 1000;
+    private final static long INTERVAL = 35 * 1000;
 
     private static String dispatch_pre_Time;
 
@@ -61,11 +61,11 @@ public class HeartBeatCheck {
      */
     private void check() {
         this.flag = false;
-        checkDispatch();
-        checkMap();
+        checkRedis();
         checkRabbitMq();
         checkMysql();
-        checkRedis();
+        checkDispatch();
+        checkMap();
         this.flag = true;
     }
 
@@ -98,7 +98,7 @@ public class HeartBeatCheck {
                         log.error("检测心跳异常");
                     }
                 });
-        DelayedService.addTask(task, 30 * 1000);
+        DelayedService.addTask(task, HeartBeatCheck.INTERVAL-5);
     }
 
     private static long getCurLongTime() {

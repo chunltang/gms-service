@@ -114,7 +114,7 @@ public class Approve implements Serializable {
 
     public  enum Status implements IEnum{
 
-        DELETE("0","删除申请"),
+        DELETE("0","删除申请"),//包括审批覆盖
         WAIT("1","等待审批"),
         APPROVEPASS("2","申请通过"),
         APPROVEREJECT("3","驳回申请"),

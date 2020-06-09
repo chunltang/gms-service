@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 @Slf4j
 public class RedisService {
 
-    private static Map<Integer, RedisTemplate> redisTemplates = new ConcurrentHashMap<>();
+    private static Map<Integer, RedisTemplate<String,Object>> redisTemplates = new ConcurrentHashMap<>();
 
 
     /**

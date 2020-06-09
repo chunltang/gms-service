@@ -10,11 +10,14 @@ import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.system.User;
 import javafx.collections.transformation.SortedList;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.support.DefaultSubjectContext;
+import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -42,38 +45,58 @@ public class ShiroHelper extends ShiroRealm {
     private SessionDAO sessionDAO;
 
 
-    public static void put(User user){
-        if(null!=user){
+    public static void put(User user) {
+        if (null != user) {
             HashOperations<String, String, Object> hashOperations = RedisService.hashOperations(StaticConfig.KEEP_DB);
-            hashOperations.put(RedisKeyPool.ACTIVATE_USERS,user.getUserId().toString(),GmsUtil.toJson(user));
+            hashOperations.put(RedisKeyPool.ACTIVATE_USERS, user.getUserId().toString(), GmsUtil.toJson(user));
         }
     }
 
-    public static void remove(Integer userId){
+    public static void remove(Integer userId) {
         HashOperations<String, String, Object> hashOperations = RedisService.hashOperations(StaticConfig.KEEP_DB);
-        hashOperations.delete(RedisKeyPool.ACTIVATE_USERS,userId.toString());
+        hashOperations.delete(RedisKeyPool.ACTIVATE_USERS, userId.toString());
     }
 
-    public static Map<String, Object> getActivateUsers(){
+    public static Map<String, Object> getActivateUsers() {
         HashOperations<String, String, Object> hashOperations = RedisService.hashOperations(StaticConfig.KEEP_DB);
         return hashOperations.entries(RedisKeyPool.ACTIVATE_USERS);
     }
 
     /**
-     * 判断用户是否在线
-     * */
-    public static boolean isActivate(Integer userId){
+     * 判断是否有对应角色登录
+     */
+    public static boolean roleIsLogin(User user) {
         Map<String, Object> users = getActivateUsers();
-        if(null!=users){
-            if(!users.keySet().contains(userId.toString())){
+        if (null != user && null != users) {
+            for (Object value : users.values()) {
+                User activeUser = GmsUtil.toObj(value.toString(), User.class);
+                if (null != activeUser) {
+                    if (!activeUser.getUserId().equals(user.getUserId()) && user.getRoleId().equals(activeUser.getRoleId())) {
+                        if (isActivate(activeUser.getUserId())) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 判断用户是否在线
+     */
+    public static boolean isActivate(Integer userId) {
+        Map<String, Object> users = getActivateUsers();
+        if (null != users) {
+            if (!users.keySet().contains(userId.toString())) {
                 return false;
             }
             User user = GmsUtil.toObj(users.get(userId.toString()), User.class);
-            if(null!=user){
+            if (null != user) {
                 boolean existsKey = RedisService.existsKey(StaticConfig.CACHE_DB, user.getSessionId());
-                if(existsKey){
+                if (existsKey) {
                     return true;
-                }else{
+                } else {
                     remove(userId);
                     return false;
                 }
@@ -118,10 +141,49 @@ public class ShiroHelper extends ShiroRealm {
         return false;
     }
 
+
+    /**
+     * 清除用户session
+     */
+    public void clearSession(Integer userId) {
+        Collection<Session> sessions = sessionDAO.getActiveSessions();
+        if (sessions.size() > 0) {
+            for (Session session : sessions) {
+                // 5. 清除当前用户以前登录时保存的session会话
+                PrincipalCollection principalCollection = (PrincipalCollection) session.getAttribute(DefaultSubjectContext.PRINCIPALS_SESSION_KEY);
+                if (null != principalCollection) {
+                    User user = (User) principalCollection.getPrimaryPrincipal();
+                    if (userId.equals(user.getUserId())) {
+                        sessionDAO.delete(session);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    public void clearSession(String userName) {
+        Collection<Session> sessions = sessionDAO.getActiveSessions();
+        if (sessions.size() > 0) {
+            for (Session session : sessions) {
+                // 5. 清除当前用户以前登录时保存的session会话
+                PrincipalCollection principalCollection = (PrincipalCollection) session.getAttribute(DefaultSubjectContext.PRINCIPALS_SESSION_KEY);
+                if (null != principalCollection) {
+                    User user = (User) principalCollection.getPrimaryPrincipal();
+                    if (userName.equals(user.getUserName())) {
+                        sessionDAO.delete(session);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+
     /**
      * 获取所有同名用户,并按登录时间排序
      */
-    public List<User> getSessions(String userName) {
+    /*public List<User> getSessions(String userName) {
         Collection<Session> sessions = sessionDAO.getActiveSessions();
         List<User> users=new ArrayList<>();
         for (Session session : sessions) {
@@ -168,5 +230,5 @@ public class ShiroHelper extends ShiroRealm {
             }
         }
         return users;
-    }
+    }*/
 }

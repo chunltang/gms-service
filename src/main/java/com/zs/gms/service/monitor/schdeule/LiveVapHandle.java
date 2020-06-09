@@ -9,21 +9,20 @@ import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.properties.ErrorCode;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.service.websocket.FunctionEnum;
-import com.zs.gms.common.service.websocket.WsUtil;
+import com.zs.gms.common.service.nettyclient.WsUtil;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SpringContextUtil;
-import com.zs.gms.entity.monitor.VehicleLiveInfo;
-import com.zs.gms.entity.monitor.Vertex;
-import com.zs.gms.service.vehiclemanager.BarneyService;
+import com.zs.gms.entity.mapmanager.point.AnglePoint;
+import com.zs.gms.entity.monitor.*;
+import com.zs.gms.entity.vehiclemanager.BarneyType;
+import com.zs.gms.service.init.SyncRedisData;
+import com.zs.gms.service.mapmanager.MapDataUtil;
+import com.zs.gms.service.monitor.UnitVehicleService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.http.HttpStatus;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 实时数据处理
@@ -33,14 +32,14 @@ public class LiveVapHandle implements RedisListener {
 
     private static ListOperations<String, Object> listOperations;
 
-    private static BarneyService barneyService;
+    private static UnitVehicleService unitVehicleService;
 
     private static ErrorCode errorCode;
 
     private static LiveVapHandle instance = new LiveVapHandle();
 
     static {
-        barneyService = SpringContextUtil.getBean(BarneyService.class);
+        unitVehicleService = SpringContextUtil.getBean(UnitVehicleService.class);
         errorCode = SpringContextUtil.getBean(ErrorCode.class);
         listOperations = RedisService.listOperations(RedisService.getTemplate(StaticConfig.MONITOR_DB));
     }
@@ -56,43 +55,49 @@ public class LiveVapHandle implements RedisListener {
     private static void handleVehMessage(String key) {
         String prefix = GmsUtil.subIndexStr(key, "_");
         String vehicleNo = GmsUtil.subLastStr(key, "_");
-        Integer userId = barneyService.getUserIdByVehicleNo(Integer.valueOf(vehicleNo));
-        if (userId == null) {
-            log.error("不存在的车辆编号或者车辆没有分配，{}", vehicleNo);
+        Unit unit = unitVehicleService.getUnitByVehicleId(Integer.valueOf(vehicleNo));
+        Integer userId = null;
+        if (unit == null) {
+            log.debug("车辆没有分配调度单元，{}", vehicleNo);
+        } else {
+            userId = unit.getUserId();
         }
         switch (prefix) {
             case RedisKeyPool.VAP_BASE_PREFIX:
                 //车辆基本信息
-                VehicleLiveInfo vehicleLiveInfo = GmsUtil.getMessage(key, VehicleLiveInfo.class);
-                StatusMonitor.delegateStatus(vehicleLiveInfo);
-                if (null != userId) {
-                    WsUtil.sendMessage(userId.toString(), GmsUtil.toJsonIEnumDesc(vehicleLiveInfo), FunctionEnum.console, Integer.valueOf(vehicleNo));
+                VehicleLiveInfo info = GmsUtil.getMessage(key, VehicleLiveInfo.class);
+                if (null == info) {
+                    log.error("车辆基本信息获取转换失败!");
+                    return;
                 }
-                WsUtil.sendMessage(GmsUtil.toJsonIEnumDesc(vehicleLiveInfo), FunctionEnum.vehicle);
+                addUserInfo(info);
+                calculatePosition(info);
+                StatusMonitor.delegateStatus(info);
+                if (null != userId) {
+                    //控制台
+                    WsUtil.sendMessage(userId.toString(), GmsUtil.toJsonIEnumDesc(info), FunctionEnum.console, Integer.valueOf(vehicleNo));
+                }
+                //车辆基本信息
+                WsUtil.sendMessage(GmsUtil.toJsonIEnumDesc(info), FunctionEnum.vehicle);
+                //地图采集
+                MapDataUtil.mapCollection(info, info.getVehicleId());
                 break;
             case RedisKeyPool.VAP_PATH_PREFIX:
                 //交互式路径请求
-                String messageId = GmsConstant.DISPATCH + "_" + vehicleNo;
-                if (MessageFactory.containMessageEntry(messageId)) {
-                    log.debug("交互式路径请求数据解析");
-                    Map<String, Object> globalPath = getGlobalPath(key);
-                    EventPublisher.publish(new MessageEvent(new Object(), GmsUtil.toJson(globalPath), messageId, EventType.httpRedis));
-                }
+                getGlobalPath(key, false);
                 //全局路径
-                if (WsUtil.isNeed(FunctionEnum.globalPath)) {
-                    Map<String, Object> globalPath = getGlobalPath(key);
-                    WsUtil.sendMessage(GmsUtil.toJson(globalPath), FunctionEnum.globalPath);
-                }
+                /*if (WsUtil.isNeed(globalPath)) {
+                    GlobalPath globalPath = getGlobalPath(key, false);
+                    WsUtil.sendMessage(GmsUtil.toJson(FunctionEnum.globalPath), FunctionEnum.globalPath);
+                }*/
                 break;
             case RedisKeyPool.VAP_COLLECTION_PREFIX:
-                if (WsUtil.isNeed(FunctionEnum.collectMap, vehicleNo)) {
-                    HashMap map = GmsUtil.getMessage(key, HashMap.class);
-                    WsUtil.sendMessage(GmsUtil.toJson(map), FunctionEnum.collectMap, Integer.valueOf(vehicleNo));
-                }
+                info = GmsUtil.getMessage(key, VehicleLiveInfo.class);
+                MapDataUtil.mapCollection(info, info.getVehicleId());
                 break;
             case RedisKeyPool.VAP_TRAIL_PREFIX:
                 if (WsUtil.isNeed(FunctionEnum.trail, vehicleNo)) {
-                    Map<String, Object> trailPath = getTrailPath(key);
+                    GlobalPath trailPath = getTrailPath(key);
                     WsUtil.sendMessage(GmsUtil.toJson(trailPath), FunctionEnum.trail, Integer.valueOf(vehicleNo));
                 }
                 break;
@@ -101,19 +106,95 @@ public class LiveVapHandle implements RedisListener {
         }
     }
 
-    private static Map<String, Object> getTrailPath(String key) {
-        return getGlobalPath(key);
+    /**
+     * 添加调度员信息
+     */
+    private static void addUserInfo(VehicleLiveInfo vehicleLiveInfo) {
+        Integer vehicleId = vehicleLiveInfo.getVehicleId();
+        UnitVehicleService vehicleService = SpringContextUtil.getBean(UnitVehicleService.class);
+        Unit unit = vehicleService.getUnitByVehicleId(vehicleId);
+        if (null != unit) {
+            vehicleLiveInfo.setUserId(unit.getUserId());
+            vehicleLiveInfo.setUserName(unit.getName());
+        }
+    }
+
+    private static GlobalPath getTrailPath(String key) {
+        return getGlobalPath(key, true);
+    }
+
+    /**
+     * 计算图片显示中心
+     */
+    private static void calculatePosition(VehicleLiveInfo vehicleLiveInfo) {
+        Integer vehicleId = vehicleLiveInfo.getVehicleId();
+        Object obj = getVehicleBaseInfo(vehicleId);
+        boolean flag = false;
+        Monitor monitor = vehicleLiveInfo.getMonitor();
+        Double xWorld = monitor.getXworld();
+        Double yWorld = monitor.getYworld();
+        if (null != obj) {
+            BarneyType barneyType = GmsUtil.toObj(obj, BarneyType.class);
+            if (barneyType != null) {
+                Double vehicleWidth = barneyType.getVehicleWidth();
+                Double vehicleLength = barneyType.getVehicleLenght();
+                if (null == vehicleWidth || vehicleWidth < 4 || vehicleWidth > 10) {
+                    vehicleWidth = 2d;
+                }
+                if (null == vehicleLength || vehicleLength < 6 || vehicleLength > 15) {
+                    vehicleLength = 4d;
+                }
+                monitor.setW(vehicleWidth);
+                monitor.setL(vehicleLength);
+                Double vehicleTailAxle = barneyType.getVehicleTailAxle();
+                if (vehicleLength > 0 && vehicleTailAxle != null && vehicleTailAxle > 0 && vehicleLength / 2 > vehicleTailAxle) {
+                    Double yawAngle = monitor.getYawAngle();
+                    Double s = vehicleLength / 2 - vehicleTailAxle;
+                    Double x = xWorld + s * Math.cos(yawAngle);
+                    Double y = yWorld + s * Math.sin(yawAngle);
+                    monitor.setX(x);
+                    monitor.setY(y);
+                    flag = true;
+                }
+            }
+        } else {
+            log.error("没有缓存对应的车辆基本信息数据!,{}", vehicleId);
+        }
+        if (!flag) {
+            monitor.setX(xWorld);
+            monitor.setY(yWorld);
+        }
+    }
+
+    /**
+     * 获取缓存的车辆基本信息
+     */
+    private static Object getVehicleBaseInfo(Integer vehicleId) {
+        Object obj = RedisService.hashOperations(StaticConfig.KEEP_DB).get(RedisKeyPool.VEH_BASE_INFO, vehicleId.toString());
+        if (null == obj) {
+            SyncRedisData syncRedisData = SpringContextUtil.getBean(SyncRedisData.class);
+            syncRedisData.syncBarneyBaseInfos();
+        }
+        return obj;
     }
 
     /**
      * 获取全局路径
+     *
+     * @param flag true为前端获取,false为系统推送
      */
-    public static Map<String, Object> getGlobalPath(String key) {
-        Map<String, Object> resultMap = new HashMap<>();
+    public static GlobalPath getGlobalPath(String key, boolean flag) {
+        GlobalPath path = new GlobalPath();
         try {
-            String[] strs = RedisService.get(StaticConfig.MONITOR_DB, key).toString().split(",");
+            Object obj = RedisService.get(StaticConfig.MONITOR_DB, key);
+            if (null == obj) {
+                if (!flag)
+                    log.error("获取路径轨迹数据失败!");
+                return path;
+            }
+            String[] strs = obj.toString().split(",");
             if (strs.length < 4) {
-                return resultMap;
+                return path;
             }
             int len = convertToInt(strs[3]);
             int strLen = 4;
@@ -137,22 +218,18 @@ public class LiveVapHandle implements RedisListener {
                 list.add(vertex);
                 strLen += 13;
             }
-            resultMap.put("no", convertToInt(strs[0]));
-            resultMap.put("vehicleId", convertToInt(strs[1]));
-            resultMap.put("status", convertToInt(strs[2]));
-            resultMap.put("vertex_num", convertToInt(strs[3]));
-            resultMap.put("data", list);
-            GmsResponse response = getResponse(convertToInt(strs[1]));
-            if (GmsUtil.objNotNull(response)) {
-                handEmptyResult(response, list);
-                handResult(response, convertToInt(strs[2]));
-            } else {
-                log.error("全局路径解析未获取到请求实体");
+            path.setNo(convertToInt(strs[0]));
+            path.setVehicleId(convertToInt(strs[1]));
+            path.setStatus(convertToInt(strs[2]));
+            path.setVertexNum(convertToInt(strs[3]));
+            path.setData(list);
+            if (!flag) {
+                redisResponseEntry(convertToInt(strs[1]), path);
             }
         } catch (Exception e) {
             log.error("全局路径解析失败", e);
         }
-        return resultMap;
+        return path;
     }
 
     private static void handEmptyResult(GmsResponse response, List<Vertex> list) {
@@ -170,13 +247,53 @@ public class LiveVapHandle implements RedisListener {
         }
     }
 
-    private static GmsResponse getResponse(int vehicleId) {
-        MessageEntry entry = MessageFactory.getMessageEntry(GmsConstant.DISPATCH + "_" + vehicleId);
-        if (null != entry) {
-            return entry.getMessage().getGmsResponse();
+    /**
+     * 根据路径最总点匹配
+     */
+    private static void redisResponseEntry(int vehicleId, GlobalPath path) {
+        Set<MessageEntry> entries = MessageFactory.getMessageEntryByParams("vehicleId", "points");
+        log.debug("交互式路径请求数据解析,找到{}个请求实体",entries.size());
+        if (entries.size() > 0) {
+            List<Vertex> list = path.getData();
+            if (list.size() > 0) {
+                Vertex vertex = list.get(list.size() - 1);
+                double x = vertex.getX();
+                double y = vertex.getY();
+                for (MessageEntry entry : entries) {
+                    Map<String, Object> params = entry.getParams();
+                    Integer id = GmsUtil.typeTransform(params.get("vehicleId"), Integer.class);
+                    AnglePoint[] points = (AnglePoint[]) params.get("points");
+                    AnglePoint point = points[points.length - 1];
+                    //(Math.abs(point.getX() - x) < 1 || Math.abs(point.getY() - y) < 1)
+                    if (vehicleId == id) {
+                        redisPublisher(path, entry);
+                    }else{
+                        log.error("redis发布未能执行");
+                    }
+                }
+            } else {
+                for (MessageEntry entry : entries) {
+                    Map<String, Object> params = entry.getParams();
+                    Integer id = GmsUtil.typeTransform(params.get("vehicleId"), Integer.class);
+                    if (vehicleId == id) {
+                        redisPublisher(path, entry);
+                    }else{
+                        log.error("redis发布未能执行");
+                    }
+                }
+            }
         }
-        return null;
     }
+
+    private static void redisPublisher(GlobalPath path, MessageEntry entry) {
+        log.debug("交互式路径:redis数据发布!,messageId={},routeKey={}",entry.getMessageId(),entry.getRouteKey());
+        path.setMessageId(entry.getMessageId());
+        GmsResponse response = entry.getMessage().getGmsResponse();
+        handEmptyResult(response, path.getData());
+        handResult(response, path.getStatus());
+        EventPublisher.publish(new MessageEvent(new Object(), GmsUtil.toJson(path), entry.getMessageId(), EventType.httpRedis));
+    }
+
 
     private static int convertToInt(String str) {
         return Integer.valueOf(str);

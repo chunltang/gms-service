@@ -10,7 +10,6 @@ import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.mineralmanager.AreaMineral;
 import com.zs.gms.entity.mineralmanager.Mineral;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
-import com.zs.gms.enums.vehiclemanager.ActivateStatusEnum;
 import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.mineralmanager.AreaMineralService;
 import com.zs.gms.service.mineralmanager.MineralService;
@@ -24,7 +23,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -129,22 +127,20 @@ public class MineralController extends BaseController {
         if(null==mapId){
             throw new GmsException("当前地图不存在，不能新增");
         }
-        boolean areaExist = MapDataUtil.isAreaExist(mapId, loadAreaId, AreaTypeEnum.LOAD_AREA);
+        boolean areaExist = MapDataUtil.isAreaExist(mapId, loadAreaId, AreaTypeEnum.UNLOAD_MINERAL_AREA);
         if(!areaExist){
-            throw new GmsException("当前地图不存在该装载区，不能新增");
+            throw new GmsException("当前地图不存在该卸载区，不能新增");
         }
         try {
             AreaMineral areaMineral = new AreaMineral();
             areaMineral.setUserId(super.getCurrentUser().getUserId());
             areaMineral.setMineralId(mineralId);
-            areaMineral.setAreaId(loadAreaId);
+            areaMineral.setLoadAreaId(loadAreaId);
             areaMineral.setMapId(mapId);
             areaMineralService.addAreaMineral(areaMineral);
-            mineral.setActivate(ActivateStatusEnum.ACTIVATED);
-            mineralService.updateMineral(mineral);
-            return new GmsResponse().message("新增装载区和矿种对应关系成功").success();
+            return new GmsResponse().message("新增卸载区和矿种对应关系成功").success();
         }catch (Exception e){
-            String message="新增装载区和矿种对应关系失败";
+            String message="新增卸载区和矿种对应关系失败";
             log.error(message,e);
             throw new GmsException(message);
         }

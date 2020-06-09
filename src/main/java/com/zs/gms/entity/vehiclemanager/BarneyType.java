@@ -3,9 +3,10 @@ package com.zs.gms.entity.vehiclemanager;
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.zs.gms.common.entity.WhetherEnum;
 import lombok.Data;
 
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.*;
 import java.io.Serializable;
 
 /**
@@ -21,18 +22,175 @@ public class BarneyType implements Serializable {
     private Long vehicleTypeId;
 
     /**
-     * 车辆类型，0矿车，1挖掘机，2推土机，3加油车，4加水车，5其他
+     * 车辆类型名称,2-50
      * */
-    @TableField(value = "VEHICLETYPE")
-    @NotBlank(message = "车辆类型不能为空")
-    private String vehicleType;
+    @TableField(value = "VEHICLETYPENAME")
+    @NotBlank(message = "车辆类型名称不能为空")
+    private String vehicleTypeName;
 
     /**
-     * 车辆规格，小型矿车，中型矿车等
+     * 厂家2-50
      * */
-    @TableField(value = "VEHICLESPECIFICATION")
-    @NotBlank(message = "车辆规格不能为空")
-    private String vehicleSpecification;
+    @TableField(value = "MANUFACTURERS")
+    @NotBlank(message = "生产厂家不能为空")
+    private String manufacturers;
+
+    /**
+     * 自重20-500
+     * */
+    @TableField(value = "SELFDIGNIFIED")
+    private  Double selfDignified;
+
+    /**
+     * 载重50-500
+     * */
+    @TableField(value = "LOADDIGNIFIED")
+    @Max(value = 300,message = "载重不能超过300t")
+    @Min(value = 0,message = "载重不能小于0t")
+    private  Double loadDignified;
+
+    /**
+     * 总重70-1000
+     * */
+    @TableField(value = "TOTALDIGNIFIED")
+    private  Double   totalDignified;
+
+    /**
+     * 装载高度5-15
+     */
+    @TableField(value = "LOADHEIGHT")
+    @Max(value = 20,message = "装载高度不能超过20m")
+    @Min(value = 0,message = "装载高度不能小于0m")
+    private Double loadHeight;
+
+
+    /**
+     * 车辆尺寸,宽度4-10
+     * */
+    @TableField(value = "VEHICLEWIDTH")
+    @NotNull(message = "车宽度不能为空")
+    @Max(value = 10,message = "车辆宽度不能超过10m")
+    @Min(value = 4,message = "车辆宽度不能小于4m")
+    private Double vehicleWidth;
+
+    /**
+     * 车辆尺寸,高度4-10
+     * */
+    @TableField(value = "VEHICLEHEIGHT")
+    private Double vehicleHeight;
+
+    /**
+     * 车辆尺寸,长度6-15
+     * */
+    @TableField(value = "VEHICLELENGHT")
+    @NotNull(message = "车长度不能为空")
+    @Max(value = 15,message = "车辆长度不能超过15m")
+    @Min(value = 5,message = "车辆长度不能小于5m")
+    private Double vehicleLenght;
+
+    /**
+     * 后轮边缘到车尾的距离0.5-3
+     * */
+    @TableField(value = "VEHICLETAILWHEEL")
+    @NotNull(message = "后轮边缘到车尾的距离不能为空")
+    @Max(value = 3,message = "后轮边缘到车尾的距离不能超过3m")
+    @Min(value = 0,message = "后轮边缘到车尾的距离不能小于0m")
+    private  Double vehicleTailWheel;
+
+    /**
+     * 后轴到车尾的距离1-3
+     * */
+    @TableField(value = "VEHICLETAILAXLE")
+    @NotNull(message = "后轴到车尾的距离不能为空")
+    @Max(value = 3,message = "后轴到车尾的距离不能超过3m")
+    @Min(value = 1,message = "后轴到车尾的距离不能小于1m")
+    private  Double vehicleTailAxle;
+
+    /**
+     * 轴距2-10
+     * */
+    @TableField(value = "VEHICLEWHEEL")
+    private  Double vehicleWheel;
+
+    /**
+     * 前轮距3-9
+     * */
+    @TableField(value = "FRONTGAUGE")
+    private  Double frontGauge;
+
+    /**
+     * 后轮距3-9
+     * */
+    @TableField(value = "TRACKREAR")
+    private  Double trackRear;
+
+    /**
+     * 最小离地间隙0.4-1.5
+     * */
+    @TableField(value = "MINGAP")
+    private  Double minGap;
+
+    /**
+     * 轮胎尺寸，直径2-8
+     * */
+    @TableField(value = "TIRESIZE")
+    private  Double tireSize;
+
+    /**
+     * 最小转弯半径6-20
+     * */
+    @TableField(value = "MINTURNINGRADIUS")
+    private  Double minTurningRadius;
+
+    /**
+     * 限速20-80
+     * */
+    @TableField(value = "LIMITSPEED")
+    @Max(value = 50,message = "限速不能超过50km/h")
+    @Min(value = 0,message = "限速不能小于0km/h")
+    private Double limitSpeed;
+
+    /**
+     * 车厢举升时间10-60
+     * */
+    @TableField(value = "BUCKETTIM")
+    private Integer bucketTim;
+
+    /**
+     * 车厢降落时间10-60
+     * */
+    @TableField(value = "FALLTIME")
+    private Integer fallTime;
+
+    /**
+     * 机油容量5-1000
+     * */
+    @TableField(value = "OLICAPACITY")
+    private Double oliCapacity;
+
+    /**
+     * 轮边减速器油箱容量5-1000
+     * */
+    @TableField(value = "REDUCERTANKCAPACITY")
+    private Double reducerTankCapacity;
+
+    /**
+     * 燃油箱容量100-10000
+     * */
+    @TableField(value = "FUELCAPACITY")
+    private Double fuelCapacity;
+
+    /**
+     * 液压油容量20-2000
+     * */
+    @TableField(value = "HYDRAULICTANCAPACITY")
+    private Double hydraulicTanCapacity;
+
+    /**
+     * 冷却水箱容量10-1000
+     * */
+    @TableField(value = "COOLANTTANKCAPACITY")
+    private Double coolantTankCapacity;
 
     /**
      * 车辆图标
@@ -41,70 +199,10 @@ public class BarneyType implements Serializable {
     private String vehicleIcon;
 
     /**
-     * 车辆尺寸
-     * */
-    @TableField(value = "VEHICLEWIDTH")
-    private String vehicleWidth;
-
-    @TableField(value = "VEHICLEHEIGHT")
-    private String vehicleHeight;
-
-    @TableField(value = "VEHICLELENGHT")
-    private String vehicleLenght;
-
-    /**
-     * 吨位
-     * */
-    @TableField(value = "VEHICLETON")
-    private  String vehicleTon;
-
-    /**
-     * 自重
-     * */
-    @TableField(value = "SELFDIGNIFIED")
-    private  String selfDignified;
-
-    /**
-     * 轴距
-     * */
-    @TableField(value = "VEHICLEWHEEL")
-    private  String vehicleWheel;
-
-    /**
-     * 车轮转角
-     * */
-    @TableField(value = "VEHICLEANGLE")
-    private  String vehicleAngle;
-
-    /**
-     * 限速
-     * */
-    @TableField(value = "LIMITSPEED")
-    private String limitSpeed;
-
-    /**
-     * 最小转弯半径
-     * */
-    @TableField(value = "TURNRADIAL")
-    private String turnRadial;
-
-    /**
-     * 计算中心width
-     * */
-    @TableField(value = "CENTERWIDTH")
-    private String centerWidth;
-
-    /**
-     *计算中心length
-     * */
-    @TableField(value = "CENTERLENGHT")
-    private String centerLenght;
-
-    /**
-     *计算中心height
-     * */
-    @TableField(value = "CENTERHEIGHT")
-    private String centerHeight;
+     * 是否激活，0停用，1启用
+     */
+    @TableField(value = "ACTIVE")
+    private WhetherEnum active;
 
     @TableLogic
     @JsonIgnore

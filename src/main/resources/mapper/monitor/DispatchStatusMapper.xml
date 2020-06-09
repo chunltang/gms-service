@@ -2,31 +2,31 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.zs.gms.mapper.monitor.DispatchStatusMapper">
     <select id="getBaseInfo" parameterType="integer" resultType="com.zs.gms.entity.monitor.DispatchStatus">
-        select tuv.USERID       USERID,
-               tdt.MAPID        MAPID,
-               tdt.LOADAREAID,
-               tdt.UNLOADAREAID UNLOADID,
-               tdt.UNITID       UNITID,
+        select tuv1.USERID       USERID,
+               tu.MAPID        MAPID,
+               tu.LOADAREAID,
+               tu.UNLOADAREAID UNLOADID,
+               tu.UNITID       UNITID,
                tv.VEHICLENO     VEHICLEID,
                tbe.USERID       EXCAVATORUSERID,
                tbe.EXCAVATORID  EXCAVATORID,
                tam.MINERALID    MINERALID,
-               tvt.VEHICLETON   VEHICLECAPACITY
+               tvt.LOADDIGNIFIED   VEHICLECAPACITY
         from t_vehicle tv
-                 inner join t_user_vehicle tuv on tv.VEHICLEID = tuv.VEHICLEID
+                 inner join t_user_vehicle tuv1 on tv.VEHICLEID = tuv1.VEHICLEID
                  inner join t_vehicle_vehicleType tvv on tvv.VEHICLEID=tv.VEHICLEID
                  inner join t_vehicle_type tvt on tvt.VEHICLETYPEID=tvv.VEHICLETYPEID
-                 inner join t_task_rule ttr on ttr.VEHICLEID = tv.VEHICLENO
-                 inner join t_dispatch_task tdt on tdt.UNITID = ttr.UNITID
-                 inner join t_bind_excavator tbe on tbe.LOADAREAID = tdt.LOADAREAID
-                 inner join t_area_mineral tam on tam.AREAID = tdt.LOADAREAID
+                 inner join t_unit_vehicle tuv2 on tuv2.VEHICLEID=tv.VEHICLENO
+                 inner join t_unit tu on tu.UNITID=tuv2.UNITID
+                 inner join t_bind_excavator tbe on tbe.LOADAREAID = tu.LOADAREAID
+                 inner join t_area_mineral tam on tam.LOADAREAID = tu.LOADAREAID
         where 1 = 1
           and tv.VEHICLENO = 10003
           and tv.ISDEL = false
-          and ttr.STATUS not in ('3', '5')
-          and tdt.STATUS != '0'
+          and tu.ISDEL = false
+          and tuv2.ISDEL=false
           and tam.ISDEL = false
           and tbe.ISDEL = false
-          and tdt.MAPID = tbe.MAPID
+          and tu.MAPID = tbe.MAPID
     </select>
 </mapper>

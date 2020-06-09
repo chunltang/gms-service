@@ -21,7 +21,7 @@ public class AnnotationTest {
         dispatchStatus.setExcavatorId(1);
         dispatchStatus.setMineralId(1);
         dispatchStatus.setMapId(1);
-        dispatchStatus.setStatus(null);
+        dispatchStatus.setObj(null);
         dispatchStatus.setVehicleId(1);
         dispatchStatus.setUserId(1);
         Parser.notNull(dispatchStatus);*/

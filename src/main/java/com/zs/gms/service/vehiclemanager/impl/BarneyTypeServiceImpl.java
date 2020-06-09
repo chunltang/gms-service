@@ -1,29 +1,25 @@
 package com.zs.gms.service.vehiclemanager.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.QueryRequest;
+import com.zs.gms.common.entity.WhetherEnum;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SortUtil;
 import com.zs.gms.entity.vehiclemanager.BarneyType;
-import com.zs.gms.entity.vehiclemanager.BarneyVehicleType;
 import com.zs.gms.mapper.vehiclemanager.VehicleTypeMapper;
-import com.zs.gms.service.vehiclemanager.BarneyService;
 import com.zs.gms.service.vehiclemanager.BarneyTypeService;
 import com.zs.gms.service.vehiclemanager.BarneyVehicleTypeService;
-import com.zs.gms.service.vehiclemanager.UserBarneyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 
 @Service
 @Transactional(propagation = Propagation.SUPPORTS,readOnly = true,rollbackFor = Exception.class)
@@ -43,6 +39,12 @@ public class BarneyTypeServiceImpl extends ServiceImpl<VehicleTypeMapper, Barney
         this.save(barneyType);
     }
 
+    @Override
+    @Transactional
+    public BarneyType getBarneyType(Integer barneyTypeId) {
+        return getById(barneyTypeId);
+    }
+
     /**
      * 获取车辆类型列表
      * */
@@ -50,7 +52,7 @@ public class BarneyTypeServiceImpl extends ServiceImpl<VehicleTypeMapper, Barney
     @Transactional
     public IPage<BarneyType> getVehicleTypeList(QueryRequest queryRequest) {
         Page<BarneyType> page=new Page<>();
-        SortUtil.handlePageSort(queryRequest,page, GmsConstant.SORT_DESC,"vehicleTypeId");
+        SortUtil.handlePageSort(queryRequest,page, GmsConstant.SORT_DESC,"active");
         return this.page(page);
     }
 
@@ -72,6 +74,20 @@ public class BarneyTypeServiceImpl extends ServiceImpl<VehicleTypeMapper, Barney
         boolean remove = this.removeById(VehicleTypeId);
         if(remove){
             barneyVehicleTypeService.deleteByVehicleTypeId(VehicleTypeId);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateActive(Collection<Integer> barneyTypeIds) {
+        LambdaUpdateWrapper<BarneyType> updateWrapper1 = new LambdaUpdateWrapper<>();
+        updateWrapper1.set(BarneyType::getActive, WhetherEnum.NO);
+        this.update(updateWrapper1);
+        if(GmsUtil.CollectionNotNull(barneyTypeIds)){
+            LambdaUpdateWrapper<BarneyType> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.set(BarneyType::getActive, WhetherEnum.YES);
+            updateWrapper.in(BarneyType::getVehicleTypeId,barneyTypeIds);
+            this.update(updateWrapper);
         }
     }
 }

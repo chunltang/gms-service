@@ -22,7 +22,7 @@ public class VehicleTaskStatusHandle  extends AbstractVehicleStatusHandle {
 
     @Override
     public void changed(VehicleStatus vehicleStatus) {
-        log.debug("{}车辆任务状态改变:{}",vehicleStatus.getVehicleId(),((Desc)(vehicleStatus.getStatus())).getDesc());
+        log.debug("{}车辆任务状态改变:{}",vehicleStatus.getVehicleId(),((Desc)(vehicleStatus.getObj())).getDesc());
         super.changed(vehicleStatus);
     }
 

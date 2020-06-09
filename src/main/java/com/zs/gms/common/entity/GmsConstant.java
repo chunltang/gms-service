@@ -15,6 +15,16 @@ public class GmsConstant {
     public static final String MAP_GLOBAL_CONFIG="map_global_config";
 
     /**
+     * 地图版本
+     * */
+    public static final String MAP_VERSION="map_version";
+
+    /**
+     * 版本
+     * */
+    public static final String SERVICE_VERSION="service_version";
+
+    /**
      * 服务描述
      * */
     public static final String DISPATCH="dispatch";
@@ -44,5 +54,12 @@ public class GmsConstant {
      * */
     public final static String TEMP_DIR ="/temp";
 
+    /**
+     * 图标库
+     * */
     public final static String ICON_LIB="/icon";
+
+    public final static int CLIENT_SIGN = 1001;
+
+    public final static int CLIENT_USER_SIGN = 2001;
 }

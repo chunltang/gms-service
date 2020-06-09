@@ -8,21 +8,16 @@ import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.message.MessageResult;
+import com.zs.gms.common.utils.DateUtil;
 import com.zs.gms.common.utils.GmsUtil;
-import com.zs.gms.entity.monitor.DispatchTask;
-import com.zs.gms.entity.monitor.TaskRule;
-import com.zs.gms.entity.system.Role;
-import com.zs.gms.entity.system.User;
-import com.zs.gms.enums.monitor.UnitTypeEnum;
+import com.zs.gms.entity.monitor.Unit;
+import com.zs.gms.entity.monitor.UnitVehicle;
 import com.zs.gms.service.mapmanager.MapDataUtil;
-import com.zs.gms.service.monitor.DispatchTaskService;
-import com.zs.gms.service.monitor.TaskRuleService;
-import com.zs.gms.service.system.RoleService;
-import com.zs.gms.service.system.UserService;
+import com.zs.gms.service.monitor.UnitService;
+import com.zs.gms.service.monitor.UnitVehicleService;
 import com.zs.gms.service.vehiclemanager.BarneyService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -30,23 +25,13 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Component
 @Slf4j
 public class DispatchInit {
-
-    @Autowired
-    private DispatchTaskService dispatchTaskService;
-
-    @Autowired
-    private TaskRuleService taskRuleService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private RoleService roleService;
 
     @Value("${gms.system.executeInitFlag}")
     private boolean executeInitFlag;
@@ -54,30 +39,11 @@ public class DispatchInit {
     @Autowired
     private BarneyService barneyService;
 
-    /**
-     * 初始化所有调度员的空闲单元信息
-     */
-    private void initLeisureInit() {
-        Role role = roleService.getRoleIdByRoleSign(Role.RoleSign.DESPATCHER_ROLE.getValue());
-        Integer mapId = MapDataUtil.getActiveMap();
-        if (null != role && mapId!=null) {
-            List<User> users = userService.getUsersByRoleId(role.getRoleId());
-            if (!CollectionUtils.isEmpty(users)) {
-                for (User user : users) {
-                    List<DispatchTask> dispatchTasks = dispatchTaskService.getDispatchTaskList(user.getUserId(), UnitTypeEnum.INTERACTIVE_DISPATCHTASK,mapId);
-                    if (CollectionUtils.isEmpty(dispatchTasks)) {
-                        DispatchTask dispatchTask = new DispatchTask();
-                        dispatchTask.setDispatchTaskType(UnitTypeEnum.INTERACTIVE_DISPATCHTASK);
-                        dispatchTask.setUserId(user.getUserId());
-                        dispatchTask.setName("leisure");
-                        dispatchTask.setMapId(mapId);
-                        dispatchTask.setStatus(DispatchTask.Status.RUNING);
-                        dispatchTaskService.addDispatchTask(dispatchTask);
-                    }
-                }
-            }
-        }
-    }
+    @Autowired
+    private UnitService unitService;
+
+    @Autowired
+    private UnitVehicleService unitVehicleService;
 
     /**
      * 初始化所有任务单元信息，将所有启动的任务单元置为停止状态
@@ -87,21 +53,11 @@ public class DispatchInit {
         if(mapId==null){
             return;
         }
-        List<DispatchTask> dispatchTasks = dispatchTaskService.getDispatchTaskList(mapId);
-        if (!CollectionUtils.isEmpty(dispatchTasks)) {
-            for (DispatchTask dispatchTask : dispatchTasks) {
-                dispatchTaskService.updateUnitStatusByUnitId(GmsUtil.typeTransform(dispatchTask.getUnitId(), Integer.class), DispatchTask.Status.STOP);
-                UnitTypeEnum type = UnitTypeEnum.getEnumTypeByValue(dispatchTask.getDispatchTaskType().getValue());
-                switch (type) {
-                    case SPECIAL_DISPATCHTASK:
-                        initSpecialDispatchTask(GmsUtil.typeTransform(dispatchTask.getUnitId(), Integer.class), dispatchTask.getTaskType().getValue(), dispatchTask.getTaskAreaId());
-                        break;
-                    case LOAD_DISPATCHTASK:
-                        initLoadDispatchTask(GmsUtil.typeTransform(dispatchTask.getUnitId(), Integer.class), dispatchTask.getLoadAreaId(), dispatchTask.getUnLoadAreaId());
-                        break;
-                    default:
-                        break;
-                }
+        unitService.clearUnitSAndVehicles(mapId);
+        List<Unit> units = unitService.getUnitListByMapId(mapId);
+        if (!CollectionUtils.isEmpty(units)) {
+            for (Unit unit : units) {
+                initLoadDispatchTask(unit);
             }
         }
     }
@@ -109,32 +65,26 @@ public class DispatchInit {
     /**
      * 初始化装卸调度单元及车辆
      */
-    private void initLoadDispatchTask(Integer unitId, Integer loadAreaId, Integer unLoadAreaId) throws GmsException {
+    private void initLoadDispatchTask(Unit unit) throws GmsException {
         try {
             Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put("unitId", unitId);
-            paramMap.put("loaderAreaId", loadAreaId);
-            paramMap.put("unLoaderAreaId", unLoadAreaId);
+            paramMap.put("unitId", unit.getUnitId());
+            paramMap.put("loaderAreaId", unit.getLoadAreaId());
+            paramMap.put("unLoaderAreaId", unit.getUnLoadAreaId());
+            paramMap.put("cycleTimes", unit.getCycleTimes());
+            paramMap.put("endTime", GmsUtil.objNotNull(unit.getEndTime())? DateUtil.getDateFormat(unit.getEndTime(),DateUtil.FULL_TIME_SPLIT_PATTERN):"");
             MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
             entry.setHttp(false);
             entry.setAfterHandle(() -> {
                 if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {
-                    List<TaskRule> rules = taskRuleService.getTaskRulesByUnitId(unitId);
-                    Map<String, Object> paramMap1;
-                    for (TaskRule taskRule : rules) {
-                        paramMap1 = new HashMap<>();
-                        paramMap1.put("unitId", unitId);
-                        paramMap1.put("vehicleId", taskRule.getVehicleId());
-                        paramMap1.put("cycleTimes", taskRule.getCycleTimes());
-                        String endTime = taskRule.getEndTime();
-                        if(StringUtils.isNotEmpty(endTime)){
-                            endTime=endTime.replaceAll("[-|\\s+]","");
-                        }
-                        paramMap1.put("endTime", endTime);
-                        MessageEntry messageEntry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
-                        messageEntry.setHttp(false);
-                        MessageFactory.getDispatchMessage().sendMessageNoResWithID(messageEntry.getMessageId(),"AddLoadAIVeh", JSONObject.toJSONString(paramMap1));
-                    }
+                    List<UnitVehicle> unitVehicles = unitVehicleService.getUnitVehicleListUnitId(unit.getUnitId());
+                    Set<Integer> vehicleIds = unitVehicles.stream().map(UnitVehicle::getVehicleId).collect(Collectors.toSet());
+                    Map<String,Object> paramMap1 = new HashMap<>();
+                    paramMap1.put("unitId", unit.getUnitId());
+                    paramMap1.put("vehicleIds", vehicleIds);
+                    MessageEntry messageEntry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
+                    messageEntry.setHttp(false);
+                    MessageFactory.getDispatchMessage().sendMessageNoResWithID(messageEntry.getMessageId(),"AddLoadAIVeh", JSONObject.toJSONString(paramMap1));
                 }
             });
             MessageFactory.getDispatchMessage().sendMessageNoResWithID(entry.getMessageId(), "CreateLoaderAIUnit", JSONObject.toJSONString(paramMap));
@@ -145,38 +95,6 @@ public class DispatchInit {
         }
     }
 
-    /**
-     * 初始化特殊调度单元及车辆
-     */
-    private void initSpecialDispatchTask(Integer unitId, String taskType, Integer taskAreaId) throws GmsException {
-        try {
-            MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
-            Map<String, Object> paramMap = new HashMap<>();
-            paramMap.put("unitId", GmsUtil.typeTransform(unitId, Integer.class));
-            paramMap.put("taskType", taskType);
-            paramMap.put("taskAreaId", taskAreaId);
-            entry.setHttp(false);
-            entry.setAfterHandle(() -> {
-                if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {
-                    List<TaskRule> rules = taskRuleService.getTaskRulesByUnitId(unitId);
-                    Map<String, Object> paramMap1;
-                    for (TaskRule taskRule : rules) {
-                        paramMap1 = new HashMap<>();
-                        paramMap1.put("unitId", unitId);
-                        paramMap1.put("vehicleId", taskRule.getVehicleId());
-                        MessageEntry messageEntry = MessageFactory.createMessageEntry(GmsConstant.DISPATCH);
-                        messageEntry.setHttp(false);
-                        MessageFactory.getDispatchMessage().sendMessageNoResWithID(messageEntry.getMessageId(),"AddSpecialAIVeh", JSONObject.toJSONString(paramMap1));
-                    }
-                }
-            });
-            MessageFactory.getDispatchMessage().sendMessageNoResWithID(entry.getMessageId(), "CreateSpecialAIUnit", JSONObject.toJSONString(paramMap));
-        } catch (Exception e) {
-            String message = "初始化特殊调度单元失败";
-            log.error(message, e);
-            throw new GmsException(message);
-        }
-    }
 
 
     /**
@@ -206,7 +124,6 @@ public class DispatchInit {
         log.info("初始化调度依赖");
         try {
             initVehicles();
-            initLeisureInit();
             initUnits();
             initAreas();
         } catch (Exception e) {

@@ -29,7 +29,6 @@ public class MessageUtil {
             log.error("mq接收消息id为空");
             return;
         }
-        log.debug("MQ接收消息，key={}，message={},messageId={}", routingKey, msg.length()>1000?msg.substring(0,1000):msg, messageId);
         MessageEntry entry = MessageFactory.getMessageEntry(messageId);
         if(entry!=null){
             if(entry.getMessage()==null){
@@ -38,6 +37,7 @@ public class MessageUtil {
                 EventPublisher.publish(new MessageEvent(new Object(), msg, messageId, EventType.httpMq));
             }
         }
+        log.debug("MQ接收消息>>>>>>>>>，key={}，message={},messageId={}", routingKey, msg.length()>200?msg.substring(0,200):msg, messageId);
     }
 
     /********************************************redis**************************************************/

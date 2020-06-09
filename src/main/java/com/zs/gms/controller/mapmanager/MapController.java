@@ -15,10 +15,10 @@ import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.message.MessageResult;
 import com.zs.gms.common.service.GmsService;
 import com.zs.gms.common.utils.GmsUtil;
-import com.zs.gms.entity.MapConfig;
+import com.zs.gms.entity.mapmanager.MapConfig;
 import com.zs.gms.entity.init.GmsGlobalConfig;
 import com.zs.gms.entity.mapmanager.MapInfo;
-import com.zs.gms.service.init.GmsConfigService;
+import com.zs.gms.service.common.GmsConfigService;
 import com.zs.gms.service.mapmanager.MapInfoService;
 import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
@@ -33,7 +33,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -87,7 +86,7 @@ public class MapController extends BaseController {
         }
     }
 
-    @Log("创建地图")
+    /*@Log("创建地图")
     @PostMapping
     @ApiOperation(value = "创建地图", httpMethod = "POST")
     public void createMap(@MultiRequestBody("mapName") String mapName,HttpServletResponse response) throws GmsException {
@@ -114,8 +113,56 @@ public class MapController extends BaseController {
                         log.debug("创建地图返回数据:{}", str);
                         mapInfo.setMapId(json.getInteger("mapId"));
                         mapInfo.setUserId(user.getUserId());
-                        mapInfo.setUserName(user.getUserName());
+                        mapInfo.setUserName(user.getName());
                         mapInfoService.addMapInfo(mapInfo);
+                    }
+                }
+            });
+            MessageFactory.getMapMessage().sendMessageWithID(entry.getMessageId(), "createMap", jsonStr, "创建地图成功");
+        } catch (Exception e) {
+            String message = "创建地图失败";
+            log.error(message, e);
+            throw new GmsException(message);
+        }
+    }*/
+
+    @Log("创建地图")
+    @PostMapping
+    @ApiOperation(value = "创建地图", httpMethod = "POST")
+    public void createMap(@MultiRequestBody("isBigVersion") Boolean isBigVersion,HttpServletResponse response) throws GmsException {
+        try {
+            GmsGlobalConfig gmsConfig = gmsConfigService.getGmsConfig(GmsConstant.MAP_GLOBAL_CONFIG);
+            if(null==gmsConfig){
+                GmsService.callResponse(new GmsResponse().badRequest().message("请先添加全局属性!"),response);
+                return;
+            }
+            MapInfo.MapVersion version = mapInfoService.getVersion();
+            if(null!=isBigVersion && isBigVersion){
+                version.setBigVersion(version.getBigVersion()+1);
+            }else{
+                version.setSmallVersion(version.getSmallVersion()+1);
+            }
+            MapConfig mapConfig = GmsUtil.toObj(gmsConfig.getConfigValue(), MapConfig.class);
+            MapInfo mapInfo = new MapInfo();
+            mapInfo.setName(mapConfig.getMapName());
+            mapInfo.setVersion(version);
+            mapInfo.setCoordinateOrigin(mapConfig.getCoordinateOrigin());
+            mapInfo.setLeftDring(mapConfig.isLeftDring());
+            mapInfo.setSpeed(mapConfig.getSpeed());
+            String jsonStr = GmsUtil.toJson(mapInfo);
+            MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
+            User user = super.getCurrentUser();
+            entry.setAfterHandle(() -> {
+                if (entry.getHandleResult().equals(MessageResult.SUCCESS)) {
+                    if (entry.getReturnData() != null) {
+                        String str = entry.getReturnData();
+                        JSONObject json = JSONObject.parseObject(str);
+                        log.debug("创建地图返回数据:{}", str);
+                        mapInfo.setMapId(json.getInteger("mapId"));
+                        mapInfo.setUserId(user.getUserId());
+                        mapInfo.setUserName(user.getName());
+                        mapInfoService.addMapInfo(mapInfo);
+                        mapInfoService.setVersion(version);
                     }
                 }
             });
@@ -127,12 +174,17 @@ public class MapController extends BaseController {
         }
     }
 
-    @Log("设置地图信息")
+    /*@Log("设置地图信息")
     @PutMapping(value = "/{mapId}")
     @ApiOperation(value = "设置地图信息", httpMethod = "PUT")
-    public void setMap(@Valid @MultiRequestBody MapInfo mapInfo, @PathVariable Integer mapId) throws GmsException {
+    public void setMap(@MultiRequestBody("mapName") String mapName, @PathVariable Integer mapId,HttpServletResponse response) throws GmsException {
         try {
-            mapInfo.setMapId(mapId);
+            MapInfo mapInfo = mapInfoService.getMapInfo(mapId);
+            if(null==mapInfo){
+                GmsService.callResponse(new GmsResponse().message("地图不存在!").badRequest(),response);
+                return;
+            }
+            mapInfo.setName(mapName);
             String jsonStr = JSONObject.toJSON(mapInfo).toString();
             MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
             entry.setAfterHandle(() -> {
@@ -147,7 +199,7 @@ public class MapController extends BaseController {
             log.error(message, e);
             throw new GmsException(message);
         }
-    }
+    }*/
 
     @Log("获取地图信息")
     @GetMapping(value = "/{mapId}/mapInfo")
@@ -230,12 +282,14 @@ public class MapController extends BaseController {
     public GmsResponse mapPublish(@PathVariable Integer mapId, @MultiRequestBody("userIds") String userIds) throws GmsException {
         submitCheck(userIds);
         try {
-            boolean result = mapInfoService.submitPublishMap(mapId, userIds, super.getCurrentUser());
+            mapInfoService.submitPublishMap(mapId, userIds, super.getCurrentUser());
+            return new GmsResponse().message("发布地图提交成功").success();
+            /*boolean result = mapInfoService.submitPublishMap(mapId, userIds, super.getCurrentUser());
             if (result) {
                 return new GmsResponse().message("发布地图提交成功").success();
             } else {
                 return new GmsResponse().message("已存在处于使用或申请发布的地图").badRequest();
-            }
+            }*/
         } catch (Exception e) {
             String message = "申请发布地图提交失败";
             log.error(message, e);
@@ -283,12 +337,12 @@ public class MapController extends BaseController {
                         mapInfoService.deleteMapInfo(mapId);
                     }
                 });
-                MessageFactory.getMapMessage().sendMessageWithID(entry.getMessageId(),"deleteMap", JSON.toJSONString(paramMap),"地图删除提交成功");
+                MessageFactory.getMapMessage().sendMessageWithID(entry.getMessageId(),"deleteMap", JSON.toJSONString(paramMap),"地图删除成功");
             }else{
                 GmsService.callResponse(new GmsResponse().message("该地图不存在!").badRequest(),response);
             }
         } catch (Exception e) {
-            String message = "申请地图删除提交失败";
+            String message = "地图删除失败";
             log.error(message, e);
             throw new GmsException(message);
         }

@@ -1,5 +1,6 @@
 package com.zs.gms.entity.monitor;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 
@@ -9,5 +10,26 @@ import java.io.Serializable;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Obstacle implements Serializable {
 
-    private Float length;
+    /**
+     * 部件编码
+     * */
+    @JsonIgnore
+    private Integer devCode;
+
+    /**
+     * 故障编码
+     * */
+    @JsonIgnore
+    private Integer diagCode;
+
+    private Float x;
+
+    private Float y;
+
+    private Float z;
+
+    private Double length;
+    private Double width;
+    private Double height;
+    private Integer angle;
 }

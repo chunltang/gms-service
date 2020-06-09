@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.zs.gms.common.handler.BoolConverterHandler;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
@@ -15,7 +16,7 @@ import java.util.Date;
 
 
 @Data
-@TableName(value = "sys_user")
+@TableName(value = "sys_user", autoResultMap = true)
 @ApiModel
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class User implements Serializable {
@@ -34,18 +35,29 @@ public class User implements Serializable {
     public static final String DEAFULT_PASSWORD = "1234qwer";
 
     /**
+     * 密码重试次数
+     */
+    public static final int MAX_PWD_RETRY = 5;
+
+    /**
      * 用户id
      */
     //@ApiModelProperty(hidden = true)
-    @TableId(value = "USERID", type = IdType.AUTO)
+    @TableId(value = "USERID")
     private Integer userId;
+
+    /**
+     * 用户编号，自动生成
+     */
+    @TableField(value = "USERNAME")
+    private String userName;
 
     /**
      * 用户名称
      */
-    @TableField(value = "USERNAME")
-    @Size(min = 1, max = 16, message = "用户名称长度在1-16之间")
-    private String userName;
+    @TableField(value = "NAME")
+    @Size(min = 1, max = 16, message = "用户姓名长度在1-16之间")
+    private String name;
 
     /**
      * 密码
@@ -73,24 +85,38 @@ public class User implements Serializable {
     private String avatar;
 
     /**
+     * 是否被锁定
+     */
+    @TableField(value = "USERLOCK", typeHandler = BoolConverterHandler.class)
+    private boolean userLock;
+
+    /**
+     * 密码已重试次数
+     */
+    @JsonIgnore
+    @TableField("RETRY")
+    private Integer retry = 0;
+
+    /**
      * 创建时间
      */
     @TableField("CREATETIME")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GTM+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date createTime;
 
     /**
      * 最后登录时间
-     * */
+     */
     @TableField("LASTLOGINTIME")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GTM+8")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private Date lastLoginTime;
 
     /**
      * 角色id
      */
     @TableField(exist = false)
-    private String roleId;
+    @NotNull(message = "角色不能为空")
+    private Integer roleId;
 
     /**
      * 角色名称

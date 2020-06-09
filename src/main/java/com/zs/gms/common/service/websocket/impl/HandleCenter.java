@@ -27,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class HandleCenter extends AbstractFunctionHandler {
 
-    private final static int HEARTBEAT_INTERVAL = 100 * 1000 * 10;
+    private final static int HEARTBEAT_INTERVAL = 20 * 1000;
 
     private static volatile HandleCenter instance;
 
@@ -54,14 +54,15 @@ public class HandleCenter extends AbstractFunctionHandler {
     }
 
     public static HandleCenter getInstance() {
-        if (instance == null) {
+        /*if (instance == null) {
             synchronized (lock) {
                 if (instance == null) {
                     instance = new HandleCenter();
                 }
             }
         }
-        return instance;
+        return instance;*/
+        return null;
     }
 
     public void handleRequest(Map<String, Object> params, Session session) {
@@ -72,11 +73,11 @@ public class HandleCenter extends AbstractFunctionHandler {
         if (GmsUtil.mapContains(params, TYPE_FIELD, FUNCTION_FIELD)) {
             String type = params.get(TYPE_FIELD).toString();
             switch (type) {
-                case "add":
+                case ADD_FUNCTION:
                     params.put(SESSION_FIELD, session);
                     addFunction(params);
                     break;
-                case "remove":
+                case REMOVE_FUNCTION:
                     String name = params.get(FUNCTION_FIELD).toString();
                     FunctionEnum anEnum = FunctionEnum.getFunction(name);
                     if (anEnum != null) {
@@ -200,8 +201,8 @@ public class HandleCenter extends AbstractFunctionHandler {
         if (MapUtils.isNotEmpty(params) && params.containsKey(FUNCTION_FIELD)) {
             FunctionEnum anEnum = FunctionEnum.getFunction(params.get(FUNCTION_FIELD).toString());
             if (anEnum != null) {
-                handles.get(anEnum).addFunction(params);
                 log.debug("websocket订阅,{}", anEnum.name());
+                handles.get(anEnum).addFunction(params);
             }
         }
     }
@@ -285,8 +286,10 @@ public class HandleCenter extends AbstractFunctionHandler {
      * 指定类型发送
      */
     public void sendMessage(String message, FunctionEnum nEnum) {
-        FunctionHandler handler = handles.get(nEnum);
-        handler.sendMessage(null, message);
+        if(isNeed(nEnum)){
+            FunctionHandler handler = handles.get(nEnum);
+            handler.sendMessage(null, getResult(message,nEnum.name()));
+        }
     }
 
     /**

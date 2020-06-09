@@ -73,26 +73,40 @@ public class Role implements Serializable {
      * */
     public enum RoleSign{
 
-        ADMIN_ROLE("admin","系统管理员"),
-        NORMAL_ROLE("normal","普通用户"),
-        CHIEFDESPATCHER_ROLE("chiefDespatcher","调度长"),
-        DESPATCHER_ROLE("despatcher","调度员"),
-        MAPMAKER_ROLE("mapmaker","地图编辑员"),
-        EXCAVATORPERSON_ROLE("excavatorPerson","挖掘机操作员"),
-        DBULLDOZERPERSON_ROLE("bulldozerPerson","推土机操作员"),
-        MANAGER_ROLE("manager","管理员");
+        ADMIN_ROLE("admin","系统调试员","X"),
+        NORMAL_ROLE("normal","普通用户","N"),
+        CHIEFDESPATCHER_ROLE("chiefDespatcher","调度长","B"),
+        DESPATCHER_ROLE("despatcher","调度员","C"),
+        MAPMAKER_ROLE("mapmaker","地图编辑员","D"),
+        EXCAVATORPERSON_ROLE("excavatorPerson","挖掘机操作员","E"),
+        DBULLDOZERPERSON_ROLE("bulldozerPerson","推土机操作员","U"),
+        MANAGER_ROLE("manager","系统管理员","A");
 
         private String value;
 
         private String desc;
 
-        RoleSign(String value, String desc){
+        /**
+         * 角色表示简写
+         * */
+        private String sign;
+
+        RoleSign(String value, String desc,String sign){
             this.value=value;
             this.desc=desc;
+            this.sign=sign;
         }
 
         public String getValue(){
             return value;
+        }
+
+        public String getSign(){
+            return this.sign;
+        }
+
+        public String getDesc(){
+            return this.desc;
         }
     }
 }

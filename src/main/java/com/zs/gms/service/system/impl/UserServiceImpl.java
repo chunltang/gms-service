@@ -3,16 +3,13 @@ package com.zs.gms.service.system.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zs.gms.common.authentication.ShiroHelper;
 import com.zs.gms.common.authentication.ShiroRealm;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.QueryRequest;
-import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.exception.GmsException;
-import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.MD5Util;
 import com.zs.gms.common.utils.PropertyUtil;
@@ -28,7 +25,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +46,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Autowired
     private ShiroRealm shiroRealm;
 
+    @Autowired
+    private ShiroHelper shiroHelper;
+
 
     /**
      * 通过用户名查找用户
@@ -65,13 +64,43 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     }
 
     @Override
+    public Integer getMaxId() {
+        return this.baseMapper.getMaxId();
+    }
+
+    @Override
+    @Transactional
+    public void updateRetry(Integer userId,int num) {
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(User::getUserId, userId);
+        updateWrapper.set(User::getRetry, num);
+        this.update(updateWrapper);
+    }
+
+    @Override
+    public void updateLock(Integer userId, boolean isLock) {
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(User::getUserId, userId);
+        updateWrapper.set(User::isUserLock, isLock);
+        this.update(updateWrapper);
+    }
+
+    @Override
+    @Transactional
+    public void clearLock(Integer userId) {
+        updateLock(userId,false);
+        updateRetry(userId,0);
+    }
+
+    @Override
     @Transactional
     public void updateLastLoginTime(Integer userId, Date lastLoginTime) {
         LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.eq(User::getUserId,userId);
-        updateWrapper.set(User::getLastLoginTime,lastLoginTime);
+        updateWrapper.eq(User::getUserId, userId);
+        updateWrapper.set(User::getLastLoginTime, lastLoginTime);
         this.update(updateWrapper);
     }
+
 
     @Override
     public List<User> getUsersByRoleId(Integer roleId) {
@@ -102,7 +131,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setCreateTime(new Date());
         this.save(user);
         if (null != user.getRoleId()) {
-            batchSaveUserRole(user.getUserId(), user.getRoleId().split(StringPool.COMMA));
+            batchSaveUserRole(user.getUserId(), new String[]{user.getRoleId().toString()});
         }
     }
 
@@ -113,16 +142,26 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Transactional
     public IPage<User> findUserListPage(User user, QueryRequest request) {
         Page page = new Page(request.getPageNo(), request.getPageSize());
-        SortUtil.handlePageSort(request, page, GmsConstant.SORT_DESC, "USERID");
-        IPage<User> userListPage = this.baseMapper.findUserListPage(page, user);
-        Map<String, Object> activateUsers = ShiroHelper.getActivateUsers();
-        for (User record : userListPage.getRecords()) {
+        List<User> users = this.baseMapper.findUserList(user);
+        for (User record : users) {
             Integer userId = record.getUserId();
-            if(ShiroHelper.isActivate(userId)){
+            if (ShiroHelper.isActivate(userId)) {
                 record.setActivate(true);
             }
         }
-        return userListPage;
+        Map<String,String> sortMap=new HashMap<>();
+        sortMap.put("userName",GmsConstant.SORT_ASC);
+        sortMap.put("activate",GmsConstant.SORT_DESC);
+        List<User> pageSort = SortUtil.memoryPageSort(request.getPageNo(),request.getPageSize(),sortMap, users, User.class);
+        page.setRecords(pageSort);
+        page.setTotal(users.size());
+        return page;
+    }
+
+    @Override
+    @Transactional
+    public List<Map<String,Object>> findUnitUserList() {
+        return this.baseMapper.findUnitUserList();
     }
 
 
@@ -131,7 +170,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
      */
     @Override
     @Transactional
-    public void register(String userName, String password,String phone) {
+    public void register(String userName, String password, String phone) {
         User user = new User();
         user.setUserName(userName);
         user.setTheme(User.THEAM_WHITE);
@@ -194,13 +233,14 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Transactional
     public void updateUser(User user) throws GmsException {
         if (null != user.getRoleId()) {
-            Integer roleId = Integer.valueOf(user.getRoleId());
+            Integer roleId = user.getRoleId();
             Role role = roleService.getRole(roleId);
             if (null != role) {
                 userRoleService.addUserRole(user.getUserId(), roleId);
             }
         }
         if (GmsUtil.allObjNotNull(user.getPassword())) {
+            shiroHelper.clearSession(user.getUserId());//修改密码，清除session
             User u = findUserById(user.getUserId());
             user.setPassword(MD5Util.encrypt(u.getUserName(), user.getPassword()));
         }
@@ -215,10 +255,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     @Transactional
-    public void updateUserRole(Integer userId, String roleIds) {
-        userRoleService.removeUserRole(userId);
-        String[] ids = roleIds.split(StringPool.COMMA);
-        batchSaveUserRole(userId, ids);
+    public void updateUserName(Integer userId, String userName) {
+        LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
+        updateWrapper.eq(User::getUserId,userId);
+        updateWrapper.set(User::getUserName,userName);
+        this.update(updateWrapper);
+    }
+
+    @Override
+    @Transactional
+    public void updateUserRole(Integer userId, Integer roleId) {
+        userRoleService.addUserRole(userId,roleId);
         shiroRealm.clearCache();
     }
 
@@ -243,6 +290,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Transactional
     //@CacheEvict(cacheNames = "users",key = "targetClass+#p0")
     public void updatePassword(String userName, String password) {
+        shiroHelper.clearSession(userName);
         LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.set(User::getPassword, MD5Util.encrypt(userName, password));
         updateWrapper.eq(User::getUserName, userName);

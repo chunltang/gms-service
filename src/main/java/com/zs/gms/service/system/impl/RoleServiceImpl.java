@@ -35,6 +35,14 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, Role> implements Ro
 
     @Override
     @Transactional
+    public List<Role> getRoleList() {
+        LambdaQueryWrapper<Role> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.ne(Role::getRoleSign,Role.RoleSign.ADMIN_ROLE.getValue());
+        return this.list(queryWrapper);
+    }
+
+    @Override
+    @Transactional
     public boolean roleExistsByRoleSign(String roleSign) {
         LambdaQueryWrapper<Role> queryWrapper=new LambdaQueryWrapper<>();
         queryWrapper.eq(Role::getRoleSign,roleSign);

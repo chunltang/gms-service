@@ -111,24 +111,22 @@ public class RabbitMqService implements InitializingBean{
 
         }
         try {
+            if(message.length()<1000){
+                log.debug("MQ send message>>>>>>>>>{},{},{}",routeKey,messageId,message);
+            }else{
+                log.debug("MQ send message>>>>>>>>>{},{},{}",routeKey,messageId,message.substring(0,1000));
+            }
+            if(!StringUtils.isEmpty(messageId)&&MessageFactory.containMessageEntry(messageId)){
+                MessageEntry entry = MessageFactory.getMessageEntry(messageId);
+                entry.setHandleResult(MessageResult.SENDING);
+                entry.setRouteKey(routeKey);
+            }
             JSONObject object = JSONObject.parseObject(message);
             template.convertAndSend(exchange,routeKey+"."+serverName,null==object?"":object,msg -> {
                    msg.getMessageProperties().setMessageId(messageId);
                    msg.getMessageProperties().setExpiration("5000");
                    return msg;
             },new CorrelationData(messageId));//CorrelationData在消息发送异常时能取到发送消息
-
-            if(!StringUtils.isEmpty(messageId)&&MessageFactory.containMessageEntry(messageId)){
-                MessageEntry entry = MessageFactory.getMessageEntry(messageId);
-                entry.setHandleResult(MessageResult.SENDING);
-                entry.setRouteKey(routeKey);
-            }
-
-            if(message.length()<1000){
-                log.debug("send message>>>{},{},{}",routeKey,messageId,message);
-            }else{
-                log.debug("send message>>>{},{},{}",routeKey,messageId,message.substring(0,1000));
-            }
         }catch (Exception e){
             log.error("mq发送数据异常",e);
             return;

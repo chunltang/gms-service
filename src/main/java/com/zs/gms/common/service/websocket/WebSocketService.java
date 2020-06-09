@@ -14,8 +14,8 @@ import java.io.IOException;
 import java.util.HashMap;
 
 //注意：采用前后端分离后，websocket连接需要带token信息，在拦截器中进行处理
-@ServerEndpoint(value = "/webSocket", configurator = WebSocketConfig.class)
-@Component
+//@ServerEndpoint(value = "/webSocket", configurator = WebSocketConfig.class)
+//@Component
 @Slf4j
 public class WebSocketService {
 
@@ -50,7 +50,7 @@ public class WebSocketService {
      * 接收消息,订阅功能点或取消订阅
      */
     @OnMessage
-    public void onMessage(String message, Session session) {//{funcName:"maintainTask",type:"remove/add"}
+    public void onMessage(String message, Session session) {//{funcName:"obstacle",type:"remove/add"}
         HashMap params = GmsUtil.toObj(message, HashMap.class);
         if(params==null){
             log.error("websocket监听消息失败,message={}",message);

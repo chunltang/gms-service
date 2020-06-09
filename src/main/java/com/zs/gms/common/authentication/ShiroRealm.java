@@ -1,7 +1,10 @@
 package com.zs.gms.common.authentication;
 
 import com.zs.gms.common.entity.GmsConstant;
-import com.zs.gms.common.utils.ThreadLocalUtil;
+import com.zs.gms.common.entity.StaticConfig;
+import com.zs.gms.common.properties.GmsProperties;
+import com.zs.gms.common.service.RedisService;
+import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.system.Menu;
 import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
@@ -20,9 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Component
@@ -40,6 +45,9 @@ public class ShiroRealm extends AuthorizingRealm {
     @Autowired
     @Lazy
     private MenuService menuService;
+
+    @Autowired
+    private GmsProperties gmsProperties;
 
 
     /**
@@ -76,18 +84,32 @@ public class ShiroRealm extends AuthorizingRealm {
         String password = new String((char[]) token.getCredentials());
         User user = this.userService.findByName(userName);
         if (null == user) {
-            throw new UnknownAccountException("账号未注册!");
+            throw new UnknownAccountException("用户编号未注册!");
         }
-
+        /*if(user.isUserLock()){
+            throw new LockedAccountException("账户被锁定!");
+        }
+        Integer userId = user.getUserId();
         if (!StringUtils.equals(password, user.getPassword())) {
-            throw new IncorrectCredentialsException("账号或密码不存在!");
+            Integer retry = user.getRetry();
+            userService.updateRetry(userId,retry+1);
+            if(User.MAX_PWD_RETRY<=retry+1){
+                userService.updateLock(userId,true);
+                throw new LockedAccountException("密码试错超过5次,账户被锁定!");
+            }
+            throw new IncorrectCredentialsException("用户编号或密码错误!");
+        }
+        userService.clearLock(userId);*/
+        if (!StringUtils.equals(password, user.getPassword())) {
+            throw new IncorrectCredentialsException("用户编号或密码错误!");
         }
         //获取sessionId
-        String sessionId = ThreadLocalUtil.get().toString();
+        Serializable sessionId = SecurityUtils.getSubject().getSession().getId();
         user.setSessionId(GmsConstant.SHIRO_SESSION_PREFIX+sessionId);
         Date lastLoginTime = new Date();
         user.setLastLoginTime(lastLoginTime);
         ShiroHelper.put(user);
+        RedisService.set(StaticConfig.CACHE_DB,sessionId.toString(), GmsUtil.toJson(user),gmsProperties.getShiro().getSessionTimeout(), TimeUnit.SECONDS);
         this.userService.updateLastLoginTime(user.getUserId(),lastLoginTime);
         return new SimpleAuthenticationInfo(user, password, getName());
     }

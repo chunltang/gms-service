@@ -3,14 +3,16 @@ package com.zs.gms.controller.mapmanager;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.zs.gms.common.annotation.Log;
 import com.zs.gms.common.annotation.MultiRequestBody;
-import com.zs.gms.common.configure.GmsConfig;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.*;
 import com.zs.gms.common.exception.GmsException;
+import com.zs.gms.common.message.MessageEntry;
+import com.zs.gms.common.message.MessageFactory;
+import com.zs.gms.common.message.MessageResult;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.utils.DateUtil;
 import com.zs.gms.common.utils.GmsUtil;
-import com.zs.gms.entity.MapConfig;
+import com.zs.gms.entity.mapmanager.MapConfig;
 import com.zs.gms.entity.init.GmsGlobalConfig;
 import com.zs.gms.entity.mapmanager.MapFile;
 import com.zs.gms.entity.mapmanager.MapInfo;
@@ -18,7 +20,7 @@ import com.zs.gms.entity.mapmanager.SemiStatic;
 import com.zs.gms.entity.mineralmanager.AreaMineral;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
 import com.zs.gms.enums.mapmanager.MapFileTypeEnum;
-import com.zs.gms.service.init.GmsConfigService;
+import com.zs.gms.service.common.GmsConfigService;
 import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.mapmanager.MapInfoService;
 import com.zs.gms.service.mineralmanager.AreaMineralService;
@@ -36,10 +38,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,13 +62,18 @@ public class OtherController extends BaseController {
     @Log("修改地图全局属性配置")
     @PutMapping("/mapConfig")
     @ApiOperation(value = "修改地图全局属性配置", httpMethod = "PUT")
-    public GmsResponse updateMapConfig(@Valid @MultiRequestBody MapConfig mapConfig) throws GmsException {
+    public void updateMapConfig(@Valid @MultiRequestBody MapConfig mapConfig) throws GmsException {
         try {
             GmsGlobalConfig gmsConfig = new GmsGlobalConfig();
             gmsConfig.setConfigKey(GmsConstant.MAP_GLOBAL_CONFIG);
             gmsConfig.setConfigValue(GmsUtil.toJson(mapConfig));
-            gmsConfigService.addGmsConfig(gmsConfig);
-            return new GmsResponse().message("修改地图全局属性配置成功").success();
+            MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
+            entry.setAfterHandle(()->{
+                if(MessageResult.SUCCESS.equals(entry.getHandleResult())){
+                    gmsConfigService.addGmsConfig(gmsConfig);
+                }
+            });
+            MessageFactory.getMapMessage().sendMessageWithID(entry.getMessageId(),"setGlobalParameter",GmsUtil.toJson(mapConfig),"修改地图全局属性配置成功");
         } catch (Exception e) {
             String message = "修改地图全局属性配置失败";
             log.error(message, e);
@@ -83,11 +87,15 @@ public class OtherController extends BaseController {
     public GmsResponse getMapConfig() throws GmsException {
         try {
             GmsGlobalConfig gmsConfig = gmsConfigService.getGmsConfig(GmsConstant.MAP_GLOBAL_CONFIG);
+            MapInfo.MapVersion version = mapInfoService.getVersion();
             MapConfig mapConfig = null;
             if (null != gmsConfig) {
                  mapConfig = GmsUtil.toObj(gmsConfig.getConfigValue(), MapConfig.class);
             }
-            return new GmsResponse().data(mapConfig).message("获取地图全局属性配置成功").success();
+            Map<String,Object> params=new HashMap<>();
+            params.put("version",version);
+            params.put("mapConfig",mapConfig);
+            return new GmsResponse().data(params).message("获取地图全局属性配置成功").success();
         } catch (Exception e) {
             String message = "获取地图全局属性配置失败";
             log.error(message, e);
@@ -98,11 +106,15 @@ public class OtherController extends BaseController {
     @Log("获取地图列表")
     @GetMapping
     @ApiOperation(value = "获取地图列表", httpMethod = "GET")
-    public GmsResponse getMapVersionList(HttpServletResponse httpServletResponse, QueryRequest request) throws GmsException {
+    @ResponseBody
+    public String getMapVersionList(HttpServletResponse httpServletResponse, QueryRequest request) throws GmsException {
         try {
             MapDataUtil.syncMap();
+            synchronized (httpServletResponse){
+                httpServletResponse.wait(3000);
+            }
             Map<String, Object> dataTable = getDataTable(mapInfoService.getMapInfoListPage(request));
-            return new GmsResponse().data(dataTable).message("获取地图列表成功").success();
+            return GmsUtil.toJson(new GmsResponse().data(dataTable).message("获取地图列表成功").success());
         } catch (Exception e) {
             String message = "获取地图列表失败";
             log.error(message, e);
@@ -134,7 +146,7 @@ public class OtherController extends BaseController {
     public GmsResponse getMapFileList() throws GmsException {
         try {
             List<MapFile> mapFiles = new ArrayList<>();
-            String filePath = new File("../mapfile").getCanonicalPath();
+            String filePath = new File("../app/mapfile").getCanonicalPath();
             File file = new File(filePath);
             if (!file.exists() || !file.isDirectory()) {
                 file.mkdirs();
@@ -209,7 +221,7 @@ public class OtherController extends BaseController {
                                  @NotNull(message = "文件类型不能为空") @MultiRequestBody("fileType") String fileType) throws GmsException {
         try {
             List<Double[]> list = new ArrayList<>();
-            String filePath = new File("../mapfile" + File.separator + fileType).getCanonicalPath();
+            String filePath = new File("../app/mapfile" + File.separator + fileType).getCanonicalPath();
             File file = new File(filePath);
             File[] files = file.listFiles(new FilenameFilter() {
                 @Override
@@ -250,7 +262,7 @@ public class OtherController extends BaseController {
     @ApiOperation(value = "上传地图文件", httpMethod = "POST")
     public GmsResponse updateMapFile(@NotNull @MultiRequestBody("file") MultipartFile file, @NotNull @MultiRequestBody("fileType") MapFileTypeEnum fileType) throws GmsException {
         try {
-            String path = new File("../mapfile").getCanonicalPath();
+            String path = new File("../app/mapfile").getCanonicalPath();
             File mapFileDir = new File(path + File.separator + fileType.toString());
             if (!mapFileDir.exists() || !mapFileDir.isDirectory()) {
                 mapFileDir.mkdirs();
@@ -311,7 +323,7 @@ public class OtherController extends BaseController {
             List<AreaMineral> unAreaIds = areaMineralService.getAreaIds(mineralId);
             HashSet<Integer> sets = new HashSet<>();
             for (AreaMineral areaMineral : unAreaIds) {
-                sets.add(areaMineral.getAreaId());
+                sets.add(areaMineral.getLoadAreaId());
             }
             List<SemiStatic> areaInfos = MapDataUtil.getAreaInfos(mapId, AreaTypeEnum.LOAD_AREA);
             List<SemiStatic> result = new ArrayList<>();

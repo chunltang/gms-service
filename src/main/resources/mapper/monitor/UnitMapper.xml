@@ -2,11 +2,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.zs.gms.mapper.monitor.UnitMapper">
 
-    <select id="getUnitListPage" resultType="com.zs.gms.entity.monitor.Unit">
+    <select id="getUnitListPage" resultType="com.zs.gms.entity.monitor.Unit" parameterType="integer">
         select tu.*,
-               su.USERNAME
+               su.USERNAME,
+               su.NAME,
+               tbe.EXCAVATORID
         from t_unit tu
                  left join sys_user su on tu.USERID = su.USERID
-        where tu.ISDEL=false
+                 left join (select EXCAVATORID,LOADAREAID from t_bind_excavator where ISDEL=false) tbe on tbe.LOADAREAID=tu.LOADAREAID
+        where tu.ISDEL = false
+          and tu.MAPID = #{mapId}
     </select>
 </mapper>

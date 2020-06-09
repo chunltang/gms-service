@@ -12,7 +12,7 @@ import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.service.DelayedService;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.service.websocket.FunctionEnum;
-import com.zs.gms.common.service.websocket.WsUtil;
+import com.zs.gms.common.service.nettyclient.WsUtil;
 import com.zs.gms.common.utils.Assert;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SortUtil;
@@ -20,8 +20,6 @@ import com.zs.gms.entity.vehiclemanager.VehicleMaintainTask;
 import com.zs.gms.enums.vehiclemanager.DateEnum;
 import com.zs.gms.mapper.vehiclemanager.VehicleMaintainTaskMapper;
 import com.zs.gms.service.vehiclemanager.VehicleMaintainTaskService;
-import org.apache.ibatis.session.SqlSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @Transactional(propagation = Propagation.REQUIRED, readOnly = true, rollbackFor = Exception.class)

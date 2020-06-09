@@ -2,6 +2,7 @@ package com.zs.gms.service.monitor.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zs.gms.common.annotation.RedisLock;
+import com.zs.gms.common.entity.RedisKeyPool;
 import com.zs.gms.entity.monitor.VehicleLiveInfo;
 import com.zs.gms.mapper.monitor.LiveInfoMapper;
 import com.zs.gms.service.monitor.LiveInfoService;
@@ -23,7 +24,7 @@ public class LiveInfoServiceImpl extends ServiceImpl<LiveInfoMapper, VehicleLive
     @Override
     @Transactional
     @Async(value = "gmsAsyncThreadPool")
-    @RedisLock(key = "vehicleLiveInfo",seconds = 30L)
+    @RedisLock(key = RedisKeyPool.VEHICLE_LIVE_INFO_LOCK,seconds = 30L)
     public void addLiveInfo(VehicleLiveInfo vehicleLiveInfo) {
         Map<String,Object> params=new HashMap<>();
         getParams(vehicleLiveInfo.getMonitor(),params);

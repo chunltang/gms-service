@@ -49,9 +49,11 @@ public abstract class MessageAbstract implements MessageInterface{
      * */
     @Override
     public void sendMessageNoID(String routKry, String sendMessage, String resultMessage) {
+        HttpServletResponse response = HttpContextUtil.getHttpServletResponse();
         MessageEntry entry = MessageFactory.createMessageEntry(serverName);
         send2MQ(routKry,sendMessage,entry.getMessageId());
-        handlerResponse(resultMessage, entry.getMessageId());
+        handlerResponse(response,resultMessage, entry.getMessageId());
+        waitMqResponse(response, entry.getMessageId());
     }
 
     /**
@@ -63,8 +65,10 @@ public abstract class MessageAbstract implements MessageInterface{
      * */
     @Override
     public void sendMessageWithID(String messageId, String routKry, String sendMessage, String resultMessage) {
+        HttpServletResponse response = HttpContextUtil.getHttpServletResponse();
+        handlerResponse(response,resultMessage, messageId);
         send2MQ(routKry,sendMessage,messageId);
-        handlerResponse(resultMessage, messageId);
+        waitMqResponse(response, messageId);
     }
 
     /**
@@ -72,22 +76,19 @@ public abstract class MessageAbstract implements MessageInterface{
      * */
     public void send2MQ(String routKry, String sendMessage,String messageId){
         RabbitMqService.sendMessage(exchangeName, routKry, sendMessage, messageId);
-    };
-
+    }
 
 
     /**
      * 创建响应实体
      */
-    public  void handlerResponse(String resultMessage, String messageId) {
+    public  void handlerResponse(HttpServletResponse response,String resultMessage, String messageId) {
         GmsResponse gmsResponse = new GmsResponse().message(resultMessage).success();
-        HttpServletResponse response = HttpContextUtil.getHttpServletResponse();
         Message message = new Message(response, gmsResponse);
         MessageEntry messageEntry = MessageFactory.getMessageEntry(messageId);
         if(messageEntry!=null){
             messageEntry.setMessage(message);
         }
-        waitMqResponse(response, messageId);
     }
 
 
@@ -113,8 +114,10 @@ public abstract class MessageAbstract implements MessageInterface{
                 writer.flush();
                 writer.close();
                 entry.setHandleResult(MessageResult.RESPONSE_EXPIRE);
-                log.error("messageId={},routeKey={}:远程调用超时",messageId,entry.getRouteKey());
+                log.error("远程调用超时:messageId={},routeKey={}",messageId,entry.getRouteKey());
+                return;
             }
+            log.info("正常响应远程调用:messageId={},routeKey={}",entry.getMessageId(),entry.getRouteKey());
         } catch (InterruptedException e) {
             log.error("线程休眠异常", e);
         } catch (IOException e) {

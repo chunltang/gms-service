@@ -68,7 +68,7 @@ public class FaultController extends BaseController {
     @PutMapping("/statuses")
     @ApiOperation(value = "修改故障处理进度",httpMethod = "PUT")
     public GmsResponse updateFaultStatus(@MultiRequestBody("faultId") Integer faultId,
-                                         @MultiRequestBody("status") HandleStatus status) throws GmsException {
+                                         @MultiRequestBody("obj") HandleStatus status) throws GmsException {
         try {
             faultService.updateFaultStatus(faultId,status);
             return new GmsResponse().message("修改故障处理进度成功").success();

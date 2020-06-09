@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zs.gms.common.service.websocket.FunctionEnum;
-import com.zs.gms.common.service.websocket.WsUtil;
+import com.zs.gms.common.service.nettyclient.WsUtil;
 import com.zs.gms.common.utils.Assert;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SpringContextUtil;
@@ -55,7 +55,7 @@ public class ApproveServiceImpl extends ServiceImpl<ApproveMapper, Approve> impl
         approve.setApproveUserIds(userIds);
         approve.setRule(rule);
         approve.setSubmitUserId(user.getUserId());
-        approve.setSubmitUserName(user.getUserName());
+        approve.setSubmitUserName(user.getName());
         approve.setApproveType(approveType);
         approve.setApproveDesc(approveType.getDesc());
         Integer integer = addApprove(approve);
@@ -193,6 +193,12 @@ public class ApproveServiceImpl extends ServiceImpl<ApproveMapper, Approve> impl
 
     @Override
     @Transactional
+    public void deleteOtherApprove() {
+        this.baseMapper.deleteOtherApprove();
+    }
+
+    @Override
+    @Transactional
     public void cancel(Approve approve) {
         if(approve.getStatus().equals(Approve.Status.WAIT)){
             ApproveType approveType = approve.getApproveType();
@@ -218,6 +224,7 @@ public class ApproveServiceImpl extends ServiceImpl<ApproveMapper, Approve> impl
     @Override
     @Transactional
     public List<Approve> getApproveRemaining(String userId) {
+        deleteOtherApprove();
         List<Approve> result=new ArrayList<>();
         LambdaQueryWrapper<Approve> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Approve::getStatus,Approve.Status.WAIT);
@@ -254,7 +261,9 @@ public class ApproveServiceImpl extends ServiceImpl<ApproveMapper, Approve> impl
     }
 
     @Override
+    @Transactional
     public List<Approve> getApproveNoMark(String userId) {
+        deleteOtherApprove();
         LambdaQueryWrapper<Approve> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Approve::getSubmitUserId,userId);
         queryWrapper.eq(Approve::isApproveMark,false);

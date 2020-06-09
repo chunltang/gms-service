@@ -40,25 +40,12 @@ public class CollectMapHandler extends MapHandler {
     @Override
     public void sendMessage(Session session, String message) {
         if (null != session) {
-            send(session, message);
+            super.sendMessage(session,message);
         } else {
             for (Session s : sessionMap.keySet()) {
-                send(s, getResult(message, FunctionEnum.collectMap.name()));
+                super.sendMessage(s,message);
             }
         }
     }
 
-    private void send(Session session, String message) {
-        synchronized (session) {
-            try {
-                if (session.isOpen()) {
-                    session.getBasicRemote().sendText(message);
-                } else {
-                    sessionMap.remove(session);
-                }
-            } catch (IOException e) {
-                log.error("ws-collectMap发送数据失败", e);
-            }
-        }
-    }
 }

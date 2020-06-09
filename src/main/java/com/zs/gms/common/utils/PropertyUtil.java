@@ -2,6 +2,7 @@ package com.zs.gms.common.utils;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.zs.gms.common.exception.GmsException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.formula.functions.T;
 
@@ -235,6 +236,7 @@ public class PropertyUtil {
      */
     public static Properties loadProperties(String path) {
         Properties properties = new Properties();
+        getFile(path);
         try {
             properties.load(Thread.currentThread().getContextClassLoader().getResourceAsStream(path));
         } catch (IOException e) {
@@ -247,12 +249,24 @@ public class PropertyUtil {
      * 保存属性文件
      */
     public static void storeProperties(Properties properties, String path) {
-        URL url = Thread.currentThread().getContextClassLoader().getResource(".");
-        try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(url.getPath() + path), StandardCharsets.UTF_8)) {
+        try (OutputStreamWriter out = new OutputStreamWriter(new FileOutputStream(getFile(path)), StandardCharsets.UTF_8)) {
             properties.store(out, "Global Config");
         } catch (IOException e) {
             log.error("属性文件写入异常!", e);
         }
+    }
+
+    /**
+     * 创建资源文件
+     * */
+    private static File getFile(String path){
+        URL url = Thread.currentThread().getContextClassLoader().getResource("");
+        Assert.notNull(url,"路径为空!");
+        File file = new File(url.getPath()+ path);
+        if(!file.exists()){
+            throw new GmsException("资源文件不存在!");
+        }
+        return file;
     }
 
     public static void main(String[] args) {

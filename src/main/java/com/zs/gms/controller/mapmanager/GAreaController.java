@@ -696,7 +696,7 @@ public class GAreaController {
 
     @Async(value = "gmsAsyncThreadPool")
     public void saveSemiStaticData(Integer mapId){
-        log.debug("设置地图半静态层数据");
+        log.debug("redis存储地图半静态层数据,mapId={}",mapId);
         MessageEntry entry = MessageFactory.getMessageEntry(HttpContextUtil.getHttpServletResponse());
         if(entry!=null){
             String data = entry.getReturnData();

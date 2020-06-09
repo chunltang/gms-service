@@ -7,10 +7,9 @@ import com.zs.gms.entity.client.UserExcavatorLoadArea;
 import com.zs.gms.entity.mineralmanager.AreaMineral;
 import com.zs.gms.entity.monitor.*;
 import com.zs.gms.enums.monitor.DispatchStateEnum;
+import com.zs.gms.service.monitor.UnitVehicleService;
 import com.zs.gms.service.vehiclemanager.UserExcavatorLoadAreaService;
 import com.zs.gms.service.mineralmanager.AreaMineralService;
-import com.zs.gms.service.monitor.DispatchTaskService;
-import com.zs.gms.service.monitor.TaskRuleService;
 import com.zs.gms.common.entity.LimitQueue;
 import com.zs.gms.common.utils.SpringContextUtil;
 import com.zs.gms.service.monitor.DispatchStatusService;
@@ -46,7 +45,7 @@ public class VehicleDispatchStatusHandle extends AbstractVehicleStatusHandle {
 
     @Override
     public void changed(VehicleStatus vehicleStatus) {
-        log.debug("{}车辆调度状态改变:{}", vehicleStatus.getVehicleId(), ((Desc) (vehicleStatus.getStatus())).getDesc());
+        log.debug("{}车辆调度状态改变:{}", vehicleStatus.getVehicleId(), ((Desc) (vehicleStatus.getObj())).getDesc());
         super.changed(vehicleStatus);
     }
 
@@ -63,7 +62,7 @@ public class VehicleDispatchStatusHandle extends AbstractVehicleStatusHandle {
         DispatchStatus dispatchStatus = dispatchStatusService.getBaseInfo(vehicleId);
         if (Parser.notNull(dispatchStatus)) {
             dispatchStatus.setCreateTime(vehicleStatus.getCreateTime());
-            dispatchStatus.setStatus((DispatchStateEnum) (vehicleStatus.getStatus()));
+            dispatchStatus.setStatus((DispatchStateEnum) (vehicleStatus.getObj()));
             return dispatchStatus;
         }
         return null;
@@ -99,14 +98,14 @@ public class VehicleDispatchStatusHandle extends AbstractVehicleStatusHandle {
      * 数据检查
      * */
     private void checkProblem(Integer vehicleId){
-        DispatchTaskService dispatchTaskService = SpringContextUtil.getBean(DispatchTaskService.class);
-        DispatchTask dispatchTask = dispatchTaskService.getUnitByVehicleId(vehicleId);
-        if(null==dispatchTask){
+        UnitVehicleService unitVehicleService = SpringContextUtil.getBean(UnitVehicleService.class);
+        Unit unit = unitVehicleService.getUnitByVehicleId(vehicleId);
+        if(null==unit){
             log.debug("车[{}]没有分配调度单元",vehicleId);
             return;
         }
 
-        Integer bUnitId = dispatchTask.getUnitId();
+        Integer bUnitId = unit.getUnitId();
         LiveInfo liveInfo = LivePosition.getLastLiveInfo(vehicleId);
         if(null!=liveInfo){
             VehicleLiveInfo info = (VehicleLiveInfo) liveInfo;
@@ -116,15 +115,8 @@ public class VehicleDispatchStatusHandle extends AbstractVehicleStatusHandle {
             }
         }
 
-        TaskRuleService taskRuleService = SpringContextUtil.getBean(TaskRuleService.class);
-        TaskRule taskRule = taskRuleService.getTaskRuleByVehicleId(null, vehicleId);
-        if(null==taskRule){
-            log.debug("车[{}]没有分配任务规则,调度单元[{}]",vehicleId,bUnitId);
-            return;
-        }
-
         UserExcavatorLoadAreaService bindService = SpringContextUtil.getBean(UserExcavatorLoadAreaService.class);
-        Integer loadAreaId = dispatchTask.getLoadAreaId();
+        Integer loadAreaId = unit.getLoadAreaId();
         UserExcavatorLoadArea userExcavatorLoadArea = bindService.getBindByLoad(loadAreaId);
         if(null==userExcavatorLoadArea){
             log.debug("车[{}]所在调度单元[{}]的装载区[{}]没有绑定挖掘机",vehicleId,bUnitId,loadAreaId);
