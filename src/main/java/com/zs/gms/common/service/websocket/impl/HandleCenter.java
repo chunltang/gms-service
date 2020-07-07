@@ -168,7 +168,7 @@ public class HandleCenter extends AbstractFunctionHandler {
         List<Approve> approveNoMark = approveService.getApproveNoMark(key);//没有确认,针对自己的提交
         approves.addAll(approveNoMark);
         if (CollectionUtils.isNotEmpty(approves)) {
-            sendMessage(key, GmsUtil.toJson(approves), FunctionEnum.approve);
+            sendMessage(key, GmsUtil.toJsonIEnumDesc(approves), FunctionEnum.approve);
         }
     }
 

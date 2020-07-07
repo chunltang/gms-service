@@ -100,6 +100,9 @@ public class Unit implements Serializable {
     @TableField(exist = false)
     private String name;
 
+    @TableField(exist = false)
+    private Integer excavatorId;
+
 
 
     public enum Status implements IEnum, Desc {

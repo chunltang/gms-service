@@ -5,32 +5,137 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.zs.gms.common.entity.GmsResponse;
-import com.zs.gms.common.entity.RedisKeyPool;
-import com.zs.gms.common.entity.StaticConfig;
+import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.handler.IEnumDescSerializer;
 import com.zs.gms.common.handler.IEnumDeserializer;
-import com.zs.gms.common.service.RedisService;
-import com.zs.gms.entity.system.Role;
-import com.zs.gms.entity.system.User;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.MapUtils;
-import org.apache.poi.ss.formula.functions.T;
-import org.apache.shiro.SecurityUtils;
-import org.springframework.util.ObjectUtils;
+import sun.misc.BASE64Decoder;
+import sun.misc.BASE64Encoder;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
+import java.net.InetAddress;
+import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.ZipEntry;
 
 @Slf4j
 public class GmsUtil {
+
+    /**
+     * 判断ip是否可用
+     * */
+    public static boolean isAble(String ip){
+        boolean reachable = false;
+        try {
+            InetAddress address = InetAddress.getByName(ip);
+            reachable=address.isReachable(500);
+        } catch (IOException e) {
+            log.error("判断ip是否可用异常",e);
+        }
+        return reachable;
+    }
+
+    /**
+     * 获取当前时间，毫秒
+     */
+    public static long getCurTime() {
+        return System.currentTimeMillis();
+    }
+
+    /**============================项目路径===============================*/
+    /**
+     * 获取项目根目录
+     */
+    public static String getAppPath() {
+        return System.getProperty("user.dir") + File.separator;
+    }
+
+    /**
+     * 获取资源目录路径
+     */
+    public static String getResourcePath() {
+        URL url = Thread.currentThread().getContextClassLoader().getResource("");
+        if (null != url) {
+            return url.getPath();
+        }
+        return "";
+    }
+
+    /**
+     * 判断是否是jar包中,true为jar
+     */
+    public static boolean isJar() {
+        URL url = Thread.currentThread().getContextClassLoader().getResource("");
+        if (null != url) {
+            return url.getProtocol().equals("jar");
+        }
+        return false;
+    }
+
+    /**============================序列化===============================*/
+    /**
+     * 对象序列化
+     */
+    public static byte[] serializer(Object obj) {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             ObjectOutputStream os = new ObjectOutputStream(bos)) {
+            os.writeObject(obj);
+            return bos.toByteArray();
+        } catch (Exception e) {
+            log.error("对象序列化失败", e);
+        }
+        return null;
+    }
+
+    /**
+     * 对象反序列化
+     */
+    public static Object deserializer(byte[] bytes) {
+        try (ByteArrayInputStream bin = new ByteArrayInputStream(bytes);
+             ObjectInputStream in = new ObjectInputStream(bin)) {
+            return in.readObject();
+        } catch (Exception e) {
+            log.error("对象反序列化失败", e);
+        }
+        return null;
+    }
+
+    /**============================字符串操作===============================*/
+    /**
+     * 截取匹配最后字符串的后一段
+     */
+    public static String subLastStr(String key, String match) {
+        if (key.contains(match)) {
+            return key.substring(key.lastIndexOf(match) + 1);
+        }
+        return "";
+    }
+
+    /**
+     * 截取匹配最后字符串的前一段
+     */
+    public static String subIndexStr(String key, String match) {
+        if (key.contains(match)) {
+            return key.substring(0, key.lastIndexOf(match) + 1);
+        }
+        return "";
+    }
+
+    /**
+     * 字符串替换
+     */
+    public static String replaceAll(String origin, String oldStr, String newStr) {
+        return origin.replaceAll(oldStr, newStr);
+    }
+
+
+    /**============================数据类型转换===============================*/
 
     /**
      * {}匹配替换
@@ -60,75 +165,10 @@ public class GmsUtil {
     }
 
     /**
-     * 对象序列化
+     * double类型保留小数位
      * */
-    public static byte[] serializer(Object obj) {
-        try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-             ObjectOutputStream os = new ObjectOutputStream(bos)) {
-            os.writeObject(obj);
-            return bos.toByteArray();
-        } catch (Exception e) {
-            log.error("对象序列化失败",e);
-        }
-        return null;
-    }
-
-    /**
-     * 对象反序列化
-     * */
-    public static Object deserializer(byte[] bytes) {
-        try (ByteArrayInputStream bin = new ByteArrayInputStream(bytes);
-             ObjectInputStream in = new ObjectInputStream(bin)){
-            return in.readObject();
-        } catch (Exception e) {
-            log.error("对象反序列化失败",e);
-        }
-        return null;
-    }
-
-
-    /**
-     * 获取当前时间，毫秒
-     */
-    public static long getCurTime() {
-        return System.currentTimeMillis();
-    }
-
-    /**
-     * 截取匹配最后字符串的后一段
-     */
-    public static String subLastStr(String key, String match) {
-        if (key.contains(match)) {
-            return key.substring(key.lastIndexOf(match) + 1);
-        }
-        return "";
-    }
-
-    /**
-     * 截取匹配最后字符串的前一段
-     */
-    public static String subIndexStr(String key, String match) {
-        if (key.contains(match)) {
-            return key.substring(0, key.lastIndexOf(match) + 1);
-        }
-        return "";
-    }
-
-    /**
-     * 字符串替换
-     */
-    public static String replaceAll(String origin, String oldStr, String newStr) {
-        return origin.replaceAll(oldStr, newStr);
-    }
-
-    /**
-     * 获取监听库中的消息，带有枚举转换
-     */
-    public static <T> T getMessage(String key, Class<T> clazz) {
-        Object json = RedisService.get(StaticConfig.MONITOR_DB, key);
-        if (ObjectUtils.isEmpty(json))
-            return null;
-        return GmsUtil.toObjIEnum(json, clazz);
+    public static double getDoubleScale(double dob,int scale){
+        return new BigDecimal(dob).setScale(scale, BigDecimal.ROUND_HALF_UP).doubleValue();
     }
 
     /**
@@ -148,31 +188,6 @@ public class GmsUtil {
         }
     }
 
-    /**
-     * 对象属性转map，空属性、final踢出
-     */
-    public static Map<String, Object> obj2Map(Object obj) {
-        Map<String, Object> map = new HashMap<>();
-        if (obj != null) {
-            Field[] fields = obj.getClass().getDeclaredFields();
-            for (Field field : fields) {
-                if (Modifier.isFinal(field.getModifiers())) {
-                    continue;
-                }
-                field.setAccessible(true);
-                String name = field.getName();
-                try {
-                    Object value = field.get(obj);
-                    if (value != null) {
-                        map.put(name, value);
-                    }
-                } catch (IllegalAccessException e) {
-                    log.error("反射获取属性值失败", e);
-                }
-            }
-        }
-        return map;
-    }
 
     /**
      * 基础类型和包装类型转换
@@ -211,6 +226,7 @@ public class GmsUtil {
         return String.valueOf(obj);
     }
 
+    /**============================map操作===============================*/
     /**
      * put并返回value
      */
@@ -221,6 +237,32 @@ public class GmsUtil {
             map.put(key, value);
             return value;
         }
+    }
+
+    /**
+     * 对象属性转map，空属性、final踢出
+     */
+    public static Map<String, Object> obj2Map(Object obj) {
+        Map<String, Object> map = new HashMap<>();
+        if (obj != null) {
+            Field[] fields = obj.getClass().getDeclaredFields();
+            for (Field field : fields) {
+                if (Modifier.isFinal(field.getModifiers())) {
+                    continue;
+                }
+                field.setAccessible(true);
+                String name = field.getName();
+                try {
+                    Object value = field.get(obj);
+                    if (value != null) {
+                        map.put(name, value);
+                    }
+                } catch (IllegalAccessException e) {
+                    log.error("反射获取属性值失败", e);
+                }
+            }
+        }
+        return map;
     }
 
     /**
@@ -252,6 +294,10 @@ public class GmsUtil {
         }
         return false;
     }
+
+    /**
+     * ============================json转换===============================
+     */
 
     public static String toJson(Object obj) {
         ObjectMapper mapper = new ObjectMapper();
@@ -320,8 +366,63 @@ public class GmsUtil {
         return null;
     }
 
+    /**================================图片转换====================================*/
     /**
-     * =========数据判空=========
+     * 字符串转图片
+     */
+    public static boolean generateImage(String imgStr, String filePath) {
+        if (imgStr == null) {
+            return false;
+        }
+        BASE64Decoder decoder = new BASE64Decoder();
+        try {
+            // 解密
+            byte[] b = decoder.decodeBuffer(imgStr);
+            // 处理数据
+            for (int i = 0; i < b.length; ++i) {
+                if (b[i] < 0) {
+                    b[i] += 256;
+                }
+            }
+            File file = new File(filePath);
+            if (!file.getParentFile().exists()) {
+                file.getParentFile().mkdirs();
+            }
+            OutputStream out = new FileOutputStream(file);
+            ;
+            out.write(b);
+            out.flush();
+            out.close();
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+
+    }
+
+
+    /**
+     * 图片转字符串
+     */
+    public static String getImageStr(String filePath) {
+        InputStream inputStream = null;
+        byte[] data = null;
+        try {
+            inputStream = new FileInputStream(filePath);
+            data = new byte[inputStream.available()];
+            inputStream.read(data);
+            inputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // 加密
+        BASE64Encoder encoder = new BASE64Encoder();
+        return encoder.encode(data);
+    }
+
+    /**
+     * ===========================数据判空===========================
      */
     public static boolean StringNotNull(String obj) {
         return null != obj && obj.length() > 0;
@@ -348,7 +449,39 @@ public class GmsUtil {
         return true;
     }
 
+    public static boolean anyObjNotNull(Object... objs) {
+        for (Object obj : objs) {
+            if (objNotNull(obj)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static boolean arrayNotNull(Object[] array) {
         return null != array && array.length > 0;
+    }
+
+
+    public static void main(String[] args) throws IOException {
+        generate();
+    }
+
+    public static void generate() {
+        InputStream inputStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("static/abc.txt");
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        StringBuilder sb = new StringBuilder();
+        try {
+            while (true) {
+                if (!reader.ready()) break;
+                sb.append(reader.readLine());
+            }
+            reader.close();
+            inputStream.close();
+        } catch (IOException e) {
+
+        }
+        boolean generateImage = generateImage(sb.toString(), GmsConstant.STATIC_IMAGES + "test123.png");
+        System.out.println(generateImage);
     }
 }

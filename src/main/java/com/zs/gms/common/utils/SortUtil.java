@@ -93,8 +93,8 @@ public class SortUtil {
         return data.subList(beginIndex, endIndex > data.size() ? data.size() : endIndex);
     }
 
-    public static Page getPage(QueryRequest request,Map<String, Boolean> sortFiledMap){
-        Page page = new Page();
+    public static <T> Page<T> getPage(QueryRequest request,LinkedHashMap<String, Boolean> sortFiledMap,Class<T> clazz){
+        Page<T> page = new Page<>();
         List<OrderItem> orders=new ArrayList<>();
         for (String field : sortFiledMap.keySet()) {
             orders.add(new OrderItem().setColumn(field).setAsc(sortFiledMap.get(field)));

@@ -48,7 +48,7 @@ public class ExcavatorTypeController extends BaseController {
         try {
             boolean exist = this.excavatorTypeService.isExistName(excavatorType.getExcavatorTypeName());
             if (exist) {
-                return new GmsResponse().message("该挖掘机类型名称已添加").badRequest();
+                return new GmsResponse().message("该挖掘机类型名称已添加!").badRequest();
             }
             this.excavatorTypeService.addExcavatorType(excavatorType);
             return new GmsResponse().message("新增挖掘机类型成功").success();

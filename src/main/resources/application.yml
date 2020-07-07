@@ -16,7 +16,7 @@ spring:
     dynamic:
       p6spy: true  #sql打印开关
       hikari:
-        connection-timeout: 10000
+        connection-timeout: 20000
         max-lifetime: 1800000
         max-pool-size: 15
         min-idle: 5
@@ -29,11 +29,11 @@ spring:
           password: ${SERVER_PWD}
           driver-class-name: com.mysql.cj.jdbc.Driver  #192.168.42.11
           url: jdbc:mysql://${MYSQL_SERVER_HOST}:3306/gms_base?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2b8
-        quartz:
-          username: root
-          password: ${SERVER_PWD}
-          driver-class-name: com.mysql.cj.jdbc.Driver
-          url: jdbc:mysql://${MYSQL_SERVER_HOST}:3306/gms_quartz?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2b8
+#        quartz:
+#          username: root
+#          password: ${SERVER_PWD}
+#          driver-class-name: com.mysql.cj.jdbc.Driver
+#          url: jdbc:mysql://${MYSQL_SERVER_HOST}:3306/gms_quartz?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=GMT%2b8
 
   rabbitmq:
     virtual-host: /

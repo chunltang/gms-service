@@ -81,7 +81,7 @@ public class HeartBeatCheck {
                     Thread thread = Thread.currentThread();
                     DelayedService.addTask(() -> {
                         try {
-                            HeartBeatCheck.checkResult();
+                            HeartBeatCheck.checkResult(null);
                             if (!getFlag()) {//2秒后执行检查未完成，表示出现异常，则打断线程运行
                                 while (!thread.isInterrupted()) {
                                     thread.interrupt();
@@ -98,7 +98,7 @@ public class HeartBeatCheck {
                         log.error("检测心跳异常");
                     }
                 });
-        DelayedService.addTask(task, HeartBeatCheck.INTERVAL-5);
+        DelayedService.addTask(task, HeartBeatCheck.INTERVAL - 5);
     }
 
     private static long getCurLongTime() {
@@ -109,13 +109,15 @@ public class HeartBeatCheck {
         return flag;
     }
 
-    private static void checkResult() {
-        Map<String, Boolean> errorMessage = getErrorMessage();
+    private static void checkResult(Map<String, Boolean> errorMessage) {
+        if (null == errorMessage) {
+            errorMessage = getErrorMessage();
+        }
         String toJson = GmsUtil.toJson(errorMessage);
-        if(errorMessage.values().contains(false)){
+        WsUtil.sendMessage(toJson, FunctionEnum.checkServer);
+        if (errorMessage.values().contains(false)) {
             log.error("心跳检测异常结果:{}", toJson);
         }
-        WsUtil.sendMessage(toJson, FunctionEnum.checkServer);
     }
 
     private static void updateStatus(CheckStatusEnum statusEnum, boolean checkTime) {
@@ -143,6 +145,7 @@ public class HeartBeatCheck {
             }
             result.put(entry.getKey().getErrorDesc(), flag);
         }
+        result.put(CheckStatusEnum.COMM_SERVICE_STATUS.getErrorDesc(), true);
         return result;
     }
 
@@ -236,13 +239,33 @@ public class HeartBeatCheck {
         updateStatus(CheckStatusEnum.MQ_SERVICE_STATUS, result);
     }
 
+    /**
+     * ping网路服务
+     * */
+    public static void checkPing(Map<String, String> services,int step) {
+        Map<String, Boolean> checkMap = new HashMap<>();
+        for (String service : services.keySet()) {
+            boolean able = GmsUtil.isAble(services.get(service));
+            CheckStatusEnum anEnum = CheckStatusEnum.getEnum(service);
+            if (null != anEnum) {
+                checkMap.put(anEnum.getErrorDesc(), able);
+            }
+        }
+        if(checkMap.values().contains(false) && step==2){
+            checkResult(checkMap);
+        }else if(checkMap.values().contains(false) && step==1){
+            checkPing(services,++step);
+        }
+    }
+
     public enum CheckStatusEnum {
 
-        DISPATCH_SERVICE_STATUS("dispatch_service_status", "调度服务"),
-        MAP_SERVICE_STATUS("map_service_status", "地图服务"),
-        REDIS_SERVICE_STATUS("redis_service_status", "redis服务"),
-        MQ_SERVICE_STATUS("mq_service_status", "rabbitmq服务"),
-        MYSQL_SERVICE_STATUS("mysql_service_status", "mysql服务");
+        DISPATCH_SERVICE_STATUS("dispatch", "调度服务"),
+        MAP_SERVICE_STATUS("map", "地图服务"),
+        REDIS_SERVICE_STATUS("redis", "redis服务"),
+        MQ_SERVICE_STATUS("rabbitmq", "rabbitmq服务"),
+        MYSQL_SERVICE_STATUS("mysql", "mysql服务"),
+        COMM_SERVICE_STATUS("communication", "通信服务");
 
         private String key;
 
@@ -259,6 +282,15 @@ public class HeartBeatCheck {
 
         public String getErrorDesc() {
             return this.errorDesc;
+        }
+
+        public static CheckStatusEnum getEnum(String key) {
+            for (CheckStatusEnum anEnum : CheckStatusEnum.values()) {
+                if (anEnum.getKey().equals(key)) {
+                    return anEnum;
+                }
+            }
+            return null;
         }
     }
 

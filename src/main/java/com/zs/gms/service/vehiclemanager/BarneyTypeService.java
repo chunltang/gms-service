@@ -25,4 +25,6 @@ public interface BarneyTypeService extends IService<BarneyType> {
       * 改变激活状态
       * */
      void updateActive(Collection<Integer> barneyTypeIds);
+
+     boolean isExistId(String vehicleTypeName);
 }

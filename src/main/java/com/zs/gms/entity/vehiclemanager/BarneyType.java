@@ -45,8 +45,8 @@ public class BarneyType implements Serializable {
      * 载重50-500
      * */
     @TableField(value = "LOADDIGNIFIED")
-    @Max(value = 300,message = "载重不能超过300t")
-    @Min(value = 0,message = "载重不能小于0t")
+    @Max(value = 500,message = "载重不能超过500t")
+    @Min(value = 50,message = "载重不能小于50t")
     private  Double loadDignified;
 
     /**
@@ -59,8 +59,8 @@ public class BarneyType implements Serializable {
      * 装载高度5-15
      */
     @TableField(value = "LOADHEIGHT")
-    @Max(value = 20,message = "装载高度不能超过20m")
-    @Min(value = 0,message = "装载高度不能小于0m")
+    @Max(value = 15,message = "装载高度不能超过15m")
+    @Min(value = 5,message = "装载高度不能小于5m")
     private Double loadHeight;
 
 
@@ -85,7 +85,7 @@ public class BarneyType implements Serializable {
     @TableField(value = "VEHICLELENGHT")
     @NotNull(message = "车长度不能为空")
     @Max(value = 15,message = "车辆长度不能超过15m")
-    @Min(value = 5,message = "车辆长度不能小于5m")
+    @Min(value = 6,message = "车辆长度不能小于6m")
     private Double vehicleLenght;
 
     /**
@@ -102,7 +102,7 @@ public class BarneyType implements Serializable {
      * */
     @TableField(value = "VEHICLETAILAXLE")
     @NotNull(message = "后轴到车尾的距离不能为空")
-    @Max(value = 3,message = "后轴到车尾的距离不能超过3m")
+    @Max(value = 5,message = "后轴到车尾的距离不能超过5m")
     @Min(value = 1,message = "后轴到车尾的距离不能小于1m")
     private  Double vehicleTailAxle;
 
@@ -146,8 +146,8 @@ public class BarneyType implements Serializable {
      * 限速20-80
      * */
     @TableField(value = "LIMITSPEED")
-    @Max(value = 50,message = "限速不能超过50km/h")
-    @Min(value = 0,message = "限速不能小于0km/h")
+    @Max(value = 80,message = "限速不能超过80km/h")
+    @Min(value = 20,message = "限速不能小于20km/h")
     private Double limitSpeed;
 
     /**

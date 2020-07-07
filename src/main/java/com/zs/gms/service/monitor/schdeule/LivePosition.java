@@ -11,6 +11,8 @@ import com.zs.gms.entity.monitor.Monitor;
 import com.zs.gms.entity.monitor.VehicleLiveInfo;
 import com.zs.gms.enums.mapmanager.AreaTypeEnum;
 import com.zs.gms.enums.monitor.DispatchStateEnum;
+import com.zs.gms.enums.monitor.ModeStateEnum;
+import com.zs.gms.enums.monitor.TaskStateEnum;
 import com.zs.gms.service.mapmanager.MapDataUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +66,13 @@ public class LivePosition {
             showPoint.setZ(0);
 
             position.setPoint(point);
+            position.setShowPoint(showPoint);
+            position.setModeState(vehicleLiveInfo.getModeState());
+            position.setTaskState(vehicleLiveInfo.getTaskState());
+            position.setW(vehicleLiveInfo.getMonitor().getW());
+            position.setL(vehicleLiveInfo.getMonitor().getL());
+            position.setName(vehicleLiveInfo.getUserName());
+            position.setSpeed(vehicleLiveInfo.getMonitor().getCurSpeed());
             position.setDispState(vehicleLiveInfo.getDispState());
             position.setVehicleId(vehicleId);
             position.setLastVehicleLiveInfo(vehicleLiveInfo);
@@ -141,5 +150,17 @@ public class LivePosition {
          * 判断是否出了装载区,true为在装载区
          */
         private boolean isLoadArea = false;
+
+        private String name;
+
+        private Double speed;
+
+        private Double w;
+
+        private Double l;
+
+        private TaskStateEnum taskState;
+
+        private ModeStateEnum modeState;
     }
 }

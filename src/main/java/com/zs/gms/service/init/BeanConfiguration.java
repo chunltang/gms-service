@@ -1,6 +1,7 @@
 package com.zs.gms.service.init;
 
 import com.zs.gms.common.service.DelayedService;
+import com.zs.gms.common.service.nettyclient.NettyClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -23,5 +24,10 @@ public class BeanConfiguration {//先定义的bean先执行
     @Bean
     public SyncRedisData getSyncRedisData() {
         return new SyncRedisData();
+    }
+
+    @Bean
+    public NettyClient getNettyClient() {
+        return new NettyClient();
     }
 }

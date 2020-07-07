@@ -125,7 +125,7 @@ public class OtherController extends BaseController {
     @Log("获取活动地图信息")
     @GetMapping(value = "/activeMap")
     @ApiOperation(value = "获取活动地图信息", httpMethod = "GET")
-    public GmsResponse getStaticLayerInfo() throws GmsException {
+    public GmsResponse getActiveMap() throws GmsException {
         try {
             MapInfo activeMap = mapInfoService.getActiveMapInfo();
             if (null == activeMap) {
@@ -135,6 +135,20 @@ public class OtherController extends BaseController {
             return new GmsResponse().data(activeMap).success().message("获取活动地图信息成功");
         } catch (Exception e) {
             String message = "获取活动地图信息失败";
+            log.error(message, e);
+            throw new GmsException(message);
+        }
+    }
+
+    @Log("获取申请状态的地图信息")
+    @GetMapping(value = "/approveMap")
+    @ApiOperation(value = "获取申请状态的地图信息", httpMethod = "GET")
+    public GmsResponse getApproveMap() throws GmsException {
+        try {
+            MapInfo mapInfo = mapInfoService.getApproveMapInfo();
+            return new GmsResponse().data(mapInfo).success().message("获取地图信息成功");
+        } catch (Exception e) {
+            String message = "获取地图信息失败";
             log.error(message, e);
             throw new GmsException(message);
         }

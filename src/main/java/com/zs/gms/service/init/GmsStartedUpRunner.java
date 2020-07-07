@@ -6,13 +6,8 @@ import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.properties.GmsProperties;
 import com.zs.gms.common.service.DelayedService;
 import com.zs.gms.common.service.RedisService;
-import com.zs.gms.common.service.nettyclient.NettyClient;
-import com.zs.gms.common.utils.DateUtil;
-import com.zs.gms.common.utils.GmsUtil;
-import com.zs.gms.common.utils.IOUtil;
-import com.zs.gms.common.utils.SpringContextUtil;
+import com.zs.gms.common.utils.*;
 import com.zs.gms.service.mapmanager.MapDataUtil;
-import com.zs.gms.service.monitor.schdeule.LiveVapHandle;
 import com.zs.gms.service.vehiclemanager.VehicleMaintainTaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.boot.autoconfigure.cache.CacheProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -58,6 +52,7 @@ public class GmsStartedUpRunner implements ApplicationRunner {
             if(checkServiceUsed()){
                 context.close();
                 System.exit(0);
+                return;
             }
         } catch (Exception e) {
             log.error("redis start fail!", e);
@@ -82,6 +77,7 @@ public class GmsStartedUpRunner implements ApplicationRunner {
         DelayedService.addTask(this.systemInit::init, 500).withDesc("系统初始化");
         DelayedService.addTask(this::checkService, 1000).withDesc("执行心跳检测");
         DelayedService.addTask(this::loadMaintainTask, 1000).withDesc("加载维护任务");
+        //DelayedService.addTask(this::checkPing, 3000).withDesc("判断服务ip是可用");
         DelayedService.addTask(this::serviceDiscover, 5000).withDesc("服务心跳").withNum(-1);
         DelayedService.addTask(this::dispatchInit, 3000).withDesc("调度初始化");
         DelayedService.addTask(MapDataUtil::syncMap, 3000).withDesc("同步地图基础信息");
@@ -149,6 +145,18 @@ public class GmsStartedUpRunner implements ApplicationRunner {
             return true;
         }
         return false;
+    }
+
+    /**
+     * ping所有网路服务
+     * */
+    private void checkPing(){
+        String property = System.getProperty("os.name");
+        if(!property.startsWith("Win")){
+            Map<String, String> services = gmsProperties.getServices();
+            DelayedService.addTask(()->HeartBeatCheck.checkPing(services,1), 3000).withDesc("判断服务ip是可用").withNum(-1);
+
+        }
     }
 
     /**

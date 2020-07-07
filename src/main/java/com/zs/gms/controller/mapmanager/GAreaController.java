@@ -683,6 +683,7 @@ public class GAreaController {
     @ApiOperation(value = "获取动态层信息",httpMethod = "GET")
     public void getDynamicLayerInfo(@PathVariable Integer mapId) throws GmsException {
         try {
+
             Map<String,Object> paramMap=new HashMap<>();
             paramMap.put("mapId",mapId);
             String jsonStr = JSONObject.toJSON(paramMap).toString();

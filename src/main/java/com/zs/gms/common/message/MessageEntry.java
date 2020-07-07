@@ -2,10 +2,9 @@ package com.zs.gms.common.message;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zs.gms.common.annotation.MarkAspect;
 import com.zs.gms.common.entity.Message;
-import com.zs.gms.common.entity.MessageEvent;
 import com.zs.gms.common.interfaces.ResponseCallBack;
-import com.zs.gms.common.utils.GmsUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,11 +35,14 @@ public class MessageEntry {
         handles.add(callBack);
     }
 
+    public void setFirstHandle(ResponseCallBack callBack) {
+        handles.add(0,callBack);
+    }
+
     /**
      * 最后处理http响应
      * */
     private void execLastHttpHandle() {
-        //log.debug("最后处理http响应,routeKey={},messageId={}",routeKey,messageId);
         writeResult(this);
     }
 
@@ -51,7 +53,6 @@ public class MessageEntry {
         eventTypes.add(eventType);
         synchronized (this){
             if(!isEnd && eventTypes.size()==collect){
-                //log.debug("实体事件完成通知,routeKey={},messageId={}",routeKey,messageId);
                 exec();
             }
         }
@@ -62,11 +63,11 @@ public class MessageEntry {
      * */
     public void exec() {
         if(callback()){
-            //log.debug("实体事件执行完成后置处理,routeKey={},messageId={},entry={}",routeKey,messageId, GmsUtil.toJson(this));
             if (isHttp) {
                 execLastHttpHandle();
             }
         }
+        MarkAspect.clear();
     }
 
     boolean callback(){

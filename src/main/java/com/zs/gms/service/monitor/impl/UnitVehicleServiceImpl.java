@@ -2,12 +2,14 @@ package com.zs.gms.service.monitor.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zs.gms.common.annotation.Mark;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.entity.WhetherEnum;
 import com.zs.gms.common.interfaces.MarkInterface;
 import com.zs.gms.common.service.RedisService;
+import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.monitor.Unit;
 import com.zs.gms.entity.monitor.UnitVehicle;
 import com.zs.gms.mapper.monitor.UnitVehicleMapper;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -51,6 +54,20 @@ public class UnitVehicleServiceImpl extends ServiceImpl<UnitVehicleMapper, UnitV
         //获取在调度单元中的所有车辆编号
         Set<Integer> collect = unitVehicles.stream().map(UnitVehicle::getVehicleId).collect(Collectors.toSet());
         barneyService.updateVehicleStatus(collect, WhetherEnum.YES);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUnitVehicles(Integer unitId, String vehicleIds) {
+        if(GmsUtil.StringNotNull(vehicleIds)){
+            String[] split = vehicleIds.split(StringPool.COMMA);
+            List<Integer> collect = Arrays.stream(split).map(Integer::valueOf).collect(Collectors.toList());
+            LambdaQueryWrapper<UnitVehicle> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(UnitVehicle::getUnitId,unitId);
+            queryWrapper.in(UnitVehicle::getVehicleId,collect);
+            this.remove(queryWrapper);
+        }
+
     }
 
 
@@ -116,6 +133,7 @@ public class UnitVehicleServiceImpl extends ServiceImpl<UnitVehicleMapper, UnitV
 
     @Override
     @Transactional
+    @Mark(value = "清除调度单元车辆", markImpl = UnitVehicleServiceImpl.class)
     public void removeAllVehicleId(Integer unitId) {
         LambdaQueryWrapper<UnitVehicle> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(UnitVehicle::getUnitId,unitId);
@@ -140,6 +158,7 @@ public class UnitVehicleServiceImpl extends ServiceImpl<UnitVehicleMapper, UnitV
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "unitVehicles",key = "'getUnitByVehicleId'+#p1")
     public void updateStatus(Integer unitId, Integer vehicleId, WhetherEnum status) {
         LambdaUpdateWrapper<UnitVehicle> updateWrapper = new LambdaUpdateWrapper<>();
         updateWrapper.eq(UnitVehicle::getUnitId,unitId);

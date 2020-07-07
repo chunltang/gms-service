@@ -82,10 +82,12 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
     @Transactional
     public void updateVehicleStatus(Collection<Integer> vehicleNos, WhetherEnum status) {
         updateNoStatus();
-        LambdaUpdateWrapper<Barney> updateWrapper = new LambdaUpdateWrapper<>();
-        updateWrapper.set(Barney::getVehicleStatus,status);
-        updateWrapper.in(Barney::getVehicleNo,vehicleNos);
-        this.update(updateWrapper);
+        if(vehicleNos.size()>0){
+            LambdaUpdateWrapper<Barney> updateWrapper = new LambdaUpdateWrapper<>();
+            updateWrapper.set(Barney::getVehicleStatus,status);
+            updateWrapper.in(Barney::getVehicleNo,vehicleNos);
+            this.update(updateWrapper);
+        }
     }
 
     /**
@@ -199,10 +201,10 @@ public class BarneyServiceImpl extends ServiceImpl<BarneyMapper, Barney> impleme
     @Override
     @Transactional
     public IPage<Barney> getVehicleList(Barney barney, QueryRequest queryRequest) {
-        Map<String, Boolean> sortFiledMap=new HashMap<>();
+        LinkedHashMap<String, Boolean> sortFiledMap=new LinkedHashMap<>();
         sortFiledMap.put("vehicleStatus",false);
         sortFiledMap.put("vap",false);
-        return this.baseMapper.findVehicleListPage(SortUtil.getPage(queryRequest,sortFiledMap), barney);
+        return this.baseMapper.findVehicleListPage(SortUtil.getPage(queryRequest,sortFiledMap,Barney.class), barney);
     }
 
 

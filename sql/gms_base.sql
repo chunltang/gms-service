@@ -701,7 +701,7 @@ CREATE TABLE `t_approve`
     `APPROVETIME`      datetime(0) COMMENT '审批完成时间',
     `STATUS`           char(1) CHARACTER SET UTF8 COLLATE utf8_general_ci      NOT NULL COMMENT '审批状态',
     `APPROVEPROCESS`   varchar(500) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '审批过程',
-    `PARAMS`           varchar(500) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '审批提交的参数,json格式',
+    `PARAMS`           varchar(1000) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '审批提交的参数,json格式',
     `APPROVEERRORDESC` varchar(100) CHARACTER SET UTF8 COLLATE utf8_general_ci COMMENT '审批异常描述',
     `RULE`             boolean COMMENT '审批规则：false只需要一个通过，true需要全部通过',
     `APPROVEMARK`      boolean COMMENT '处理结果标记,true为提交对象查F看了数据，false为未处理，需要下次再推送',
@@ -712,7 +712,7 @@ CREATE TABLE `t_approve`
   COLLATE = utf8_general_ci COMMENT '审批表'
   ROW_FORMAT = DYNAMIC;
 
-#alter table `t_approve` modify column  `PARAMS` varchar(500);
+#alter table `t_approve` modify column  `PARAMS` varchar(1000);
 
 
 

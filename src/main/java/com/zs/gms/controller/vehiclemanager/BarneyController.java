@@ -44,7 +44,7 @@ public class BarneyController extends BaseController {
     public GmsResponse addVehicle(@Valid @MultiRequestBody Barney barney) throws GmsException {
         try {
             if (this.barneyService.queryVehicleExistNo(barney.getVehicleNo())) {
-                throw new GmsException("该车辆编号已添加");
+                return new GmsResponse().message("该车辆编号已添加!").badRequest();
             }
             this.barneyService.addVehicle(barney);
             return new GmsResponse().message("新增矿车成功").success();

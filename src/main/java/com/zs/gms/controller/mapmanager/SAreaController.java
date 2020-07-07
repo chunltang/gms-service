@@ -6,6 +6,8 @@ import com.zs.gms.common.annotation.Log;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.GmsResponse;
+import com.zs.gms.common.utils.IOUtil;
+import com.zs.gms.entity.mapmanager.MapInfo;
 import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.exception.GmsException;
@@ -26,6 +28,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.File;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -630,19 +633,38 @@ public class SAreaController extends BaseController {
     @Log("地图结束编辑")
     @PutMapping(value = "/endEdit")
     @ApiOperation(value = "地图结束编辑", httpMethod = "PUT")
-    public GmsResponse mapEndEdit(@MultiRequestBody("mapId") Integer mapId) throws GmsException {
+    public GmsResponse mapEndEdit(@MultiRequestBody("mapId") Integer mapId,
+                                  @MultiRequestBody(value = "imageStr",required = false,parseAllFields = false) String imageStr) throws GmsException {
         try {
             boolean existMapId = mapInfoService.existMapId(mapId);
             if(!existMapId){
                 return new GmsResponse().message("地图id不存在").badRequest();
             }
             MapDataUtil.releaseLock(mapId,super.getCurrentUser().getUserId().toString());
-            mapInfoService.updateLastTime(mapId,new Date());
-            return new GmsResponse().message("地图结束编辑设置成功").success();
+            generateImage(mapId,imageStr);
+            return new GmsResponse().message("地图保存成功").success();
         } catch (Exception e) {
-            String message = "地图结束编辑设置失败";
+            String message = "地图保存失败";
             log.error(message, e);
             throw new GmsException(message);
+        }
+    }
+
+    private void generateImage(Integer mapId,String imageStr){
+        if(GmsUtil.StringNotNull(imageStr)){
+            String str = imageStr.substring(imageStr.indexOf(",")+1);
+            String relativePath=GmsConstant.STATIC_IMAGES+"map_"+mapId+(GmsUtil.getCurTime())+".png";
+            String filePath=GmsUtil.getAppPath()+relativePath;
+            boolean result = GmsUtil.generateImage(str, filePath);
+            if(result){
+                MapInfo mapInfo = mapInfoService.getMapInfo(mapId);
+                String imagePath = mapInfo.getImagePath();
+                File file = new File(GmsUtil.getAppPath() + imagePath);
+                if(file.exists()){
+                    file.delete();
+                }
+                mapInfoService.setImagePath(mapId,relativePath);
+            }
         }
     }
 }

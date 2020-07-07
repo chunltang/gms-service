@@ -1,5 +1,6 @@
 package com.zs.gms.service.vehiclemanager.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -89,5 +90,13 @@ public class BarneyTypeServiceImpl extends ServiceImpl<VehicleTypeMapper, Barney
             updateWrapper.in(BarneyType::getVehicleTypeId,barneyTypeIds);
             this.update(updateWrapper);
         }
+    }
+
+    @Override
+    @Transactional
+    public boolean isExistId(String vehicleTypeName) {
+        LambdaQueryWrapper<BarneyType> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(BarneyType::getVehicleTypeName,vehicleTypeName);
+        return this.list(queryWrapper).size()>0;
     }
 }

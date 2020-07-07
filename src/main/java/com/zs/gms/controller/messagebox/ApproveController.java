@@ -5,6 +5,8 @@ import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.controller.BaseController;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.exception.GmsException;
+import com.zs.gms.common.service.GmsService;
+import com.zs.gms.common.utils.HttpContextUtil;
 import com.zs.gms.entity.messagebox.Approve;
 import com.zs.gms.entity.system.User;
 import com.zs.gms.service.messagebox.ApproveService;
@@ -16,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,34 +35,43 @@ public class ApproveController extends BaseController {
     @Log("更新审批结果")
     @PutMapping("/{approveId}")
     @ApiOperation(value = "更新审批结果", httpMethod = "PUT")
-    public GmsResponse updateProcess(@PathVariable Integer approveId,
-                                     @MultiRequestBody("userId") String userId,
-                                     @MultiRequestBody("status") Approve.Status status,
-                                     @MultiRequestBody(value = "reason", parseAllFields = false, required = false) String reason) throws GmsException {
+    public void updateProcess(@PathVariable Integer approveId,
+                              @MultiRequestBody("userId") String userId,
+                              @MultiRequestBody("status") Approve.Status status,
+                              @MultiRequestBody(value = "reason", parseAllFields = false, required = false)String reason,
+                              HttpServletResponse response) throws GmsException {
 
         if (!ObjectUtils.allNotNull(userId, status)) {
             throw new GmsException("参数异常");
         }
         try {
+            Approve app = approveService.getApprove(approveId);
+            if(null==app){
+                GmsService.callResponse(new GmsResponse().message("审批不存在或已被撤销!").badRequest(), response);
+                 return;
+            }
             User user = super.getCurrentUser();
             //提交人删除审批
             if (status.equals(Approve.Status.DELETE)) {
                 if (String.valueOf(user.getUserId()).equals(userId)) {
                     approveService.deleteApprove(approveId, status);
-                    return new GmsResponse().message("删除审批成功").success();
+                    app.setStatus(Approve.Status.DELETE);
+                    approveService.sendMessage(app);//发送取消审批
+                    GmsService.callResponse(new GmsResponse().message("取消审批成功").success(), response);
+                    return;
                 }
-                return new GmsResponse().message("当前不是审批提交人，删除审批失败").badRequest();
+                GmsService.callResponse(new GmsResponse().message("当前不是审批提交人，取消审批失败").badRequest(), response);
             } else {
                 Approve approve = approveService.updateProcess(approveId, userId, status, reason);
                 if (approve != null) {
                     approveService.sendApproveResult(approve);
-                    return new GmsResponse().message("更新审批结果成功").success();
+                    GmsService.callResponse(new GmsResponse().message("更新审批成功").success(), response);
                 } else {
-                    return new GmsResponse().message("更新审批结果失败").badRequest();
+                    GmsService.callResponse(new GmsResponse().message("更新审批失败").badRequest(), response);
                 }
             }
         } catch (Exception e) {
-            String message = "更新审批结果失败";
+            String message = "更新审批失败";
             log.error(message, e);
             throw new GmsException(message);
         }

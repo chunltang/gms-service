@@ -78,10 +78,10 @@ public class ExcavatorServiceImpl extends ServiceImpl<ExcavatorMapper, Excavator
     @Override
     @Transactional
     public IPage getExcavatorList(Excavator excavator, QueryRequest queryRequest) {
-        Map<String, Boolean> sortFiledMap=new HashMap<>();
+        LinkedHashMap<String, Boolean> sortFiledMap=new LinkedHashMap<>();
         sortFiledMap.put("vehicleStatus",false);
         sortFiledMap.put("vap",false);
-        IPage<Excavator> listPage = this.baseMapper.findExcavatorListPage(SortUtil.getPage(queryRequest,sortFiledMap), excavator);
+        IPage<Excavator> listPage = this.baseMapper.findExcavatorListPage(SortUtil.getPage(queryRequest,sortFiledMap,Excavator.class), excavator);
         List<Excavator> records = listPage.getRecords();
         listPage.setRecords(records.stream().map(e->{
             List<SemiStatic> areaInfos = MapDataUtil.getAreaInfos(e.getMapId(), AreaTypeEnum.LOAD_AREA);

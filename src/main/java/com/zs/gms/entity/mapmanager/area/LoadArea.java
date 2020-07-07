@@ -18,6 +18,10 @@ public class LoadArea extends BaseArea  implements Serializable {
     /**
      *装载类型
      * */
-    @NotBlank(message = "装载类型不能为空")
     private String loadType;
+
+    /**
+     * 车辆数量限制
+     * */
+    private Integer vehicleMax;
 }

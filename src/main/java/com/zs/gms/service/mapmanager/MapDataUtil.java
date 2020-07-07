@@ -158,7 +158,7 @@ public class MapDataUtil {
     /**
      * 获取锁状态,true为其他用户已加锁
      */
-    private static boolean getLockStatus(Integer mapId, String userId) {
+    public static boolean getLockStatus(Integer mapId, String userId) {
         Object editUser = getLockUser(mapId);
         if (null == editUser || editUser.toString().equals(userId)) {
             return false;

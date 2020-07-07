@@ -59,6 +59,9 @@ public class ScriptUtil {
         return "";
     }
 
+    /**
+     * 远程命令
+     * */
     public static List<String> execCmd(String cmd) {
         List<String> reList=new ArrayList<>();
         try{
@@ -131,17 +134,17 @@ public class ScriptUtil {
     }
 
 
-    @Value("${gms.remote.host}")
+    @Value("${REMOTE_HOST}")
     public void setHost(String host){
         this.host=host;
     }
 
-    @Value("${gms.remote.username}")
+    @Value("${REMOTE_USERNAME}")
     public void setUserName(String userName){
         this.userName=userName;
     }
 
-    @Value("${gms.remote.password}")
+    @Value("${REMOTE_PASSWORD}")
     public void setPassword(String password){
         this.password=password;
     }

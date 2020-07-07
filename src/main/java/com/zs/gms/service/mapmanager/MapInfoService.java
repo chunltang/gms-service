@@ -18,6 +18,13 @@ public interface MapInfoService {
 
     void setVersion(MapInfo.MapVersion version);
 
+    void setImagePath(Integer mapId,String filePath);
+
+    /**
+     * 是否存在空地图,true存在
+     * */
+    boolean isExistEmptyMap();
+
     /**
      * 重置地图修改时间
      * */
@@ -29,6 +36,11 @@ public interface MapInfoService {
     boolean updateInactive();
 
     /**
+     * 将申请发布改为未使用
+     * */
+    void updatePublishToUnUsed();
+
+    /**
      * 查询地图id是否已存在
      */
     boolean existMapId(Integer mapId);
@@ -36,6 +48,8 @@ public interface MapInfoService {
     MapInfo getMapInfo(Integer mapId);
 
     MapInfo getActiveMapInfo();
+
+    MapInfo getApproveMapInfo();
 
     /**
      * 修改地图信息

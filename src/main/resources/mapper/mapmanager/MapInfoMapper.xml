@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zs.gms.mapper.mapmanager.MapInfoMapper">
+
+    <select id="getMapInfoList" resultType="java.util.Map">
+        select MAPID,
+               tmi.USERID,
+               su.NAME USERNAME,
+               tmi.NAME,
+               VERSION,
+               STATUS,
+               COORDINATEORIGIN,
+               BASEMAPPATH,
+               SPEED,
+               LEFTDRING LEFTDRIVING,
+               REMARK,
+               ADDTIME,
+               UPDATETIME,
+               APPROVEID,
+               IMAGEPATH
+        from t_map_info tmi
+                 left join sys_user su on tmi.USERID = su.USERID
+        where tmi.ISDEL = false
+    </select>
+
+    <select id="getExcludeSql" resultType="string">
+        select CONCAT(' select ', GROUP_CONCAT(COLUMN_NAME), ' from ', 't_map_info')
+        from information_schema.COLUMNS
+        WHERE TABLE_NAME = 't_map_info'
+          and COLUMN_NAME not in ('USERNAME', 'ID')
+    </select>
+</mapper>

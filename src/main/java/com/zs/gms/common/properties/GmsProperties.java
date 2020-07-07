@@ -22,5 +22,7 @@ public class GmsProperties {
     private Map<String,String> queues=new HashMap<>();
     private Map<String,String> exchanges=new HashMap<>();
     private Map<String,String> monitorQueues=new HashMap<>();
+    private Map<String,String> services=new HashMap<>();
     private Map<String,List<String>>  binds=new HashMap();
+
 }

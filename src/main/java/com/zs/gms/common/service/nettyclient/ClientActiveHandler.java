@@ -1,5 +1,6 @@
 package com.zs.gms.common.service.nettyclient;
 
+import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.utils.GmsUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -28,7 +29,7 @@ public class ClientActiveHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         log.debug("成功连接服务器");
-        NettyClient.sendMessage(new WsData());
+        NettyClient.sendMessage(WsData.builder().withFuncName(FunctionEnum.login).build());
     }
 
     @Override

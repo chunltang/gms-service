@@ -4,6 +4,7 @@ import com.zs.gms.common.annotation.Log;
 import com.zs.gms.common.annotation.Mark;
 import com.zs.gms.common.annotation.MultiRequestBody;
 import com.zs.gms.common.controller.BaseController;
+import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.entity.QueryRequest;
 import com.zs.gms.common.entity.WhetherEnum;
@@ -58,7 +59,7 @@ public class ExcavatorController extends BaseController {
         try {
             boolean exist = this.excavatorService.isExistNo(excavator.getExcavatorNo());
             if (exist) {
-                return new GmsResponse().message("该挖掘机编号已添加").badRequest();
+                return new GmsResponse().message("该挖掘机编号已添加!").badRequest();
             }
             boolean existTypeId = this.excavatorTypeService.isExistTypeId(excavator.getExcavatorTypeId());
             if(!existTypeId){
@@ -230,6 +231,20 @@ public class ExcavatorController extends BaseController {
             return new GmsResponse().data(excavatorType).message("获取挖掘机类型成功").success();
         } catch (Exception e) {
             String message = "获取挖掘机类型失败";
+            log.error(message, e);
+            throw new GmsException(message);
+        }
+    }
+
+    @Log("根据用户获取挖掘机绑定信息")
+    @GetMapping("/excavators/bindInfo/{userId}")
+    @ApiOperation(value = "根据用户获取挖掘机绑定信息", httpMethod = "GET")
+    public GmsResponse getBindInfo(@PathVariable("userId") Integer userId) throws GmsException {
+        try {
+            UserExcavatorLoadArea bind = this.bindExcavatorService.getBindByUser(userId);
+            return new GmsResponse().data(bind).message("获取绑定信息成功").success();
+        } catch (Exception e) {
+            String message = "获取绑定信息失败";
             log.error(message, e);
             throw new GmsException(message);
         }

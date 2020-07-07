@@ -3,6 +3,7 @@ package com.zs.gms.service.monitor.schdeule;
 import com.zs.gms.common.entity.RedisKeyPool;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.interfaces.RedisListener;
+import com.zs.gms.common.service.GmsService;
 import com.zs.gms.common.service.RedisService;
 import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.nettyclient.WsUtil;
@@ -35,7 +36,7 @@ public class DispatchHandle implements RedisListener {
 
         switch (prefix){
             case RedisKeyPool.DISPATCH_AREA_PREFIX:
-                TaskAreaState taskState = GmsUtil.getMessage(key, TaskAreaState.class);
+                TaskAreaState taskState = GmsService.getMessage(key, TaskAreaState.class);
                 WsUtil.sendMessage(GmsUtil.toJsonIEnumDesc(taskState), FunctionEnum.taskAreaState);
                 log.debug("任务点状态变更: {}",taskState.getTaskSpots()[0].getState().getDesc());
                 break;
@@ -48,18 +49,21 @@ public class DispatchHandle implements RedisListener {
                 String unitId = GmsUtil.subLastStr(key, "_");
                 Object value = RedisService.get(StaticConfig.MONITOR_DB, key);
                 if(null!=value) {
-                    Unit.Status status = Unit.Status.getEnumTypeByValue((String) value);
-                    if(null!=status){
-                        log.debug("调度单元状态改变:{},{}",unitId,status.getDesc());
-                        unitService.updateStatus(Integer.valueOf(unitId),status);
-                        if(WsUtil.isNeed(FunctionEnum.unitStatus)) {
-                            Map<String,Object> result=new HashMap<>();
-                            result.put("unitId",unitId);
-                            result.put("status",status);
-                            WsUtil.sendMessage(GmsUtil.toJsonIEnumDesc(result),FunctionEnum.unitStatus);
+                    HashMap result = GmsUtil.toObj(value, HashMap.class);
+                    if(GmsUtil.mapNotNull(result)){
+                        Unit.Status status = Unit.Status.getEnumTypeByValue(result.getOrDefault("state","").toString());
+                        if(null!=status){
+                            log.debug("调度单元状态改变:{},{}",unitId,result);
+                            //unitService.updateStatus(Integer.valueOf(unitId),status);
+                            if(WsUtil.isNeed(FunctionEnum.unitStatus)) {
+                                result.put("state",status);
+                                WsUtil.sendMessage(GmsUtil.toJsonIEnumDesc(result),FunctionEnum.unitStatus);
+                            }
+                        }else{
+                            log.error("没有对应的调度枚举状态类型!");
                         }
                     }else{
-                        log.error("没有对应的调度枚举状态类型!");
+                        log.error("调度状态解析异常!");
                     }
                 }
                 break;

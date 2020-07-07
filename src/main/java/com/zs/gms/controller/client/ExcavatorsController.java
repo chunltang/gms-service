@@ -11,6 +11,7 @@ import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.client.UserExcavatorLoadArea;
 import com.zs.gms.entity.mapmanager.SemiStatic;
+import com.zs.gms.entity.messagebox.Approve;
 import com.zs.gms.entity.mineralmanager.AreaMineral;
 import com.zs.gms.entity.mineralmanager.Mineral;
 import com.zs.gms.entity.monitor.Unit;
@@ -188,7 +189,7 @@ public class ExcavatorsController extends BaseController {
     ) throws GmsException {
         try {
             Integer mapId = MapDataUtil.getActiveMap();
-            if(null==mapId){
+            if (null == mapId) {
                 return new GmsResponse().message("活动地图不存在!").badRequest();
             }
             if (!ObjectUtils.allNotNull(mineralId, unLoadAreaId)) {
@@ -197,12 +198,12 @@ public class ExcavatorsController extends BaseController {
             //获取挖掘机所在装载区的id;
             User user = super.getCurrentUser();
             UserExcavatorLoadArea bind = bindService.getBindByUser(user.getUserId());
-            if(null==bind){
+            if (null == bind) {
                 return new GmsResponse().message("该用户没有绑定挖掘机!").badRequest();
             }
 
             Unit unit = unitService.getUnitByLoadId(mapId, bind.getLoadAreaId());
-            if(null==unit){
+            if (null == unit) {
                 throw new GmsException("该装载区不在调度单元中!");
             }
             if (!Role.RoleSign.EXCAVATORPERSON_ROLE.getValue().equals(user.getRoleSign())) {
@@ -214,17 +215,17 @@ public class ExcavatorsController extends BaseController {
             }
             //卸载区校验
             boolean exist = MapDataUtil.isAreaExist(mapId, unLoadAreaId, AreaTypeEnum.UNLOAD_MINERAL_AREA);
-            if(!exist){
+            if (!exist) {
                 return new GmsResponse().message("活动地图不存在该卸载区!").badRequest();
             }
             AreaMineral areaMineral = areaMineralService.getAreaMineral(bind.getLoadAreaId());
             Mineral oldMineral = new Mineral();
-            if(null!=areaMineral){
+            if (null != areaMineral) {
                 oldMineral.setMineralId(areaMineral.getMineralId());
                 oldMineral.setMineralName(areaMineral.getMineralName());
             }
-
-            boolean result = addApprove(user,bind.getExcavatorId(), oldMineral,newMineral, unit.getUnitId(),bind.getLoadAreaId(), unLoadAreaId);
+            approveService.delApproveByKey(bind.getLoadAreaId(), "loaderAreaId", ApproveType.MINERALCHANGE);//重复提交删除前面的
+            boolean result = addApprove(user, bind.getExcavatorId(), oldMineral, newMineral, unit.getUnitId(), bind.getLoadAreaId(), unLoadAreaId);
             if (result) {
                 return new GmsResponse().message("更换矿种申请提交成功").success();
             } else {
@@ -237,7 +238,8 @@ public class ExcavatorsController extends BaseController {
         }
     }
 
-    private boolean addApprove(User user,Integer excavatorNo, Mineral oldMineral, Mineral newMineral, Integer unitId, Integer loadAreaId, Integer unLoadAreaId) {
+
+    private boolean addApprove(User user, Integer excavatorNo, Mineral oldMineral, Mineral newMineral, Integer unitId, Integer loadAreaId, Integer unLoadAreaId) {
         List<User> users = userService.getUsersByRoleSign(Role.RoleSign.CHIEFDESPATCHER_ROLE.getValue());
         if (CollectionUtils.isNotEmpty(users)) {
             HashSet<String> userIds = new HashSet<>();
@@ -248,6 +250,7 @@ public class ExcavatorsController extends BaseController {
             String join = String.join(StringPool.COMMA, userIds.toArray(new String[0]));
             Map<String, Object> params = new HashMap<>();
             params.put("unitId", unitId);
+            params.put("mapId", MapDataUtil.getActiveMap());
             params.put("loaderAreaId", loadAreaId);
             params.put("unLoaderAreaId", unLoadAreaId);
             params.put("excavatorNo", excavatorNo);
@@ -255,7 +258,7 @@ public class ExcavatorsController extends BaseController {
             params.put("oldMineralName", oldMineral.getMineralName());
             params.put("newMineralId", newMineral.getMineralId());
             params.put("newMineralName", newMineral.getMineralName());
-            Integer id = approveService.createApprove(params, join, user, ApproveType.MINERALCHANGE, true);
+            Integer id = approveService.createApprove(params, join, user, ApproveType.MINERALCHANGE, false);
             return null != id;
         }
         return false;

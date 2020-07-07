@@ -1,6 +1,7 @@
 package com.zs.gms.common.authentication;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zs.gms.common.annotation.MarkAspect;
 import com.zs.gms.common.entity.GmsResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.web.filter.authc.UserFilter;
@@ -57,5 +58,11 @@ public class ShiroUserFilter extends UserFilter {
         response.setHeader("Access-Control-Allow-Headers", request.getHeader("Access-Control-Request-Headers"));
         response.setHeader("Content-Type", "application/json;charset=UTF-8");
         response.setStatus(HttpStatus.OK.value());
+    }
+
+    @Override
+    public void afterCompletion(ServletRequest request, ServletResponse response, Exception exception) throws Exception {
+        MarkAspect.clear();
+        super.afterCompletion(request, response, exception);
     }
 }

@@ -86,7 +86,7 @@ public class MineralServiceImpl extends ServiceImpl<MineralMapper, Mineral> impl
     @Transactional
     public IPage<Mineral> getMineralList(QueryRequest queryRequest) {
         Page<Mineral> page=new Page<>();
-        SortUtil.handlePageSort(queryRequest,page, GmsConstant.SORT_DESC,"mineralId");
+        SortUtil.handlePageSort(queryRequest,page, GmsConstant.SORT_DESC,"activate");
         IPage<Mineral> listPage = this.baseMapper.getMineralListPage(page);
         List<Mineral> records = listPage.getRecords();
         for (Mineral record : records) {

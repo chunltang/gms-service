@@ -11,7 +11,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.Properties;
 
-@Configuration
+//@Configuration
 @Slf4j
 public class ScheduleConfig {
 
@@ -22,7 +22,7 @@ public class ScheduleConfig {
     public SchedulerFactoryBean schedulerFactoryBean(){
         Properties prop=new Properties();
         try {
-            prop.load(this.getClass().getResourceAsStream("/quartz.properties"));
+            prop.load(this.getClass().getResourceAsStream("/quartz_bak.properties"));
         } catch (IOException e) {
             log.error("quartz.properties文件不存在",e);
         }

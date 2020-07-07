@@ -2,10 +2,13 @@ package com.zs.gms.common.service;
 
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.entity.RedisKeyPool;
+import com.zs.gms.common.entity.StaticConfig;
+import com.zs.gms.common.interfaces.MarkInterface;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.system.User;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.shiro.SecurityUtils;
+import org.springframework.util.ObjectUtils;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -56,15 +59,27 @@ public class GmsService {
      * 返回前端数据
      */
     public static void callResponse(GmsResponse gmsResponse, HttpServletResponse response) {
-        response.setHeader("Content-Type", "application/json;charset=UTF-8");
-        PrintWriter writer = null;
-        try {
-            writer = response.getWriter();
-            writer.print(GmsUtil.toJson(gmsResponse));
-            writer.flush();
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        if(!response.isCommitted()){
+            response.setHeader("Content-Type", "application/json;charset=UTF-8");
+            PrintWriter writer = null;
+            try {
+                writer = response.getWriter();
+                writer.print(GmsUtil.toJson(gmsResponse));
+                writer.flush();
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+    }
+
+    /**
+     * 获取监听库中的消息，带有枚举转换
+     */
+    public static <T> T getMessage(String key, Class<T> clazz) {
+        Object json = RedisService.get(StaticConfig.MONITOR_DB, key);
+        if (ObjectUtils.isEmpty(json))
+            return null;
+        return GmsUtil.toObjIEnum(json, clazz);
     }
 }

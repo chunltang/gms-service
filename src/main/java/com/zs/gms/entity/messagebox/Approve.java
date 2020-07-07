@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.zs.gms.common.handler.ListTypeHandler;
 import com.zs.gms.common.handler.MapTypeHandler;
+import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.enums.messagebox.ApproveType;
 import lombok.Data;
 
@@ -62,14 +63,14 @@ public class Approve implements Serializable {
      * 提交时间
      * */
     @TableField(value ="CREATETIME")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date createTime;
 
     /**
      * 审批完成时间
      * */
     @TableField(value ="APPROVETIME")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date approveTime;
 
     /**
@@ -110,6 +111,13 @@ public class Approve implements Serializable {
     @TableField(value ="RULE")
     @NotNull
     private boolean rule;
+
+    public Object getParamByKey(String key){
+        if(GmsUtil.mapNotNull(this.params) && this.params.containsKey(key)){
+            return this.params.get(key);
+        }
+        return null;
+    }
 
 
     public  enum Status implements IEnum{

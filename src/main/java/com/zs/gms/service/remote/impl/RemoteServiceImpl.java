@@ -34,11 +34,11 @@ public class RemoteServiceImpl implements RemoteService, ApproveInterface {
     @Override
     public boolean updateStatus(Approve approve) {
         Integer userId = approve.getSubmitUserId();
-        WsUtil.sendMessage(String.valueOf(userId), GmsUtil.toJson(approve), FunctionEnum.approve);
+        WsUtil.sendMessage(String.valueOf(userId), GmsUtil.toJsonIEnumDesc(approve), FunctionEnum.approve);
         String userIds = approve.getApproveUserIds();
         String[] ids = userIds.split(StringPool.COMMA);
         for (String id : ids) {
-            WsUtil.sendMessage(id, GmsUtil.toJson(approve), FunctionEnum.approve);
+            WsUtil.sendMessage(id, GmsUtil.toJsonIEnumDesc(approve), FunctionEnum.approve);
         }
         return true;
     }

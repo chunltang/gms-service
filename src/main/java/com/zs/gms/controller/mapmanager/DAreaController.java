@@ -84,6 +84,9 @@ public class DAreaController extends BaseController {
     @ApiOperation(value = "删除障碍物", httpMethod = "DELETE")
     public GmsResponse removeObstacle(@PathVariable("id") Integer id,String name) throws GmsException {
         try {
+            if(approveService.isExistApproveByKey(id,"obstacleId",ApproveType.OBSTACLEDELETE)){
+                return new GmsResponse().message("该障碍物已提交删除审批!").badRequest();
+            }
             User user = super.getCurrentUser();
             boolean approve = addApprove(user, MapDataUtil.getActiveMap(), id,name);
             if(approve){
@@ -92,7 +95,7 @@ public class DAreaController extends BaseController {
                 return new GmsResponse().message("删除障碍物提交失败").badRequest();
             }
         } catch (Exception e) {
-            String message = "删除障碍物失败";
+            String message = "删除障碍物提交失败";
             log.error(message, e);
             throw new GmsException(message);
         }

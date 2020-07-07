@@ -112,7 +112,7 @@ public class MessageHandler {
                         }
                         //描述为空，则设置为业务层的输入
                         if (!GmsUtil.StringNotNull(gmsResponse.getMessage())) {
-                            gmsResponse.message(resultInfo.replaceAll(SUCCESS_DESC, FAIL_DESC));
+                            gmsResponse.message(resultInfo.replaceAll(SUCCESS_DESC, "")+FAIL_DESC);
                         }
                         //设置失败状态
                         if (mr.equals(MessageResult.RESPONSE_EXPIRE)) {
@@ -158,7 +158,7 @@ public class MessageHandler {
         JSONObject jsonObject = JSONObject.parseObject(message);
         if (!jsonObject.isEmpty() && jsonObject.containsKey(RESPONSE_MESSAGE_FIELD)) {//有返回数据
             String returnData = jsonObject.getString(RESPONSE_MESSAGE_FIELD);
-            if (!StringUtils.isEmpty(returnData)) {
+            if (!StringUtils.isEmpty(returnData) && JSONObject.isValidObject(returnData)) {
                 try {
                     JSONObject json = JSONObject.parseObject(returnData);
                     if (json.containsKey(RESPONSE_DATA_FIELD)) {

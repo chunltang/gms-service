@@ -24,6 +24,8 @@ public interface UnitService {
 
     Unit getUnitByLoadId(Integer mapId,Integer loadId);
 
+    Unit getUnitByUnloadId(Integer mapId,Integer unloadId);
+
     /**
      * 清除非指定地图的调度单元和车辆，如传的mapId为活动地图id
      * */

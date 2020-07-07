@@ -14,6 +14,8 @@ import org.apache.shiro.session.InvalidSessionException;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.SessionListener;
 import org.apache.shiro.session.UnknownSessionException;
+import org.apache.shiro.session.mgt.ExecutorServiceSessionValidationScheduler;
+import org.apache.shiro.session.mgt.SessionValidationScheduler;
 import org.apache.shiro.session.mgt.SimpleSession;
 import org.apache.shiro.session.mgt.eis.AbstractSessionDAO;
 import org.apache.shiro.session.mgt.eis.JavaUuidSessionIdGenerator;
@@ -184,7 +186,6 @@ public class ShiroConfig {
         sessionManager.setGlobalSessionTimeout(gmsProperties.getShiro().getSessionTimeout() * 1000L);
         sessionManager.setSessionListeners(listeners);
         sessionManager.setSessionDAO(sessionDAO());
-        //sessionManager.setCacheManager(cacheManager());
         //取消url 后面的 JSESSIONID
         sessionManager.setSessionIdUrlRewritingEnabled(false);
         return sessionManager;
@@ -214,6 +215,8 @@ public class ShiroConfig {
 
         private static final String AUTHORIZATION = "authorization";
 
+        private static final String TOKEN = "token";
+
         @Override
         protected Serializable getSessionId(ServletRequest request, ServletResponse response) {
             Serializable id = WebUtils.toHttp(request).getHeader(AUTHORIZATION);
@@ -227,7 +230,10 @@ public class ShiroConfig {
                 id = request.getParameter(AUTHORIZATION);
             } else {
                 log.debug("非跨域请求连接");
-                id = super.getSessionId(request, response);
+                id = request.getParameter(TOKEN);
+                if(null==id){
+                    id = super.getSessionId(request, response);
+                }
             }
             return id;
         }

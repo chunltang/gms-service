@@ -79,7 +79,16 @@ public class UnitServiceImpl extends ServiceImpl<UnitMapper, Unit> implements Un
     }
 
     @Override
+    public Unit getUnitByUnloadId(Integer mapId, Integer unloadId) {
+        LambdaQueryWrapper<Unit> queryWrapper = new LambdaQueryWrapper<Unit>();
+        queryWrapper.eq(Unit::getUnLoadAreaId,unloadId);
+        queryWrapper.eq(Unit::getMapId,mapId);
+        return this.getOne(queryWrapper);
+    }
+
+    @Override
     @Transactional
+    @Mark(value = "清除调度单元车辆", markImpl = UnitVehicleServiceImpl.class)
     public void clearUnitSAndVehicles(Integer mapId) {
         LambdaQueryWrapper<Unit> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.ne(Unit::getMapId,mapId);
@@ -151,12 +160,21 @@ public class UnitServiceImpl extends ServiceImpl<UnitMapper, Unit> implements Un
 
     @Override
     @Transactional
+    @Mark(value = "清除调度单元车辆", markImpl = UnitVehicleServiceImpl.class)
     public void updateUnit(Unit unit) {
-        this.updateById(unit);
+        LambdaUpdateWrapper<Unit> updateWrapper = new LambdaUpdateWrapper<>();
+        if(null==unit.getCycleTimes()||unit.getCycleTimes()<0){
+            updateWrapper.set(Unit::getCycleTimes,null);
+        }
+        if(null==unit.getEndTime()){
+            updateWrapper.set(Unit::getEndTime,null);
+        }
+        this.update(unit,updateWrapper);
     }
 
     @Override
     @Transactional
+    @Mark(value = "清除调度单元车辆", markImpl = UnitVehicleServiceImpl.class)
     public void updateUnitUnloadId(Integer unitId, Integer unloadId) {
         LambdaUpdateWrapper<Unit> updateWrapper = new LambdaUpdateWrapper<Unit>();
         updateWrapper.eq(Unit::getUnitId,unitId);

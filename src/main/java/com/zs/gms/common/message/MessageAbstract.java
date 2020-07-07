@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.GmsResponse;
 import com.zs.gms.common.entity.Message;
+import com.zs.gms.common.service.GmsService;
 import com.zs.gms.common.service.RabbitMqService;
 import com.zs.gms.common.utils.HttpContextUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -107,12 +108,7 @@ public abstract class MessageAbstract implements MessageInterface{
             }
             if (MessageResult.SENDING.equals(handleResult)) {//mq没有消息响应，返回失败信息
                 entry.callback();
-                response.setHeader("Content-Type", "application/json;charset=UTF-8");
-                PrintWriter writer = response.getWriter();
-                Object json = JSONObject.toJSON(new GmsResponse().fail().message("远程服务未响应!"));
-                writer.print(json);
-                writer.flush();
-                writer.close();
+                GmsService.callResponse(new GmsResponse().badRequest().message("远程服务未响应!"),response);
                 entry.setHandleResult(MessageResult.RESPONSE_EXPIRE);
                 log.error("远程调用超时:messageId={},routeKey={}",messageId,entry.getRouteKey());
                 return;
@@ -120,8 +116,6 @@ public abstract class MessageAbstract implements MessageInterface{
             log.info("正常响应远程调用:messageId={},routeKey={}",entry.getMessageId(),entry.getRouteKey());
         } catch (InterruptedException e) {
             log.error("线程休眠异常", e);
-        } catch (IOException e) {
-            log.error("HttpServletResponse 写数据异常", e);
         }
     }
 

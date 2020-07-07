@@ -51,6 +51,7 @@ public class AreaMineralServiceImpl extends ServiceImpl<AreaMineralMapper, AreaM
             areaMineral.setAddTime(new Date());
             areaMineral.setMineralName(mineral.getMineralName());
             this.save(areaMineral);
+            updateMineralActive();
             return;
         }
         log.error("添加矿种和装载区关系时，没找到对应矿种");
@@ -112,6 +113,9 @@ public class AreaMineralServiceImpl extends ServiceImpl<AreaMineralMapper, AreaM
     @Override
     @Transactional
     public boolean updateStatus(Approve approve) {
+        if(!approve.getStatus().equals(Approve.Status.APPROVEPASS)){
+            return true;
+        }
         AreaMineral areaMineral = new AreaMineral();
         Map params = approve.getParams();
         if (!GmsUtil.mapContains(params, "unitId", "unLoaderAreaId","newMineralId","loaderAreaId")) {
@@ -119,11 +123,14 @@ public class AreaMineralServiceImpl extends ServiceImpl<AreaMineralMapper, AreaM
             return false;
         }
         Object unitId = params.get("unitId");
-        Object unLoadAreaId = params.get("unLoadAreaId");
-        Object loadAreaId = params.get("loadAreaId");
+        Object unLoadAreaId = params.get("unLoaderAreaId");
+        Object loadAreaId = params.get("loaderAreaId");
         Object newMineralId = params.get("newMineralId");
+        Object mapId = params.get("mapId");
         areaMineral.setMineralId((Integer) newMineralId);
+        areaMineral.setMapId(GmsUtil.typeTransform(mapId,Integer.class));
         areaMineral.setLoadAreaId((Integer) loadAreaId);
+
         areaMineralService.addAreaMineral(areaMineral);
         Integer id = areaMineral.getId();
         if (null == id) {
@@ -131,7 +138,24 @@ public class AreaMineralServiceImpl extends ServiceImpl<AreaMineralMapper, AreaM
             ApproveUtil.addError(approve.getApproveId(),"更换矿种失败");
             return false;
         }
-        Map<String, Object> dispatchMap = new HashMap<>();
+
+        Integer submitUserId = approve.getSubmitUserId();
+        WsUtil.sendMessage(String.valueOf(submitUserId),GmsUtil.toJsonIEnumDesc(approve), FunctionEnum.approve);
+        String userIds = approve.getApproveUserIds();
+        List<ApproveProcess> process = approve.getApproveProcess();
+        Set<String> aids = new HashSet<>();
+        if(null!=process){
+            for (ApproveProcess approveProcess : process) {
+                aids.add(approveProcess.getUserId());
+            }
+        }
+        String[] ids = userIds.split(StringPool.COMMA);
+        for (String s : ids) {
+            if(!aids.contains(s)){
+                WsUtil.sendMessage(String.valueOf(submitUserId),GmsUtil.toJsonIEnumDesc(approve), FunctionEnum.approve);
+            }
+        }
+        /*Map<String, Object> dispatchMap = new HashMap<>();
         dispatchMap.put("unitId", unitId);
         dispatchMap.put("loaderType", areaMineral.getMineralName());
         dispatchMap.put("unLoaderAreaId", unLoadAreaId);
@@ -142,11 +166,12 @@ public class AreaMineralServiceImpl extends ServiceImpl<AreaMineralMapper, AreaM
                 ApproveUtil.addError(approve.getApproveId(),"远程调用失败");
             }else{
                 //修改装卸调度单元的卸载区id
+                areaMineralService.addAreaMineral(areaMineral);
                 UnitService unitService = SpringContextUtil.getBean(UnitService.class);
                 unitService.updateUnitUnloadId(GmsUtil.typeTransform(unitId,Integer.class),GmsUtil.typeTransform(unLoadAreaId,Integer.class));
             }
             Integer submitUserId = approve.getSubmitUserId();
-            WsUtil.sendMessage(String.valueOf(submitUserId),GmsUtil.toJson(approve), FunctionEnum.approve);
+            WsUtil.sendMessage(String.valueOf(submitUserId),GmsUtil.toJsonIEnumDesc(approve), FunctionEnum.approve);
             String userIds = approve.getApproveUserIds();
             List<ApproveProcess> process = approve.getApproveProcess();
             Set<String> aids = new HashSet<>();
@@ -158,11 +183,11 @@ public class AreaMineralServiceImpl extends ServiceImpl<AreaMineralMapper, AreaM
             String[] ids = userIds.split(StringPool.COMMA);
             for (String s : ids) {
                 if(!aids.contains(s)){
-                    WsUtil.sendMessage(String.valueOf(submitUserId),GmsUtil.toJson(approve), FunctionEnum.approve);
+                    WsUtil.sendMessage(String.valueOf(submitUserId),GmsUtil.toJsonIEnumDesc(approve), FunctionEnum.approve);
                 }
             }
         });
-        MessageFactory.getDispatchMessage().sendMessageNoResWithID(entry.getMessageId(), "ChangeLoadType", GmsUtil.toJson(dispatchMap));
+        MessageFactory.getDispatchMessage().sendMessageNoResWithID(entry.getMessageId(), "ChangeLoadType", GmsUtil.toJson(dispatchMap));*/
         return true;
     }
 

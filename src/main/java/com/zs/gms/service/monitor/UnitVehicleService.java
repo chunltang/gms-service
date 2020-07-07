@@ -21,6 +21,8 @@ public interface UnitVehicleService {
      * */
     void updateVehicleActive();
 
+    void deleteUnitVehicles(Integer unitId,String vehicleIds);
+
     /**
      * 清除调度单元所有车辆
      */
@@ -31,6 +33,9 @@ public interface UnitVehicleService {
      */
     boolean isExistVehicleId(Integer vehicleId);
 
+    /**
+     * 判断其他调度单元已分配该车辆
+     * */
     boolean isExistVehicleId(Integer unitId, Integer vehicleId);
 
     /**

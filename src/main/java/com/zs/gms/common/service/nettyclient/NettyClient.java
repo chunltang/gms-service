@@ -5,7 +5,9 @@ import com.zs.gms.common.entity.GmsConstant;
 import com.zs.gms.common.entity.RedisKeyPool;
 import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.service.DelayedService;
+import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.utils.GmsUtil;
+import com.zs.gms.common.utils.SpringContextUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -18,6 +20,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.aop.framework.AopContext;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.stereotype.Component;
 
 import java.nio.charset.Charset;
 
@@ -28,13 +33,18 @@ public class NettyClient {
     private final static String FUNCTION_FIELD = "funcName";
     private final static String FUNCTION_DADA = "data";
     private final static String FUNCTION_TYPE = "type";
+    public static NettyClient instance;
 
     private Channel channel;
     private Bootstrap bt;
     private String host;
     private int port;
     private NioEventLoopGroup workGroup;
-    public static NettyClient instance = new NettyClient(StaticConfig.NETTY_HOST, 8081);
+
+    public NettyClient() {
+        this(StaticConfig.NETTY_HOST, 8081);
+        NettyClient.instance=this;
+    }
 
     private NettyClient(String host, int port) {
         this.host = host;
@@ -78,7 +88,7 @@ public class NettyClient {
 
     /**
      * 关闭连接
-     * */
+     */
     public static void close() {
         instance.getChannel().close();
         instance.getWorkGroup().shutdownGracefully();
@@ -111,8 +121,31 @@ public class NettyClient {
         return buffer;
     }
 
-    @RedisLock(key = RedisKeyPool.WS_NETTY_LOCK)
+
     public static void sendMessage(WsData wsData) {
+        instance.withMessage(wsData);
+
+    }
+
+    private void withMessage(WsData wsData) {
+        switch (wsData.getFuncName()) {
+            case approve:
+            case maintainTask:
+            case collectMap:
+            case linkError:
+                send(wsData);//不做控制，产生对应类型数据必须发送
+                return;
+        }
+        NettyClient client = SpringContextUtil.getBean(NettyClient.class);
+        client.withLockMessage(wsData);
+    }
+
+    @RedisLock(key = RedisKeyPool.WS_NETTY_LOCK)
+    public void withLockMessage(WsData wsData) {
+        send(wsData);
+    }
+
+    private void send(WsData wsData) {
         Channel channel = instance.getChannel();
         if (null != channel && channel.isActive()) {
             NettyClient instance = NettyClient.instance;

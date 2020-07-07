@@ -9,4 +9,5 @@ public class Protocol {
     public static final int WITH_VEHICLEID = 0X0002;//指定车辆id为参数
     public static final int WITH_USERID = 0X0003;//指定用户
     public static final int WITH_LOGIN = 0X0004;//websocket用户连接通知
+    public static final int WITH_FUNC_ADD = 0X0005;//功能订阅
 }

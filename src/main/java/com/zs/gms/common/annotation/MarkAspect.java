@@ -25,7 +25,7 @@ public class MarkAspect {
     /**
      * 在一个处理中，同一个mark只会触发一次
      */
-    private MapThreadLocal<Class<? extends MarkInterface>,Boolean> mapThreadLocal = new MapThreadLocal();
+    private static  MapThreadLocal<Class<? extends MarkInterface>,Boolean> mapThreadLocal = new MapThreadLocal();
 
 
     @Pointcut(value = "@annotation(com.zs.gms.common.annotation.Mark)")
@@ -41,6 +41,10 @@ public class MarkAspect {
         mapThreadLocal.setValue(mark.markImpl(),true);
         log.debug("触发mark:{},impl:{}", mark.value(),mark.markImpl().getSimpleName());
         MarkInterface bean = SpringContextUtil.getBean(mark.markImpl());
-        DelayedService.addTask(bean::execute,1000).withDesc("mark任务执行");
+        bean.execute();
+    }
+
+    public static  void clear(){
+        mapThreadLocal.remove();
     }
 }

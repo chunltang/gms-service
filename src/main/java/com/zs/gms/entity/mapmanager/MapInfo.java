@@ -2,10 +2,7 @@ package com.zs.gms.entity.mapmanager;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.baomidou.mybatisplus.core.enums.IEnum;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.*;
 import com.zs.gms.common.handler.ObjectTypeHandler;
 import com.zs.gms.common.handler.PointTypeHandler;
 import lombok.Data;
@@ -83,7 +80,7 @@ public class MapInfo implements Serializable {
      */
     @NotNull(message = "靠左/右行驶不能为空")
     @TableField(value = "LEFTDRING")
-    private boolean leftDring;
+    private boolean leftDriving;
 
     /**
      * 底图文件绝对路径
@@ -104,12 +101,14 @@ public class MapInfo implements Serializable {
      * 地图创建时间
      */
     @TableField(value = "ADDTIME")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date addTime;
 
     /**
      * 地图修改时间
      */
     @TableField(value = "UPDATETIME")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date updateTime;
 
     /**
@@ -175,7 +174,7 @@ public class MapInfo implements Serializable {
     @Data
     public static class MapVersion {
 
-        private String prefix = "YM";
+        private String prefix = "YMS";
 
         private Integer bigVersion = 1;
 

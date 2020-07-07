@@ -36,6 +36,7 @@ import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -259,16 +260,17 @@ public class UserController extends BaseController {
     public GmsResponse getOnlineUsers() throws GmsException {
         try {
             List<Map<String,Object>> userList = userService.findUnitUserList();
+            Set<Integer> onLines = shiroHelper.getOnLines();
             List<Map<String,Object>> collect = userList.stream().filter(obj -> {
                 Integer userId = GmsUtil.typeTransform(obj.get("userId"), Integer.class);
-                if (shiroHelper.isOnline(userId)) {
+                if (onLines.contains(userId)) {
                     return true;
                 }
                 return false;
             }).collect(Collectors.toList());
             return new GmsResponse().data(collect).message("获取在线用户成功").success();
         } catch (Exception e) {
-            String message = "获取在线用户成功失败";
+            String message = "获取在线用户失败";
             log.error(message, e);
             throw new GmsException(message);
         }

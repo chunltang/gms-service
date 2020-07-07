@@ -118,7 +118,6 @@ public class UnitController extends BaseController {
         }
     }
 
-    //tcl 0518 新增参数mapId
     @Log("获取调度单元列表")
     @GetMapping
     @ApiOperation(value = "获取调度单元列表", httpMethod = "GET")
@@ -138,27 +137,37 @@ public class UnitController extends BaseController {
         }
     }
 
-    @Log("修改调度单元列表")
+    @Log("修改调度单元")
     @PutMapping
-    @ApiOperation(value = "修改调度单元列表", httpMethod = "PUT")
-    @ResponseBody
-    public GmsResponse updateUnit(@MultiRequestBody Unit unit) throws GmsException {
+    @ApiOperation(value = "修改调度单元", httpMethod = "PUT")
+    public void updateUnit(@MultiRequestBody Unit unit,HttpServletResponse response) throws GmsException {
         try {
             boolean existId = unitService.isExistId(unit.getUnitId());
             if (!existId) {
-                return new GmsResponse().message("调度单元不存在").badRequest();
+                 GmsService.callResponse(new GmsResponse().message("调度单元不存在").badRequest(),response);
+                 return;
             }
             String unitName = unit.getUnitName();
             if (GmsUtil.StringNotNull(unitName)) {
                 boolean existName = unitService.isExistName(unitName, unit.getUnitId());
                 if (existName) {
-                    return new GmsResponse().message("调度单元名称已存在").badRequest();
+                    GmsService.callResponse(new GmsResponse().message("调度单元名称已存在").badRequest(),response);
+                    return;
                 }
             }
-            unitService.updateUnit(unit);
-            return new GmsResponse().message("修改调度单元列表成功").success();
+            Map<String, Object> paramMap = new HashMap<>();
+            paramMap.put("unitId", unit.getUnitId());
+            paramMap.put("cycleTimes", unit.getCycleTimes());
+            paramMap.put("endTime", GmsUtil.objNotNull(unit.getEndTime())? DateUtil.getDateFormat(unit.getEndTime(),DateUtil.FULL_TIME_SPLIT_PATTERN):"");
+            MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
+            entry.setAfterHandle(()->{
+                if(MessageResult.SUCCESS.equals(entry.getHandleResult())){
+                    unitService.updateUnit(unit);
+                }
+            });
+            MessageFactory.getDispatchMessage().sendMessageWithID(entry.getMessageId(),"ModifyLoaderAIUnit",GmsUtil.toJson(paramMap),"修改调度单元成功");
         } catch (Exception e) {
-            String message = "修改调度单元列表失败";
+            String message = "修改调度单元失败";
             log.error(message, e);
             throw new GmsException(message);
         }
@@ -183,9 +192,9 @@ public class UnitController extends BaseController {
                     unitVehicleService.clearVehiclesByUnitId(unitId);
                 }
             });
-            MessageFactory.getDispatchMessage().sendMessageWithID(entry.getMessageId(), "RemoveAIUnit", JSONObject.toJSONString(paramMap), "取消调度单元成功");
+            MessageFactory.getDispatchMessage().sendMessageWithID(entry.getMessageId(), "RemoveAIUnit", JSONObject.toJSONString(paramMap), "删除调度单元成功");
         } catch (Exception e) {
-            String message = "取消调度单元失败";
+            String message = "删除调度单元失败";
             log.error(message, e);
             throw new GmsException(message);
         }

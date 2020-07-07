@@ -28,7 +28,7 @@ public class ApproveProcess implements Serializable {
     /**
      * 审批时间
      */
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss",timezone = "GMT+8")
     private Date approveTime;
 
     /**

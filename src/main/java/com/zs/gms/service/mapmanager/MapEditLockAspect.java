@@ -2,6 +2,7 @@ package com.zs.gms.service.mapmanager;
 
 import com.zs.gms.common.authentication.ShiroHelper;
 import com.zs.gms.common.entity.GmsResponse;
+import com.zs.gms.common.exception.GmsException;
 import com.zs.gms.common.service.GmsService;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.HttpContextUtil;
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 
 @Aspect
 @Slf4j
@@ -32,6 +34,10 @@ public class MapEditLockAspect {
     @Lazy
     private ShiroHelper shiroHelper;
 
+    @Autowired
+    @Lazy
+    private MapInfoService mapInfoService;
+
     @Around(value = "execution(* com.zs.gms.controller.mapmanager.SAreaController.*(..))")
     public Object before(ProceedingJoinPoint point) throws Throwable {
         User user = (User) SecurityUtils.getSubject().getPrincipal();
@@ -41,6 +47,10 @@ public class MapEditLockAspect {
         for (int i = 0; i < parameterNames.length; i++) {
             if(parameterNames[i].equals("mapId")){
                 Integer mapId= GmsUtil.typeTransform(params[i],Integer.class);
+                Integer activeMap = MapDataUtil.getActiveMap();
+                if(activeMap!=null && activeMap.equals(mapId)){
+                    throw new GmsException("活动地图不可编辑!");
+                }
                 if(GmsUtil.allObjNotNull(user,mapId)){
                     boolean editLock = MapDataUtil.editLock(mapId, user.getUserId().toString());
                     if(!editLock){
@@ -57,6 +67,7 @@ public class MapEditLockAspect {
                         GmsService.callResponse(gmsResponse,response);
                         return null;
                     }
+                    mapInfoService.updateLastTime(mapId,new Date());
                 }
             }
         }

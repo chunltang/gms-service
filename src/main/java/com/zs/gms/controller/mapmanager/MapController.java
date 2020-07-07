@@ -18,10 +18,13 @@ import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.entity.mapmanager.MapConfig;
 import com.zs.gms.entity.init.GmsGlobalConfig;
 import com.zs.gms.entity.mapmanager.MapInfo;
+import com.zs.gms.enums.messagebox.ApproveType;
 import com.zs.gms.service.common.GmsConfigService;
+import com.zs.gms.service.mapmanager.MapDataUtil;
 import com.zs.gms.service.mapmanager.MapInfoService;
 import com.zs.gms.entity.system.Role;
 import com.zs.gms.entity.system.User;
+import com.zs.gms.service.messagebox.ApproveService;
 import com.zs.gms.service.system.UserService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -55,6 +58,9 @@ public class MapController extends BaseController {
 
     @Autowired
     private GmsConfigService gmsConfigService;
+
+    @Autowired
+    private ApproveService approveService;
 
     @Log("开始地图采集")
     @PutMapping("/startCollection")
@@ -136,6 +142,11 @@ public class MapController extends BaseController {
                 GmsService.callResponse(new GmsResponse().badRequest().message("请先添加全局属性!"),response);
                 return;
             }
+            boolean emptyMap = mapInfoService.isExistEmptyMap();
+            if(emptyMap){
+                GmsService.callResponse(new GmsResponse().badRequest().message("已存在空地图!"),response);
+                return;
+            }
             MapInfo.MapVersion version = mapInfoService.getVersion();
             if(null!=isBigVersion && isBigVersion){
                 version.setBigVersion(version.getBigVersion()+1);
@@ -147,7 +158,7 @@ public class MapController extends BaseController {
             mapInfo.setName(mapConfig.getMapName());
             mapInfo.setVersion(version);
             mapInfo.setCoordinateOrigin(mapConfig.getCoordinateOrigin());
-            mapInfo.setLeftDring(mapConfig.isLeftDring());
+            mapInfo.setLeftDriving(mapConfig.isLeftDring());
             mapInfo.setSpeed(mapConfig.getSpeed());
             String jsonStr = GmsUtil.toJson(mapInfo);
             MessageEntry entry = MessageFactory.createMessageEntry(GmsConstant.MAP);
@@ -282,8 +293,10 @@ public class MapController extends BaseController {
     public GmsResponse mapPublish(@PathVariable Integer mapId, @MultiRequestBody("userIds") String userIds) throws GmsException {
         submitCheck(userIds);
         try {
-            mapInfoService.submitPublishMap(mapId, userIds, super.getCurrentUser());
-            return new GmsResponse().message("发布地图提交成功").success();
+            approveService.delAllApproveByKey(ApproveType.MAPPUBLISH);
+            //mapInfoService.updatePublishToUnUsed();
+            boolean result = mapInfoService.submitPublishMap(mapId, userIds, super.getCurrentUser());
+            return new GmsResponse().message("发布地图审批提交成功").success();
             /*boolean result = mapInfoService.submitPublishMap(mapId, userIds, super.getCurrentUser());
             if (result) {
                 return new GmsResponse().message("发布地图提交成功").success();
@@ -322,6 +335,11 @@ public class MapController extends BaseController {
     @ApiOperation(value = "地图删除", httpMethod = "DELETE")
     public void deleteMap(@PathVariable Integer mapId, HttpServletResponse response) throws GmsException {
         try {
+            boolean lockStatus = MapDataUtil.getLockStatus(mapId,"");
+            if(lockStatus){
+                GmsService.callResponse(new GmsResponse().message("该地图正在被编辑，不能删除!").badRequest(),response);
+                return;
+            }
             boolean existMapId = mapInfoService.existMapId(mapId);
             if (existMapId){
                 MapInfo activeMapInfo = mapInfoService.getActiveMapInfo();

@@ -74,16 +74,18 @@ public class ApproveServiceImpl extends ServiceImpl<ApproveMapper, Approve> impl
     /**
      * 审批创建成功，推送消息给提交人和审批人
      * */
+    @Override
+    @Transactional
     public void sendMessage(Approve approve){
         Assert.notNull(approve,"approve不能为空");
         String userIds = approve.getApproveUserIds();
         //发给提交人
-        WsUtil.sendMessage(String.valueOf(approve.getSubmitUserId()), GmsUtil.toJson(approve), FunctionEnum.approve);
+        WsUtil.sendMessage(String.valueOf(approve.getSubmitUserId()), GmsUtil.toJsonIEnumDesc(approve), FunctionEnum.approve);
         //发给审批人
         if(StringUtils.isNotEmpty(userIds)){
             String[] ids = userIds.split(StringPool.COMMA);
             for (String id : ids) {
-                WsUtil.sendMessage(id, GmsUtil.toJson(approve), FunctionEnum.approve);
+                WsUtil.sendMessage(id, GmsUtil.toJsonIEnumDesc(approve), FunctionEnum.approve);
             }
         }
     }
@@ -200,7 +202,7 @@ public class ApproveServiceImpl extends ServiceImpl<ApproveMapper, Approve> impl
     @Override
     @Transactional
     public void cancel(Approve approve) {
-        if(approve.getStatus().equals(Approve.Status.WAIT)){
+        if(approve.getStatus().equals(Approve.Status.WAIT)||approve.getStatus().equals(Approve.Status.DELETE)){
             ApproveType approveType = approve.getApproveType();
             if(approveType!=null){
                 ApproveInterface approveInterface=SpringContextUtil.getBean(approveType.getHandler());
@@ -224,7 +226,6 @@ public class ApproveServiceImpl extends ServiceImpl<ApproveMapper, Approve> impl
     @Override
     @Transactional
     public List<Approve> getApproveRemaining(String userId) {
-        deleteOtherApprove();
         List<Approve> result=new ArrayList<>();
         LambdaQueryWrapper<Approve> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Approve::getStatus,Approve.Status.WAIT);
@@ -263,7 +264,6 @@ public class ApproveServiceImpl extends ServiceImpl<ApproveMapper, Approve> impl
     @Override
     @Transactional
     public List<Approve> getApproveNoMark(String userId) {
-        deleteOtherApprove();
         LambdaQueryWrapper<Approve> queryWrapper = new LambdaQueryWrapper<>();
         queryWrapper.eq(Approve::getSubmitUserId,userId);
         queryWrapper.eq(Approve::isApproveMark,false);
@@ -287,5 +287,57 @@ public class ApproveServiceImpl extends ServiceImpl<ApproveMapper, Approve> impl
         updateWrapper.set(Approve::getStatus,Approve.Status.APPROVEERROR);
         updateWrapper.set(Approve::getApproveErrorDesc,error);
         this.update(updateWrapper);
+    }
+
+    @Override
+    @Transactional
+    public List<Approve> getApproveListByType(ApproveType approveType) {
+        LambdaQueryWrapper<Approve> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(Approve::getApproveType,approveType);
+        queryWrapper.eq(Approve::getStatus,Approve.Status.WAIT);
+        return this.list(queryWrapper);
+    }
+
+    /**
+     * 删除已有审批
+     * */
+    @Override
+    @Transactional
+    public void delApproveByKey(Object val,String key,ApproveType approveType){
+        List<Approve> approves = getApproveListByType(approveType);
+        if(GmsUtil.CollectionNotNull(approves)){
+            for (Approve approve : approves) {
+                Object value = approve.getParamByKey(key);
+                if(null!=value && value.equals(val)){
+                    deleteApprove(approve.getApproveId(),Approve.Status.DELETE);
+                }
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void delAllApproveByKey(ApproveType approveType) {
+        List<Approve> approves = getApproveListByType(approveType);
+        if(GmsUtil.CollectionNotNull(approves)){
+            for (Approve approve : approves) {
+                deleteApprove(approve.getApproveId(),Approve.Status.DELETE);
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public boolean isExistApproveByKey(Object val,String key,ApproveType approveType){
+        List<Approve> approves = getApproveListByType(approveType);
+        if(GmsUtil.CollectionNotNull(approves)){
+            for (Approve approve : approves) {
+                Object value = approve.getParamByKey(key);
+                if(null!=value && value.equals(val)){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

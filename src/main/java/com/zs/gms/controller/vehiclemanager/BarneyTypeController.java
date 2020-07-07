@@ -39,6 +39,10 @@ public class BarneyTypeController extends BaseController {
     @ApiOperation(value = "新增车辆类型",httpMethod = "POST")
     public GmsResponse addVehicleType(@Valid @MultiRequestBody BarneyType barneyType) throws GmsException {
         try {
+            boolean existId = barneyTypeService.isExistId(barneyType.getVehicleTypeName());
+            if(existId){
+                return new GmsResponse().message("该车辆类型名称已添加!").badRequest();
+            }
             this.barneyTypeService.addVehicleType(barneyType);
             return new GmsResponse().message("新增车辆类型成功").success();
         }catch (Exception e){

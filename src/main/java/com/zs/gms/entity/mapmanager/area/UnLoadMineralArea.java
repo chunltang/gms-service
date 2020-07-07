@@ -18,6 +18,5 @@ public class UnLoadMineralArea extends BaseArea  implements Serializable {
     /**
      * 卸矿类型
      * */
-    @NotBlank(message = "卸矿类型不能为空")
     private String unloadType;
 }

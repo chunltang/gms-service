@@ -80,5 +80,5 @@ public class RedisKeyPool {
 
     public final static String MAP_COLLECTION_LOCK = "map_collection_lock";//地图采集锁键
 
-    public final static String WS_NETTY_LOCK = "ws_netty_lock";//地图采集锁键
+    public final static String WS_NETTY_LOCK = "ws_netty_lock";//ws数据发送
 }

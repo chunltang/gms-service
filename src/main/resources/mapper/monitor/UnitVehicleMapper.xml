@@ -13,7 +13,7 @@
     </select>
 
     <select id="getAllVehicles" resultType="map">
-        select tv.VEHICLENO vehicleId, tuv.UNITID unitId,tu.UNITNAME
+        select tv.VEHICLENO vehicleId, tuv.UNITID unitId,tu.UNITNAME,tv.VAP
         from t_vehicle tv
                  left join (select t.VEHICLEID, t.UNITID from t_unit_vehicle t where t.ISDEL = false) tuv
                            on tv.VEHICLENO = tuv.VEHICLEID

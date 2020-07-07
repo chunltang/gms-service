@@ -17,6 +17,7 @@ public enum FunctionEnum {
     console,//控制台
     linkError,//异常信息
     dispatchProcess,//调度任务过程
+    login,//java客服端登录认证
 
     partPath,//局部路径
     fault,//告警信息

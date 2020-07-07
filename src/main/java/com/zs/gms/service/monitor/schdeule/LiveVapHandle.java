@@ -1,15 +1,19 @@
 package com.zs.gms.service.monitor.schdeule;
 
 import com.zs.gms.common.configure.EventPublisher;
-import com.zs.gms.common.entity.*;
+import com.zs.gms.common.entity.GmsResponse;
+import com.zs.gms.common.entity.MessageEvent;
+import com.zs.gms.common.entity.RedisKeyPool;
+import com.zs.gms.common.entity.StaticConfig;
 import com.zs.gms.common.interfaces.RedisListener;
 import com.zs.gms.common.message.EventType;
 import com.zs.gms.common.message.MessageEntry;
 import com.zs.gms.common.message.MessageFactory;
 import com.zs.gms.common.properties.ErrorCode;
+import com.zs.gms.common.service.GmsService;
 import com.zs.gms.common.service.RedisService;
-import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.service.nettyclient.WsUtil;
+import com.zs.gms.common.service.websocket.FunctionEnum;
 import com.zs.gms.common.utils.GmsUtil;
 import com.zs.gms.common.utils.SpringContextUtil;
 import com.zs.gms.entity.mapmanager.point.AnglePoint;
@@ -22,8 +26,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.http.HttpStatus;
 
-import java.util.*;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 /**
  * 实时数据处理
  */
@@ -65,7 +71,7 @@ public class LiveVapHandle implements RedisListener {
         switch (prefix) {
             case RedisKeyPool.VAP_BASE_PREFIX:
                 //车辆基本信息
-                VehicleLiveInfo info = GmsUtil.getMessage(key, VehicleLiveInfo.class);
+                VehicleLiveInfo info = GmsService.getMessage(key, VehicleLiveInfo.class);
                 if (null == info) {
                     log.error("车辆基本信息获取转换失败!");
                     return;
@@ -84,15 +90,11 @@ public class LiveVapHandle implements RedisListener {
                 break;
             case RedisKeyPool.VAP_PATH_PREFIX:
                 //交互式路径请求
-                getGlobalPath(key, false);
-                //全局路径
-                /*if (WsUtil.isNeed(globalPath)) {
-                    GlobalPath globalPath = getGlobalPath(key, false);
-                    WsUtil.sendMessage(GmsUtil.toJson(FunctionEnum.globalPath), FunctionEnum.globalPath);
-                }*/
+                GlobalPath globalPath = getGlobalPath(key, false);
+                WsUtil.sendMessage(GmsUtil.toJsonIEnumDesc(globalPath), FunctionEnum.globalPath);
                 break;
             case RedisKeyPool.VAP_COLLECTION_PREFIX:
-                info = GmsUtil.getMessage(key, VehicleLiveInfo.class);
+                info = GmsService.getMessage(key, VehicleLiveInfo.class);
                 MapDataUtil.mapCollection(info, info.getVehicleId());
                 break;
             case RedisKeyPool.VAP_TRAIL_PREFIX:
@@ -131,8 +133,8 @@ public class LiveVapHandle implements RedisListener {
         Object obj = getVehicleBaseInfo(vehicleId);
         boolean flag = false;
         Monitor monitor = vehicleLiveInfo.getMonitor();
-        Double xWorld = monitor.getXworld();
-        Double yWorld = monitor.getYworld();
+        double xWorld = monitor.getXworld();
+        double yWorld = monitor.getYworld();
         if (null != obj) {
             BarneyType barneyType = GmsUtil.toObj(obj, BarneyType.class);
             if (barneyType != null) {
@@ -148,12 +150,12 @@ public class LiveVapHandle implements RedisListener {
                 monitor.setL(vehicleLength);
                 Double vehicleTailAxle = barneyType.getVehicleTailAxle();
                 if (vehicleLength > 0 && vehicleTailAxle != null && vehicleTailAxle > 0 && vehicleLength / 2 > vehicleTailAxle) {
-                    Double yawAngle = monitor.getYawAngle();
-                    Double s = vehicleLength / 2 - vehicleTailAxle;
-                    Double x = xWorld + s * Math.cos(yawAngle);
-                    Double y = yWorld + s * Math.sin(yawAngle);
-                    monitor.setX(x);
-                    monitor.setY(y);
+                    double yawAngle = monitor.getYawAngle();
+                    double s = vehicleLength / 2 - vehicleTailAxle;
+                    double x = xWorld + s * Math.cos(yawAngle);
+                    double y = yWorld + s * Math.sin(yawAngle);
+                    monitor.setX(GmsUtil.getDoubleScale(x,2));
+                    monitor.setY(GmsUtil.getDoubleScale(y,2));
                     flag = true;
                 }
             }
@@ -315,4 +317,5 @@ public class LiveVapHandle implements RedisListener {
     public void listener(String key) {
         handleVehMessage(key);
     }
+
 }

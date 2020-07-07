@@ -3,6 +3,7 @@ package com.zs.gms.service.messagebox;
 import com.zs.gms.entity.messagebox.Approve;
 import com.zs.gms.entity.system.User;
 import com.zs.gms.enums.messagebox.ApproveType;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,9 @@ public interface ApproveService {
     Integer createApprove(Map<String,Object> params, String userIds, User user, ApproveType approveType, boolean rule);
 
     Approve getApprove(Integer approveId);
+
+    void sendMessage(Approve approve);
+
     /**
      * 删除提交
      * */
@@ -59,4 +63,23 @@ public interface ApproveService {
      * 添加异常信息
      * */
      void addError(Integer approveId,String error);
+
+     /**
+      * 查询对应类型的审批提交记录,是等待中的审批
+      * */
+     List<Approve> getApproveListByType(ApproveType approveType);
+
+     /**
+      * @param val 要匹配的参数
+      * @param key 要匹配的key
+      * @param approveType 要匹配的类型
+      * */
+     void delApproveByKey(Object val,String key,ApproveType approveType);
+
+     void delAllApproveByKey(ApproveType approveType);
+
+     /**
+      * 是否存在对应参数和类型的审批,true为存在
+      * */
+     boolean isExistApproveByKey(Object val,String key,ApproveType approveType);
 }

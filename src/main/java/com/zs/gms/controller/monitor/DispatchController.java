@@ -153,10 +153,10 @@ public class DispatchController extends BaseController {
     @ApiOperation(value = "停止车辆", httpMethod = "PUT")
     public void stopVehicle(@MultiRequestBody("vehicleId") Integer vehicleId, HttpServletResponse response) throws GmsException {
         try {
-            startOrStopVehicle(vehicleId, response, WhetherEnum.NO, "StopVehTask", "停止车辆成功");
+            startOrStopVehicle(vehicleId, response, WhetherEnum.NO, "StopVehTask", "成功发送停车指令");
         } catch (
                 Exception e) {
-            String message = "停止车辆失败";
+            String message = "发送停车指令失败";
             log.error(message, e);
             throw new GmsException(message);
         }

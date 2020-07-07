@@ -55,6 +55,16 @@ public class GmsConstant {
     public final static String TEMP_DIR ="/temp";
 
     /**
+     * 图片静态资源
+     * */
+    public final static String STATIC_IMAGES ="images/";
+
+    /**
+     * 资源目录
+     * */
+    public final static String RESOURCE_PATH ="src/main/resources/";
+
+    /**
      * 图标库
      * */
     public final static String ICON_LIB="/icon";

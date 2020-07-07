@@ -153,10 +153,10 @@
         </dependency>
 
         <!-- 任务调度 -->
-        <dependency>
+        <!--<dependency>
             <groupId>org.quartz-scheduler</groupId>
             <artifactId>quartz</artifactId>
-        </dependency>
+        </dependency>-->
 
         <!-- lettuce pool 缓存连接池 -->
         <dependency>
@@ -245,6 +245,14 @@
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger-ui</artifactId>
             <version>${swagger.ui}</version>
+        </dependency>
+
+        <!--junit-->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <scope>test</scope>
         </dependency>
 
         <!--热部署-->

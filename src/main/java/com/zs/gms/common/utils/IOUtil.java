@@ -33,7 +33,7 @@ public class IOUtil {
         if (!temp.exists()) {
             temp.mkdirs();
         }
-        File target = new File(tempDir +File.separator+ fileName + ".zip");
+        File target = new File(tempDir + File.separator + fileName + ".zip");
         try (FileOutputStream os = new FileOutputStream(target);
              ZipOutputStream zos = new ZipOutputStream(os, Charset.forName("UTF-8"))) {
             for (File file : files) {
@@ -107,10 +107,10 @@ public class IOUtil {
 
     /**
      * 删除目录
-     * */
-    public static void delDir(File file){
-        List<File> files=new ArrayList<>();
-        listFiles(file,files);
+     */
+    public static void delDir(File file) {
+        List<File> files = new ArrayList<>();
+        listFiles(file, files);
         for (File f : files) {
             f.delete();
         }
@@ -123,14 +123,14 @@ public class IOUtil {
      * @param path 解压路径，以斜杠结尾
      */
     public static void unZip(InputStream is, String path) {
-        createDir(path,true);
+        createDir(path, true);
         ZipEntry entry;
         FileOutputStream fos = null;
         ZipInputStream zis = new ZipInputStream(is, Charset.forName("GBK"));
         try {
             while ((entry = zis.getNextEntry()) != null) {
                 String name = entry.getName();
-                File target = new File(path+ name);
+                File target = new File(path + name);
                 if (entry.isDirectory()) {
                     if (!target.exists()) {
                         target.mkdirs();
@@ -148,23 +148,24 @@ public class IOUtil {
         }
     }
 
-    public static void deCompression(InputStream is, String path, FileInfo.CompressedFileType type){
-          switch (type){
-              case RAR:
-                  unRar(is,path);
-                  break;
-              case ZIP:
-                  unZip(is,path);
-                  break;
-                  default:
-                      log.debug("解压类型不存在");
-          }
+    public static void deCompression(InputStream is, String path, FileInfo.CompressedFileType type) {
+        switch (type) {
+            case RAR:
+                unRar(is, path);
+                break;
+            case ZIP:
+                unZip(is, path);
+                break;
+            default:
+                log.debug("解压类型不存在");
+        }
     }
 
     /**
      * 5.0之后的版本不能解压
+     *
      * @param path 解压目录，以斜杠结尾
-     * */
+     */
     public static void unRar(InputStream is, String path) {
         Archive archive = null;
         try {
@@ -183,7 +184,7 @@ public class IOUtil {
             }
             archive.close();
         } catch (Exception e) {
-            log.error("解压rar文件异常",e);
+            log.error("解压rar文件异常", e);
         }
     }
 
@@ -219,11 +220,12 @@ public class IOUtil {
 
     /**
      * 创建多级文件
+     *
      * @param filePath 最后以文件名结尾
      */
     public static File createMultiFile(String filePath) {
         File file = new File(filePath);
-        if(!file.getParentFile().exists()){
+        if (!file.getParentFile().exists()) {
             file.getParentFile().mkdirs();
         }
         return createFile(filePath);
